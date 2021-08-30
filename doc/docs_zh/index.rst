@@ -74,6 +74,12 @@ Welcome to Tengine's documentation!
   source_compile/compile_opencl  
   source_compile/compile_tensort
   source_compile/compile_timvx
+  source_compile/compile_ohos
+  source_compile/compile_visual_studio
+  source_compile/compile_vulkan
+  source_compile/demo_videocapture
+  source_compile/deploy_SuperEdge
+  source_compile/dla_opendla
 
 .. toctree::
   :maxdepth: 1

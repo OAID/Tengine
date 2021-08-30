@@ -39,13 +39,21 @@
 
 #define INTERP_MIN(a, b) ((a) < (b) ? (a) : (b))
 
-void linear_coeffs(int w, int outw, int* xofs, float* alpha)
+static void linear_coeffs(int w, int outw, int* xofs, float* alpha, int align_corner)
 {
     double scale = (double)w / outw;
-
+    if (align_corner)
+    {
+        scale = (double)(w - 1) / (outw - 1);
+    }
     for (int dx = 0; dx < outw; dx++)
     {
-        float fx = (float)((dx)*scale);
+        float fx = (float)((dx + 0.5) * scale - 0.5);
+        if (align_corner)
+        {
+            fx = (float)(dx * scale);
+        }
+
         int sx = floor(fx);
         fx -= sx;
 
@@ -193,7 +201,7 @@ int ref_interp_fp32(struct tensor* input_tensor, struct tensor* output_tensor, s
             }
         }
     }
-    else if (param->resize_type == 2)
+    else if (param->resize_type == 2 || param->resize_type == 4)
     {
         float* input = (float*)input_tensor->data;
         float* output = (float*)output_tensor->data;
@@ -222,8 +230,9 @@ int ref_interp_fp32(struct tensor* input_tensor, struct tensor* output_tensor, s
         float* alpha = (float*)(buf + param->output_width + param->output_height);                          //new float[ow * 2];
         float* beta = (float*)(buf + param->output_width + param->output_height + param->output_width * 2); //new float[oh * 2];
 
-        linear_coeffs(in_w, out_w, xofs, alpha);
-        linear_coeffs(in_h, out_h, yofs, beta);
+        int align_corner = param->resize_type == 2 ? 0 : 1;
+        linear_coeffs(in_w, out_w, xofs, alpha, align_corner);
+        linear_coeffs(in_h, out_h, yofs, beta, align_corner);
 
         for (int q = 0; q < channel; ++q)
         {
@@ -237,6 +246,115 @@ int ref_interp_fp32(struct tensor* input_tensor, struct tensor* output_tensor, s
         TLOG_ERR("interp resize type %d not support!\n", param->resize_type);
         return -1;
     }
+
+    return 0;
+}
+
+int ref_interp_int8(struct tensor* input_tensor, struct tensor* output_tensor, struct interp_param* param)
+{
+    /* dequant */
+    int input_total_size = input_tensor->elem_num;
+    int output_total_size = output_tensor->elem_num;
+
+    int8_t* input_int8 = (int8_t*)input_tensor->data;
+    int8_t* output_int8 = (int8_t*)output_tensor->data;
+    float input_scale = input_tensor->scale;
+    float output_scale = output_tensor->scale;
+    int32_t input_zero = input_tensor->zero_point;
+    int32_t output_zero = output_tensor->zero_point;
+
+    float* input_fp32 = (float*)sys_malloc(input_total_size * sizeof(float));
+    float* output_fp32 = (float*)sys_malloc(output_total_size * sizeof(float));
+
+    for (int i = 0; i < input_total_size; i++)
+    {
+        input_fp32[i] = ((float)input_int8[i] - (float)input_zero) * input_scale;
+    }
+
+    /* process */
+    if (param->resize_type == 1)
+    {
+        int batch = output_tensor->dims[0];
+        int channel = output_tensor->dims[1];
+        int output_h = output_tensor->dims[2];
+        int output_w = output_tensor->dims[3];
+        int input_h = input_tensor->dims[2];
+        int input_w = input_tensor->dims[3];
+
+        for (int n = 0; n < batch; ++n)
+        {
+            for (int c = 0; c < channel; c++)
+            {
+                for (int h = 0; h < output_h; h++)
+                {
+                    for (int w = 0; w < output_w; w++)
+                    {
+                        int in_w = w / param->width_scale;
+                        int in_h = h / param->height_scale;
+                        int out_idx = n * channel * output_h * output_w + c * output_h * output_w + h * output_w + w;
+                        int in_idx = n * channel * input_h * input_w + c * input_w * input_h + in_h * input_w + in_w;
+                        output_fp32[out_idx] = input_fp32[in_idx];
+                    }
+                }
+            }
+        }
+    }
+    else if (param->resize_type == 2 || param->resize_type == 4)
+    {
+        int batch = input_tensor->dims[0];
+        int channel = input_tensor->dims[1];
+        int in_h = input_tensor->dims[2];
+        int in_w = input_tensor->dims[3];
+        int out_h = output_tensor->dims[2];
+        int out_w = output_tensor->dims[3];
+
+        int in_channel_size = in_h * in_w;
+        int out_channel_size = out_h * out_w;
+
+        int* buf = (int*)sys_malloc((param->output_width + param->output_height + param->output_width * 2 + param->output_height * 2) * sizeof(float));
+
+        if (buf == NULL)
+        {
+            TLOG_ERR("interp malloc failed!\n");
+            return -1;
+        }
+
+        int* xofs = buf;                       //new int[ow];
+        int* yofs = buf + param->output_width; //new int[oh];
+
+        float* alpha = (float*)(buf + param->output_width + param->output_height);                          //new float[ow * 2];
+        float* beta = (float*)(buf + param->output_width + param->output_height + param->output_width * 2); //new float[oh * 2];
+
+        int align_corner = param->resize_type == 2 ? 0 : 1;
+        linear_coeffs(in_w, out_w, xofs, alpha, align_corner);
+        linear_coeffs(in_h, out_h, yofs, beta, align_corner);
+
+        for (int q = 0; q < channel; ++q)
+        {
+            resize_bilinear_image(input_fp32 + in_channel_size * q, output_fp32 + out_channel_size * q, alpha, xofs, beta, yofs, out_h, out_w, in_h, in_w);
+        }
+
+        sys_free(buf);
+    }
+    else
+    {
+        TLOG_ERR("interp resize type %d not support!\n", param->resize_type);
+        return -1;
+    }
+
+    /* quant */
+    for (int i = 0; i < output_total_size; i++)
+    {
+        int idata = round(output_fp32[i] / output_scale + output_zero);
+        if (idata > 127)
+            idata = 127;
+        else if (idata < -127)
+            idata = -127;
+        output_int8[i] = idata;
+    }
+
+    sys_free(input_fp32);
+    sys_free(output_fp32);
 
     return 0;
 }
@@ -290,7 +408,7 @@ int ref_interp_uint8(struct tensor* input_tensor, struct tensor* output_tensor, 
             }
         }
     }
-    else if (param->resize_type == 2)
+    else if (param->resize_type == 2 || param->resize_type == 4)
     {
         int batch = input_tensor->dims[0];
         int channel = input_tensor->dims[1];
@@ -316,8 +434,9 @@ int ref_interp_uint8(struct tensor* input_tensor, struct tensor* output_tensor, 
         float* alpha = (float*)(buf + param->output_width + param->output_height);                          //new float[ow * 2];
         float* beta = (float*)(buf + param->output_width + param->output_height + param->output_width * 2); //new float[oh * 2];
 
-        linear_coeffs(in_w, out_w, xofs, alpha);
-        linear_coeffs(in_h, out_h, yofs, beta);
+        int align_corner = param->resize_type == 2 ? 0 : 1;
+        linear_coeffs(in_w, out_w, xofs, alpha, align_corner);
+        linear_coeffs(in_h, out_h, yofs, beta, align_corner);
 
         for (int q = 0; q < channel; ++q)
         {
@@ -375,6 +494,8 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     int ret = -1;
     if (input_tensor->data_type == TENGINE_DT_FP32)
         ret = ref_interp_fp32(input_tensor, output_tensor, param);
+    else if (input_tensor->data_type == TENGINE_DT_INT8)
+        ret = ref_interp_int8(input_tensor, output_tensor, param);
     else if (input_tensor->data_type == TENGINE_DT_UINT8)
         ret = ref_interp_uint8(input_tensor, output_tensor, param);
     else

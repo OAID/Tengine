@@ -19,6 +19,11 @@ Tengine Lite's examples providing simple yet fancy demos.
   - [HRNet Human Pose Estimation Task](#hrnet-human-pose-estimation-task---tm_hrnetcpp)
   - [CRNN Chinese character recognition](#chinese-character-recognition-task---tm_crnncpp)
   
+In addition to single-image single-model-inference example, Tengine Lite gives pipeline application based on video and image stream.
+
+  - [Distance Estimation](#Distance-Estimation)
+  - [Facial Feature Extraction](#Facial-Feat-Extraction)
+
 ----------
 ## Classification task - [tm_classification.c](tm_classification.c)
 
@@ -474,5 +479,44 @@ Repeat 1 times, thread 1, avg time 23.30 ms, max_time 23.30 ms, min_time 23.30 m
 ```
 
 The result of ocr recognition is displayed in terminal, you may also modify the source code to save it to file.
+
+## Distance Estimation
+
+model file:`mobilenet_ssd.tmfile`
+
+run (GPU recommended)
+```bash
+$ cd build/examples
+$ ln -s models/mobilenet_ssd.tmfile
+$ export LD_LIBRARY_PATH=./build/install/lib
+$ ./tm_pipeline_estimate_ped_distance
+detect result num: 1 
+person	:100.0%
+BOX:( 35 , 78 ),( 587 , 478 )
+...
+```
+
+## Facial Feature Extraction
+
+model list:
+* `rfb-320.tmfile`  face detection
+* `landmark.tmfile`  face landmark
+* `mobilefacenet.tmfile`  face feature
+
+```bash
+$ cd build/examples
+$ ln -s models/rfb-320.tmfile
+$ ln -s models/landmark.tmfile
+$ ln -s models/mobilefacenet.tmfile
+```
+
+run (GPU recommanded):
+```bash
+$ export LD_LIBRARY_PATH=./build/install/lib
+$ ./tm_pipeline_enroll_face  ./images
+```
+
+face feature would serialized to `feature0.bin`
+
 
 We will continously updating more fancy demos, please stay tuned...

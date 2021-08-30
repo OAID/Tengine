@@ -75,8 +75,10 @@ OPTION (TENGINE_STANDALONE_HCL_AUTO_LOAD    "Auto load standalone hcl lib"      
 OPTION (TENGINE_ENABLE_ACL                  "With Arm Compute Library support"          OFF)
 OPTION (TENGINE_ENABLE_CUDA                 "With nVIDIA CUDA support"                  OFF)
 OPTION (TENGINE_ENABLE_OPENCL               "With Khronos OpenCL support"               OFF)
+OPTION (TENGINE_ENABLE_OPENDLA              "With Khronos OpenDLA support"              OFF)
 OPTION (TENGINE_ENABLE_TENSORRT             "With nVIDIA TensorRT support"              OFF)
 OPTION (TENGINE_ENABLE_TIM_VX               "With VeriSilicon TIM-VX support"           OFF)
+OPTION (TENGINE_ENABLE_TORCH                "With libTorch support"                     OFF)
 OPTION (TENGINE_ENABLE_NNIE                 "With HiSilicon NNIE support"               OFF)
 OPTION (TENGINE_ENABLE_VULKAN               "With Khronos Vulkan GPU compute support"   OFF)
 
@@ -89,9 +91,13 @@ OPTION (TENGINE_ENABLE_ALL_SYMBOL           "All symbol visible"                
 # Experimental optinos
 OPTION (TENGINE_ENABLE_MODEL_CACHE          "NPU kernel cache file option"              OFF)
 
+# Online report
+OPTION (TENGINE_ONLINE_REPORT               "online report"                             ON)
+
 # Do check list
 INCLUDE ("${CMAKE_CURRENT_SOURCE_DIR}/cmake/check.cmake")
 INCLUDE ("${CMAKE_CURRENT_SOURCE_DIR}/cmake/cuda.cmake")
+INCLUDE ("${CMAKE_CURRENT_SOURCE_DIR}/cmake/torch.cmake")
 INCLUDE ("${CMAKE_CURRENT_SOURCE_DIR}/cmake/registry.cmake")
 INCLUDE ("${CMAKE_CURRENT_SOURCE_DIR}/cmake/utility.cmake")
 

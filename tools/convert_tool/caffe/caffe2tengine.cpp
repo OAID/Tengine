@@ -307,6 +307,7 @@ int caffe_serializer::set_graph_input(ir_graph_t* graph, const te_caffe::NetPara
             set_ir_tensor_shape(tensor, dims, dim_num);
         }
 
+        tensor->tensor_type = TENSOR_TYPE_INPUT;
         ir_node_t* node = create_ir_node(graph, val.c_str(), OP_INPUT, OP_VERSION);
 
         int tensor_id = get_ir_tensor_index_from_name(graph, val.c_str());
@@ -1285,7 +1286,7 @@ int load_reorg(ir_graph_t* graph, ir_node_t* node, const te_caffe::LayerParamete
 }
 
 /*
-*   OPERAOTR REGISTER FUNCTION DEFINE FOR ONNX SERIALIZER START
+*   OPERAOTR REGISTER FUNCTION DEFINE FOR CAFFE SERIALIZER START
 */
 void caffe_serializer::register_op_load()
 {
@@ -1335,5 +1336,5 @@ void caffe_serializer::register_op_load()
     op_load_map["Reduction"] = std::pair<int, op_load_t>(OP_REDUCTION, load_reduction);
 }
 /*
-*   OPERAOTR REGISTER FUNCTION DEFINE FOR ONNX SERIALIZER END
+*   OPERAOTR REGISTER FUNCTION DEFINE FOR CAFFE SERIALIZER END
 */

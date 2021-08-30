@@ -6,7 +6,7 @@
 
 ## Prepare Android Toolchain Files
 
-(optional) delete debug compilation parameters to reduce the binary volume [android-ndk issue](https://github.com/android-ndk/ndk/issues/243)，The file android.toolchain.cmake can be found from $ANDROID_NDK/build/cmake:
+(optional) delete debug compilation parameters to reduce the binary volume [android-ndk issue](https://github.com/android-ndk/ndk/issues/243) ，The file android.toolchain.cmake can be found from $ANDROID_NDK/build/cmake:
 
 ```cmake
 # vi $ANDROID_NDK/build/cmake/android.toolchain.cmake
@@ -14,6 +14,7 @@
 list(APPEND ANDROID_COMPILER_FLAGS
   -g
   -DANDROID
+  ...)
 ```
 
 ## Downlad Tengine Source Code

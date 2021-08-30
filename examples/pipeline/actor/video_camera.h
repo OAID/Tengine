@@ -91,7 +91,7 @@ public:
                     break;
                 }
 
-                auto success = output<0>()->try_push(mat.clone());
+                auto success = output<0>()->try_push(std::move(mat.clone()));
                 if (not success)
                 {
                     fprintf(stdout, "drop " __FILE__ "\n");

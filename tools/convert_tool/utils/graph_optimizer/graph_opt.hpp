@@ -8,7 +8,7 @@
 #include <string>
 #include "math.h"
 extern "C" {
-#include "tengine/c_api.h"
+#include "api/c_api.h"
 #include "graph/graph.h"
 #include "graph/node.h"
 #include "graph/tensor.h"

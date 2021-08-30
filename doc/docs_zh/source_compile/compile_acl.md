@@ -1,10 +1,10 @@
 # 源码编译（ACL）
 
-## Brief
+## 简介
 
-The ARM Compute Library(ACL) is a set of computer vision and machine learning functions optimised for both Arm CPUs and GPUs using SIMD technologies.
+ARM计算库(ACL)是一套计算机视觉和机器学习功能，使用SIMD技术为ARM cpu和gpu优化。
+Tengine支持与ACL的OpenCL库集成，通过ARM-Mail GPU对CNN进行推理。
 
-Tengine has supported to integrate with OpenCL Library of ACL to inference CNN by ARM-Mail GPU.
 
 support check:
 
@@ -12,7 +12,7 @@ support check:
 sudo apt install clinfo
 clinfo
 
-result:
+结果:
 Number of platforms                               1
 .....
 ```
@@ -21,27 +21,27 @@ Number of platforms                               1
 
 ### ACL GPU Library
 
-Download ACL
+下载 ACL
 
 ```bash
 $ git clone https://github.com/ARM-software/ComputeLibrary.git
 $ git checkout v20.05
 ```
 
-Build ACL 
+构建 ACL 
 
 ```bash
 $ scons Werror=1 -j4 debug=0 asserts=1 neon=0 opencl=1 embed_kernels=1 os=linux arch=arm64-v8a
 ```
 
-### Download Tengine
+### 下载 Tengine
 
 ```bash
 $ git clone https://github.com/OAID/Tengine.git Tengine
 $ cd Tengine
 ```
 
-### Create depend files
+### 创建依赖文件
 
 ```bash
 $ cd <tengine-lite-root-dir>
@@ -53,7 +53,7 @@ $ cp -rf ComputeLibrary/support      Tengine/3rdparty/acl/include
 $ cp -rf ComputeLibrary/build/libarm_compute*.so Tengine/3rdparty/acl/lib/
 ```
 
-### Build option
+### 构建选项
 
 ```bash
 $ mkdir build-acl-arm64 && cd build-acl-arm64
@@ -63,9 +63,9 @@ $ make -j4
 $ make install
 ```
 
-## Demo
+## 示例
 
-### Depned librarys
+### 依赖库
 
 ```bash
 3rdparty/acl/lib/
@@ -90,7 +90,7 @@ opt.precision = TENGINE_MODE_FP16;
 opt.affinity = 0;
 ```
 
-### Result
+### 结果
 
 ```bash
 [root@localhost tengine-lite]# ./tm_mssd_acl -m mssd.tmfile -i ssd_dog.jpg -t 1 -r 10
