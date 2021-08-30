@@ -18,6 +18,10 @@ Tengine Lite 的 examples 将提供简单的、好玩的 demo。
 - [hrnet 人体姿态识别任务](#hrnet人体姿态识别任务---tm_hrnetcpp)
 - [crnn 汉字识别任务](#汉字识别任务---tm_crnncpp)
   
+除单张图片单模型推理级的任务外，Tengine Lite 还提供了基于视频流/图片流 pipeline 级别的功能演示
+
+- [人体距离预测](#人体距离预测)
+- [人脸注册](#人脸注册)
 ----------
 ## 分类任务 - [tm_classification.c](tm_classification.c)
 
@@ -471,5 +475,46 @@ Repeat 1 times, thread 1, avg time 23.30 ms, max_time 23.30 ms, min_time 23.30 m
 ```
 
 其中ocr的识别结果会直接打印到终端中, 同时如果需要保存为txt文件可以修改源码使其重定向到文件。
+
+## 人体距离预测
+
+模型文件：`mobilenet_ssd.tmfile`
+
+执行（建议用 GPU 推理）：
+```bash
+$ cd build/examples
+$ ln -s models/mobilenet_ssd.tmfile
+$ export LD_LIBRARY_PATH=./build/install/lib
+$ ./tm_pipeline_estimate_ped_distance
+detect result num: 1 
+person	:100.0%
+BOX:( 35 , 78 ),( 587 , 478 )
+...
+```
+
+## 人脸注册
+
+模型文件列表：
+* `rfb-320.tmfile` 人脸检测
+* `landmark.tmfile` 关键点
+* `mobilefacenet.tmfile` 特征提取
+
+```bash
+$ cd build/examples
+$ ln -s models/rfb-320.tmfile
+$ ln -s models/landmark.tmfile
+$ ln -s models/mobilefacenet.tmfile
+```
+
+假设注册集在 `build/examples/images`。
+执行（建议用 GPU 推理）：
+```bash
+$ export LD_LIBRARY_PATH=./build/install/lib
+$ ./tm_pipeline_enroll_face  ./images
+```
+
+当前目录会生成类似`feature0.bin` 多个序列化文件，存有人脸特征。
+
+
 
 我们将持续更新各种有趣的 demo ，敬请期待......
