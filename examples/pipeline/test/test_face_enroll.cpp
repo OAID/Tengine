@@ -35,7 +35,9 @@ namespace pipeline {
 class SaveFeature : public Node<Param<Feature>, Param<void> >
 {
 public:
-    SaveFeature() {}
+    SaveFeature()
+    {
+    }
 
     void exec() override
     {
@@ -48,12 +50,12 @@ public:
         }
 
         char filename[64] = {0};
-        sprintf(filename , "feature%ld.bin", idx++);
+        sprintf(filename, "feature%ld.bin", idx++);
         feat.serialize(std::string(filename));
     }
 };
 
-}
+} // namespace pipeline
 
 int main(int argc, char* argv[])
 {
@@ -73,7 +75,7 @@ int main(int argc, char* argv[])
     auto image_det = g.add_edge<InstantEdge<cv::Mat> >(100);
     auto det_lmk = g.add_edge<InstantEdge<std::tuple<cv::Mat, std::vector<cv::Rect> > > >(100);
     auto lmk_feature = g.add_edge<InstantEdge<std::tuple<cv::Mat, std::vector<Feature> > > >(100);
-    auto feature_save = g.add_edge<InstantEdge<Feature>>(100);
+    auto feature_save = g.add_edge<InstantEdge<Feature> >(100);
 
     images->set_output<0>(image_det);
     detect_face->set_input<0>(image_det);
