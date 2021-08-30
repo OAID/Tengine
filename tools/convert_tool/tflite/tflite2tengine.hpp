@@ -100,11 +100,10 @@ typedef struct LiteGraph
 
     ~LiteGraph(void)
     {
-        for(auto node : seq_nodes)
+        for (auto node : seq_nodes)
             delete node;
     }
 } LiteGraph_t;
-
 
 class tflite_serializer
 {

@@ -89,17 +89,17 @@ bool tflite_serializer::construct_graph(const LiteModel* lite_model, LiteGraph_t
 
         switch (type)
         {
-            case ::tflite::TensorType_FLOAT32:
-                lite_tensor->type = "FP32";
-                break;
-            case ::tflite::TensorType_UINT8:
-                lite_tensor->type = "UINT8";
-                break;
-            case ::tflite::TensorType_INT32:
-                lite_tensor->type = "INT32";
-                break;
-            default:
-                lite_tensor->type = "unknown";
+        case ::tflite::TensorType_FLOAT32:
+            lite_tensor->type = "FP32";
+            break;
+        case ::tflite::TensorType_UINT8:
+            lite_tensor->type = "UINT8";
+            break;
+        case ::tflite::TensorType_INT32:
+            lite_tensor->type = "INT32";
+            break;
+        default:
+            lite_tensor->type = "unknown";
         }
 
         lite_graph->tensor_list.push_back(lite_tensor);
@@ -294,17 +294,17 @@ int tflite_serializer::load_lite_tensor(ir_graph_t* graph, LiteGraph_t* lite_gra
 
         if (data_type == TENGINE_DT_UINT8)
         {
-            const uint8_t* src_ptr = ( const uint8_t* )(src_buf->data());
+            const uint8_t* src_ptr = (const uint8_t*)(src_buf->data());
             memcpy(mem_buf, src_ptr, mem_size);
         }
         else if (data_type == TENGINE_DT_INT32)
         {
-            const int* src_ptr = ( const int* )src_buf->data();
+            const int* src_ptr = (const int*)src_buf->data();
             memcpy(mem_buf, src_ptr, mem_size);
         }
         else if (data_type == TENGINE_DT_FP32)
         {
-            const float* src_ptr = ( const float* )src_buf->data();
+            const float* src_ptr = (const float*)src_buf->data();
             memcpy(mem_buf, src_ptr, mem_size);
         }
         else
@@ -374,32 +374,41 @@ int tflite_serializer::load_graph_node(ir_graph_t* graph, LiteGraph_t* lite_grap
 
     if (unsupport_op.size())
     {
-        for (int i = 0; i < ( int )unsupport_op.size(); i++)
+        for (int i = 0; i < (int)unsupport_op.size(); i++)
         {
             fprintf(stderr, "unsupport_op[%d]\n", i);
         }
         return -1;
     }
-    for(int i = 0; i < node_number; i++){
+    for (int i = 0; i < node_number; i++)
+    {
         LiteNode* node = lite_graph->seq_nodes.at(i);
-        if(node->op == "null" || node->op == "_zeros")
-            continue; 
+        if (node->op == "null" || node->op == "_zeros")
+            continue;
 
-        std::vector<std::string>::iterator iter=std::find(support_op.begin(), support_op.end(), node->op);
-        if(iter==support_op.end()){
-            std::vector<std::string>::iterator uniter=std::find(unsupport_op.begin(), unsupport_op.end(), node->op);
-            if(uniter==unsupport_op.end()){
+        std::vector<std::string>::iterator iter = std::find(support_op.begin(), support_op.end(), node->op);
+        if (iter == support_op.end())
+        {
+            std::vector<std::string>::iterator uniter = std::find(unsupport_op.begin(), unsupport_op.end(), node->op);
+            if (uniter == unsupport_op.end())
+            {
                 unsupport_op.push_back(node->op);
-            } else {
+            }
+            else
+            {
                 continue;
             }
-        } else {
+        }
+        else
+        {
             continue;
         }
     }
-    if(unsupport_op.size() != 0){
+    if (unsupport_op.size() != 0)
+    {
         printf("These ops are not in tflite serializer: \n");
-        for(int i = 0; i < (int)unsupport_op.size(); i++){
+        for (int i = 0; i < (int)unsupport_op.size(); i++)
+        {
             printf("[ %s ]\n", unsupport_op[i].c_str());
         }
         printf("\n");
@@ -420,7 +429,7 @@ int tflite_serializer::load_graph_node(ir_graph_t* graph, LiteGraph_t* lite_grap
         {
             LiteTensor_t* input = lite_node->inputs.at(i);
             int tensor_id = get_ir_tensor_index_from_name(graph, input->name.c_str());
-            ir_tensor_t* tensor = get_ir_graph_tensor(graph, tensor_id);   
+            ir_tensor_t* tensor = get_ir_graph_tensor(graph, tensor_id);
             set_ir_node_input_tensor(ir_node, i, tensor);
         }
 
@@ -448,7 +457,7 @@ int tflite_serializer::load_graph_node(ir_graph_t* graph, LiteGraph_t* lite_grap
 
 bool tflite_serializer::load_model_from_mem(char* mem_addr, int mem_size, ir_graph_t* graph)
 {
-    ::flatbuffers::Verifier verifier(( const unsigned char* )mem_addr, mem_size);
+    ::flatbuffers::Verifier verifier((const unsigned char*)mem_addr, mem_size);
     if (!::tflite::VerifyModelBuffer(verifier))
     {
         return false;
@@ -548,21 +557,21 @@ static int LoadConv2D(ir_graph_t* graph, ir_node_t* ir_node, LiteNode_t* lite_no
     int lite_activation = lite_param->fused_activation_function();
     switch (lite_activation)
     {
-        case 0:
-            param->activation = -1;
-            break;
-        case 1:
-            param->activation = 0;
-            break;
-        case 2:
-            param->activation = 1;
-            break;
-        case 3:
-            param->activation = 6;
-            break;
-        default:
-            param->activation = -4;
-            break;
+    case 0:
+        param->activation = -1;
+        break;
+    case 1:
+        param->activation = 0;
+        break;
+    case 2:
+        param->activation = 1;
+        break;
+    case 3:
+        param->activation = 6;
+        break;
+    default:
+        param->activation = -4;
+        break;
     }
     param->stride_h = lite_param->stride_h();
     param->stride_w = lite_param->stride_w();
@@ -603,27 +612,26 @@ static int LoadConv2DDepthwise(ir_graph_t* graph, ir_node_t* ir_node, LiteNode_t
     input_channel = lite_tensor->shape[0];
 
     struct conv_param* param = (struct conv_param*)ir_node->op.param_mem;
-    const tflite::DepthwiseConv2DOptions* lite_param =
-        lite_node->lite_op->builtin_options_as<tflite::DepthwiseConv2DOptions>();
+    const tflite::DepthwiseConv2DOptions* lite_param = lite_node->lite_op->builtin_options_as<tflite::DepthwiseConv2DOptions>();
 
     int lite_activation = lite_param->fused_activation_function();
     switch (lite_activation)
     {
-        case 0:
-            param->activation = -1;
-            break;
-        case 1:
-            param->activation = 0;
-            break;
-        case 2:
-            param->activation = 1;
-            break;
-        case 3:
-            param->activation = 6;
-            break;
-        default:
-            param->activation = -4;
-            break;
+    case 0:
+        param->activation = -1;
+        break;
+    case 1:
+        param->activation = 0;
+        break;
+    case 2:
+        param->activation = 1;
+        break;
+    case 3:
+        param->activation = 6;
+        break;
+    default:
+        param->activation = -4;
+        break;
     }
 
     param->stride_h = lite_param->stride_h();
@@ -742,38 +750,38 @@ void tflite_serializer::register_op_load(void)
     op_load_map["MAX_POOL_2D"] = std::pair<int, op_load_t>(OP_POOL, LoadPooling);
     op_load_map["DEPTHWISE_CONV_2D"] = std::pair<int, op_load_t>(OP_CONV, LoadConv2DDepthwise);
     op_load_map["RESHAPE"] = std::pair<int, op_load_t>(OP_RESHAPE, LoadReshape);
-//     op_load_map["SQUEEZE"] = std::pair<int, op_load_t>(OP_SQUEEZE, LoadReshape);
-//     op_load_map["CONCATENATION"] = std::pair<int, op_load_t>(OP_CONCAT, LoadConcat);
-//     op_load_map["LOGISTIC"] = std::pair<int, op_load_t>(OP_LOGISTIC, LoadLogistic);
+    //     op_load_map["SQUEEZE"] = std::pair<int, op_load_t>(OP_SQUEEZE, LoadReshape);
+    //     op_load_map["CONCATENATION"] = std::pair<int, op_load_t>(OP_CONCAT, LoadConcat);
+    //     op_load_map["LOGISTIC"] = std::pair<int, op_load_t>(OP_LOGISTIC, LoadLogistic);
     op_load_map["SOFTMAX"] = std::pair<int, op_load_t>(OP_SOFTMAX, LoadSoftmax);
-//     op_load_map["ADD"] = std::pair<int, op_load_t>(OP_ELTWISE, LoadEltwise);
-//     // op_load_map["TFLite_Detection_PostProcess"] = std::pair<int, op_load_t>(LoadDetectionPostProcess);
-//     op_load_map["L2_NORMALIZATION"] = std::pair<int, op_load_t>(OP_L2NORMALIZATION, LoadL2Normalization);
-//     // op_load_map["L2_POOL_2D"] = std::pair<int, op_load_t>(OP_L2POOL, LoadL2Pool);
-//     op_load_map["ELU"] = std::pair<int, op_load_t>(OP_ELU, LoadElu);
-//     // op_load_map["RELU_N1_TO_1"] = std::pair<int, op_load_t>(LoadReLU1);
-//     op_load_map["STRIDED_SLICE"] = std::pair<int, op_load_t>(OP_STRIDED_SLICE, LoadStridedSlice);
-//     op_load_map["LOG_SOFTMAX"] = std::pair<int, op_load_t>(OP_LOGSOFTMAX, LoadLogSoftmax);
-//     // op_load_map["RESIZE_NEAREST_NEIGHBOR"] = std::pair<int, op_load_t>(LoadResizeNearestNeighbor);
-//     op_load_map["GATHER"] = std::pair<int, op_load_t>(OP_GATHER, LoadGather);
-//     op_load_map["REVERSE_V2"] = std::pair<int, op_load_t>(OP_REVERSE, LoadReverse);
-//     // op_load_map["LOGICALOR"] = std::pair<int, op_load_t>(LoadLogicalOr);
-//     // op_load_map["LOGICALAND"] = std::pair<int, op_load_t>(LoadLogicalAnd);
-//     op_load_map["FULLY_CONNECTED"] = std::pair<int, op_load_t>(OP_FC, LoadFullyConnected);
-//     op_load_map["TRANSPOSE"] = std::pair<int, op_load_t>(OP_TRANSPOSE, LoadTranspose);
-//     op_load_map["DIV"] = std::pair<int, op_load_t>(OP_ELTWISE, LoadEltwise);
-//     // op_load_map["EQUAL"] = std::pair<int, op_load_t>(LoadComparison);
-//     // op_load_map["GREATER_EQUAL"] = std::pair<int, op_load_t>(LoadComparison);
-//     // op_load_map["GREATER"] = std::pair<int, op_load_t>(LoadComparison);
-//     // op_load_map["LESS"] = std::pair<int, op_load_t>(LoadComparison);
-//     // op_load_map["LESS_EQUAL"] = std::pair<int, op_load_t>(LoadComparison);
-//     op_load_map["SPACE_TO_DEPTH"] = std::pair<int, op_load_t>(OP_SPACETODEPTH, LoadSpaceToDepth);
-//     op_load_map["DEPTH_TO_SPACE"] = std::pair<int, op_load_t>(OP_DEPTHTOSPACE, LoadDepthToSpace);
-//     op_load_map["MUL"] = std::pair<int, op_load_t>(OP_ELTWISE, LoadEltwise);
-//     op_load_map["MEAN"] = std::pair<int, op_load_t>(OP_MEAN, LoadReduction);
-//     op_load_map["SUB"] = std::pair<int, op_load_t>(OP_ELTWISE, LoadEltwise);
-//     op_load_map["SQUARED_DIFFERENCE"] = std::pair<int, op_load_t>(OP_SQUAREDDIFFERENCE, LoadSquaredDifference);
-//     op_load_map["CEIL"] = std::pair<int, op_load_t>(OP_CEIL, LoadCeil);
-//     op_load_map["ROUND"] = std::pair<int, op_load_t>(OP_ROUND, LoadRound);
-//     op_load_map["SPARSE_TO_DENSE"] = std::pair<int, op_load_t>(OP_SPARSETODENSE, LoadSparseToDense);
+    //     op_load_map["ADD"] = std::pair<int, op_load_t>(OP_ELTWISE, LoadEltwise);
+    //     // op_load_map["TFLite_Detection_PostProcess"] = std::pair<int, op_load_t>(LoadDetectionPostProcess);
+    //     op_load_map["L2_NORMALIZATION"] = std::pair<int, op_load_t>(OP_L2NORMALIZATION, LoadL2Normalization);
+    //     // op_load_map["L2_POOL_2D"] = std::pair<int, op_load_t>(OP_L2POOL, LoadL2Pool);
+    //     op_load_map["ELU"] = std::pair<int, op_load_t>(OP_ELU, LoadElu);
+    //     // op_load_map["RELU_N1_TO_1"] = std::pair<int, op_load_t>(LoadReLU1);
+    //     op_load_map["STRIDED_SLICE"] = std::pair<int, op_load_t>(OP_STRIDED_SLICE, LoadStridedSlice);
+    //     op_load_map["LOG_SOFTMAX"] = std::pair<int, op_load_t>(OP_LOGSOFTMAX, LoadLogSoftmax);
+    //     // op_load_map["RESIZE_NEAREST_NEIGHBOR"] = std::pair<int, op_load_t>(LoadResizeNearestNeighbor);
+    //     op_load_map["GATHER"] = std::pair<int, op_load_t>(OP_GATHER, LoadGather);
+    //     op_load_map["REVERSE_V2"] = std::pair<int, op_load_t>(OP_REVERSE, LoadReverse);
+    //     // op_load_map["LOGICALOR"] = std::pair<int, op_load_t>(LoadLogicalOr);
+    //     // op_load_map["LOGICALAND"] = std::pair<int, op_load_t>(LoadLogicalAnd);
+    //     op_load_map["FULLY_CONNECTED"] = std::pair<int, op_load_t>(OP_FC, LoadFullyConnected);
+    //     op_load_map["TRANSPOSE"] = std::pair<int, op_load_t>(OP_TRANSPOSE, LoadTranspose);
+    //     op_load_map["DIV"] = std::pair<int, op_load_t>(OP_ELTWISE, LoadEltwise);
+    //     // op_load_map["EQUAL"] = std::pair<int, op_load_t>(LoadComparison);
+    //     // op_load_map["GREATER_EQUAL"] = std::pair<int, op_load_t>(LoadComparison);
+    //     // op_load_map["GREATER"] = std::pair<int, op_load_t>(LoadComparison);
+    //     // op_load_map["LESS"] = std::pair<int, op_load_t>(LoadComparison);
+    //     // op_load_map["LESS_EQUAL"] = std::pair<int, op_load_t>(LoadComparison);
+    //     op_load_map["SPACE_TO_DEPTH"] = std::pair<int, op_load_t>(OP_SPACETODEPTH, LoadSpaceToDepth);
+    //     op_load_map["DEPTH_TO_SPACE"] = std::pair<int, op_load_t>(OP_DEPTHTOSPACE, LoadDepthToSpace);
+    //     op_load_map["MUL"] = std::pair<int, op_load_t>(OP_ELTWISE, LoadEltwise);
+    //     op_load_map["MEAN"] = std::pair<int, op_load_t>(OP_MEAN, LoadReduction);
+    //     op_load_map["SUB"] = std::pair<int, op_load_t>(OP_ELTWISE, LoadEltwise);
+    //     op_load_map["SQUARED_DIFFERENCE"] = std::pair<int, op_load_t>(OP_SQUAREDDIFFERENCE, LoadSquaredDifference);
+    //     op_load_map["CEIL"] = std::pair<int, op_load_t>(OP_CEIL, LoadCeil);
+    //     op_load_map["ROUND"] = std::pair<int, op_load_t>(OP_ROUND, LoadRound);
+    //     op_load_map["SPARSE_TO_DENSE"] = std::pair<int, op_load_t>(OP_SPARSETODENSE, LoadSparseToDense);
 }
