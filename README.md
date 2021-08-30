@@ -63,7 +63,7 @@ Tengine 核心代码由 4 个模块组成：
 
 ### NPU Plugin
 
-- [TIM-VX](doc/npu_tim-vx_user_manual_zh.md) VeriSilicon NPU 使用指南。
+- [TIM-VX](doc/docs_zh/source_compile/compile_timvx.md) VeriSilicon NPU 使用指南。
 
 ### AutoKernel Plugin
 
