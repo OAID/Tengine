@@ -221,7 +221,7 @@ public:
             fprintf(stdout, "write feature %f, len %d\n ", data[0], data_size);
 
             Feature f;
-            f.data = {data, data+data_size};
+            f.data = {data, data + data_size};
             output<0>()->try_push(std::move(f));
         }
         return;

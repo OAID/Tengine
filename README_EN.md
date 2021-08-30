@@ -62,7 +62,7 @@ The core code of Tengine Lite consists of 4 modules:
 
 ### NPU Plugin
 
-- [TIM-VX](doc/npu_tim-vx_user_manual_zh.md) VeriSilicon NPU user manual.
+- [TIM-VX](doc/docs_zh/source_compile/compile_timvx.md) VeriSilicon NPU user manual.
 
 ### AutoKernel Plugin
 
