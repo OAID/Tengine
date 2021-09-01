@@ -370,13 +370,6 @@ int add_const_node_above(ir_graph_t* graph, int16_t down_node_id, const char* na
 {
     /* get all up nodes */
     ir_node_t* down_node = get_ir_graph_node(graph, down_node_id);
-//    std::vector<int16_t> up_nodes;
-//    for (size_t i = 0; i < down_node->input_num; i++)
-//    {
-//        ir_tensor_t* tensor = get_ir_graph_tensor(graph, down_node->input_tensors[i]);
-//        if (tensor->tensor_type == TENSOR_TYPE_VAR)
-//            up_nodes.push_back(tensor->producer);
-//    }
 
     /* create const node and its own tensor */
     ir_node_t* add_node = create_ir_node(graph, name, OP_CONST, 1);
@@ -388,32 +381,10 @@ int add_const_node_above(ir_graph_t* graph, int16_t down_node_id, const char* na
     add_tensor->tensor_type = TENSOR_TYPE_CONST;
     set_ir_node_output_tensor(add_node, 0, add_tensor);
 
-//    /* setup new connection */
-//    for (int i = 0; i < up_nodes.size(); i++)
-//    {
-//        ir_node_t* up_node = get_ir_graph_node(graph, up_nodes[i]);
-//        ir_tensor_t* up_node_output_tensor = get_ir_graph_tensor(graph, up_node->output_tensors[0]);
-//        for (size_t i = 0; i < up_node_output_tensor->consumer_num; i++)
-//        {
-//            if (up_node_output_tensor->consumer[i] == down_node_id)
-//                up_node_output_tensor->consumer[i] = add_node->index;
-//        }
-//        set_ir_node_input_tensor(add_node, i, up_node_output_tensor);
-//    }
     down_node->input_num++;
     down_node->input_tensors[down_node->input_num - 1] = add_tensor->index;
     add_tensor->consumer[0] = down_node_id;
     add_tensor->consumer_num = 1;
-
-//    if (up_nodes.empty()) // add node in head
-//    {
-//        // exchange graph input
-//        for (int i = 0; i < graph->input_num; ++i)
-//        {
-//            if (graph->input_nodes[i] == down_node_id)
-//                graph->input_nodes[i] = add_node->index;
-//        }
-//    }
 
     /* insert node id */
     if (insert_node_id(graph, add_node->index, down_node_id) < 0)

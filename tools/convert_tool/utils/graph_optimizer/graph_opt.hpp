@@ -65,10 +65,9 @@ int add_const_node_above(ir_graph_t* graph, int16_t down_node_id, const char* na
  *
  * @param [in]  graph: specific graph.
  * @param [in]  down_node_id: specific node index.
- * @param [in]  add_node_type: to be added node op type.
  * @param [in]  name: to be added node name.
  *
- * @return  added node index.
+ * @return  added const node index.
  */
 int add_node_below(ir_graph_t* graph, int16_t up_node_id, int add_node_type, const char* name);
 
