@@ -519,10 +519,10 @@ int VXEngine::VXEnginePreRun(struct subgraph* subgraph)
             }
             else if (ir_node->op.type == OP_INTERP)
             {
-                if (ir_node->input_num == 3)
+                if (ir_node->input_num > 2)
                 {
-                this->VXTensorMap(ir_graph, ir_node->input_tensors[1], SPEC_TYPE_INTERP);
-                this->VXTensorMap(ir_graph, ir_node->input_tensors[2], SPEC_TYPE_INTERP);
+                    for (int ip = 1; ip < ir_node->input_num; ip++)
+                    this->VXTensorMap(ir_graph, ir_node->input_tensors[ip], SPEC_TYPE_INTERP);
                 }
                 else if (ir_node->input_num == 2)
                 {

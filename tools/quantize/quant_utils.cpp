@@ -77,7 +77,7 @@ void split(float* array, char* str, const char* del)
 }
 
 void get_input_data_cv(const char* image_file, float* input_data, int img_c, int img_h, int img_w, const float* mean,
-                       const float* scale, int sw_RGB = 0, int center_crop = 0, int letterbox_rows = 0, int letterbox_cols = 0, int focus = 0)
+                       const float* scale, int sw_RGB = 1, int center_crop = 0, int letterbox_rows = 0, int letterbox_cols = 0, int focus = 0)
 {
     /* only for yolov5s */
     if (focus == 1 && letterbox_rows > 0 && letterbox_cols > 0)
