@@ -71,7 +71,7 @@ int darknet_serializer::load_weight_file(ir_graph_t* graph, const char* weight_f
             fprintf(stderr, "read iseen failed\n");
             return -1;
         }
-        seen = ( int )iseen;
+        seen = (int)iseen;
     }
     else
     {
@@ -86,17 +86,17 @@ int darknet_serializer::load_weight_file(ir_graph_t* graph, const char* weight_f
     fprintf(stderr, "major: %d, minor: %d, revision: %d, seen: %d, transpose: %d \n", major, minor, revision, seen, transpose);
 
     dk_node* n = sections->front;
-    section* s = ( section* )n->val;
+    section* s = (section*)n->val;
     list* options = s->options;
     ir_node_t* input_node = create_ir_node(graph, "input", OP_INPUT, OP_VERSION);
     ir_tensor_t* input_tensor = create_ir_tensor(graph, "input_0", TENGINE_DT_FP32);
     set_ir_node_output_tensor(input_node, 0, input_tensor);
 
     std::vector<int> dim;
-    int input_h = option_find_int_quiet(options, ( char* )"height", 0);
-    int input_w = option_find_int_quiet(options, ( char* )"width", 0);
-    int input_c = option_find_int_quiet(options, ( char* )"channels", 0);
-    int batch_num = option_find_int(options, ( char* )"batch", 1);
+    int input_h = option_find_int_quiet(options, (char*)"height", 0);
+    int input_w = option_find_int_quiet(options, (char*)"width", 0);
+    int input_c = option_find_int_quiet(options, (char*)"channels", 0);
+    int batch_num = option_find_int(options, (char*)"batch", 1);
 
     dim.push_back(batch_num);
     dim.push_back(input_c);
@@ -115,7 +115,7 @@ int darknet_serializer::load_weight_file(ir_graph_t* graph, const char* weight_f
     int count = 1;
     while (n)
     {
-        s = ( section* )n->val;
+        s = (section*)n->val;
         options = s->options;
         fprintf(stderr, "s type:%d %s\n", count, s->type);
         std::string op_name = s->type;
@@ -167,7 +167,7 @@ int darknet_serializer::set_graph_output(ir_graph_t* graph)
 int darknet_serializer::load_model(ir_graph_t* graph, std::string model_file, std::string proto_file)
 {
     register_op_load();
-    
+
     const char* cfg_file = model_file.c_str();
     const char* weight_file = proto_file.c_str();
 
@@ -237,10 +237,10 @@ static int load_conv_blob(ir_graph_t* graph, ir_node_t* node, std::vector<int>& 
     set_ir_node_input_tensor(node, 2, bias_tensor);
 
     int out_channel = weight_dims[0];
-    bias_tensor->data = ( void* )sys_malloc(out_channel * sizeof(float));
-    float* bias_data = ( float* )bias_tensor->data;
+    bias_tensor->data = (void*)sys_malloc(out_channel * sizeof(float));
+    float* bias_data = (float*)bias_tensor->data;
     if (0 == fread(bias_data, sizeof(float), out_channel, fp))
-    {    
+    {
         printf("Read bias data failed\n");
         return -1;
     }
@@ -249,9 +249,9 @@ static int load_conv_blob(ir_graph_t* graph, ir_node_t* node, std::vector<int>& 
     float* variances = NULL;
     if (batch_norm)
     {
-        scales = ( float* )sys_malloc(sizeof(float) * out_channel);
-        means = ( float* )sys_malloc(sizeof(float) * out_channel);
-        variances = ( float* )sys_malloc(sizeof(float) * out_channel);
+        scales = (float*)sys_malloc(sizeof(float) * out_channel);
+        means = (float*)sys_malloc(sizeof(float) * out_channel);
+        variances = (float*)sys_malloc(sizeof(float) * out_channel);
         if (0 == fread(scales, sizeof(float), out_channel, fp))
             printf("Read scales failed\n");
         if (0 == fread(means, sizeof(float), out_channel, fp))
@@ -260,8 +260,8 @@ static int load_conv_blob(ir_graph_t* graph, ir_node_t* node, std::vector<int>& 
             printf("Read variances failed\n");
     }
     int weight_size = weight_dims[0] * weight_dims[1] * weight_dims[2] * weight_dims[3];
-    weight_tensor->data = ( void* )sys_malloc(weight_size * sizeof(float) + 128);
-    float* weight_data = ( float* )weight_tensor->data;
+    weight_tensor->data = (void*)sys_malloc(weight_size * sizeof(float) + 128);
+    float* weight_data = (float*)weight_tensor->data;
     if (0 == fread(weight_data, sizeof(float), weight_size, fp))
         printf("Read weight data failed\n");
 
@@ -290,14 +290,14 @@ static int load_conv(ir_graph_t* graph, ir_node_t* node, std::vector<std::string
         return -1;
     set_ir_node_input_tensor(node, 0, tensor);
     conv_param* param = (conv_param*)node->op.param_mem;
-    int n = option_find_int(options, ( char* )"filters", 1);
-    int size = option_find_int(options, ( char* )"size", 1);
-    int stride = option_find_int(options, ( char* )"stride", 1);
-    int pad = option_find_int_quiet(options, ( char* )"pad", 0);
-    int padding = option_find_int_quiet(options, ( char* )"padding", 0);
-    int groups = option_find_int_quiet(options, ( char* )"groups", 1);
-    int batch_normalize = option_find_int_quiet(options, ( char* )"batch_normalize", 0);
-    char* activation_s = option_find_str(options, ( char* )"activation", ( char* )"logistic");
+    int n = option_find_int(options, (char*)"filters", 1);
+    int size = option_find_int(options, (char*)"size", 1);
+    int stride = option_find_int(options, (char*)"stride", 1);
+    int pad = option_find_int_quiet(options, (char*)"pad", 0);
+    int padding = option_find_int_quiet(options, (char*)"padding", 0);
+    int groups = option_find_int_quiet(options, (char*)"groups", 1);
+    int batch_normalize = option_find_int_quiet(options, (char*)"batch_normalize", 0);
+    char* activation_s = option_find_str(options, (char*)"activation", (char*)"logistic");
     // ACTIVATION activation = get_activation(activation_s);
     if (pad)
         padding = size / 2;
@@ -344,7 +344,7 @@ static int load_conv(ir_graph_t* graph, ir_node_t* node, std::vector<std::string
     {
         std::string relu_name = "leaky_" + std::to_string(index);
         ir_node_t* relu_node = create_ir_node(graph, relu_name.c_str(), OP_RELU, OP_VERSION);
-        relu_param* param = ( relu_param* )relu_node->op.param_mem;
+        relu_param* param = (relu_param*)relu_node->op.param_mem;
         param->negative_slope = 0.1f;
         set_ir_node_input_tensor(relu_node, 0, out_tensor);
         std::string relu_tensor_name = relu_name + "_0";
@@ -379,7 +379,7 @@ static int load_shortcut(ir_graph_t* graph, ir_node_t* node, std::vector<std::st
         return -1;
     }
     set_ir_node_input_tensor(node, 0, tensor);
-    char* l = option_find(options, ( char* )"from");
+    char* l = option_find(options, (char*)"from");
     int from_index = atoi(l);
     if (from_index < 0)
         from_index = index + from_index;
@@ -425,7 +425,7 @@ static int load_yolo(ir_graph_t* graph, ir_node_t* node, std::vector<std::string
 static int load_route(ir_graph_t* graph, ir_node_t* node, std::vector<std::string>& tensor_name_map, list* options, int index, FILE* fp)
 {
     //check layers option
-    char* layers = option_find(options, ( char* )("layers"));
+    char* layers = option_find(options, (char*)("layers"));
     int layers_len = strlen(layers);
     int n_layers = 1;
     std::vector<int> layers_arr;
@@ -445,7 +445,7 @@ static int load_route(ir_graph_t* graph, ir_node_t* node, std::vector<std::strin
         layers_arr.push_back(from_index);
     }
     //check groups option
-    char* groups = option_find(options, ( char* )("groups"));
+    char* groups = option_find(options, (char*)("groups"));
     int groups_len = (groups != nullptr) ? strlen(groups) : 0;
     int n_groups = 0;
     std::vector<int> groups_arr;
@@ -466,11 +466,11 @@ static int load_route(ir_graph_t* graph, ir_node_t* node, std::vector<std::strin
     }
 
     //check group_id option
-    char* group_id = option_find(options, ( char* )("group_id"));
+    char* group_id = option_find(options, (char*)("group_id"));
     int group_id_len = (group_id != nullptr) ? strlen(group_id) : 0;
     int n_group_id = 0;
     std::vector<int> group_id_arr;
-    if(group_id_len > 0)
+    if (group_id_len > 0)
     {
         n_group_id = 1;
         for (int i = 0; i < group_id_len; ++i)
@@ -487,12 +487,12 @@ static int load_route(ir_graph_t* graph, ir_node_t* node, std::vector<std::strin
     }
     if (groups_arr.size() == 0)
     {
-        for(int i = 0; i < layers_arr.size(); i++)
+        for (int i = 0; i < layers_arr.size(); i++)
             groups_arr.push_back(1);
     }
     if (group_id_arr.size() == 0)
     {
-        for(int i = 0; i < layers_arr.size(); i++)
+        for (int i = 0; i < layers_arr.size(); i++)
             group_id_arr.push_back(0);
     }
     //split if need
@@ -513,7 +513,7 @@ static int load_route(ir_graph_t* graph, ir_node_t* node, std::vector<std::strin
             {
                 out_dims.push_back(input_tensor->dims[j]);
             }
-            
+
             int step = input_tensor->dims[1] / groups_arr[i];
             out_dims[1] = step;
             ir_node_t* slice_node = create_ir_node(graph, slice_name.c_str(), OP_SLICE, OP_VERSION);
@@ -525,7 +525,7 @@ static int load_route(ir_graph_t* graph, ir_node_t* node, std::vector<std::strin
             param->begin = step * group_id_arr[i];
             param->end = step * (group_id_arr[i] + 1);
             set_ir_node_input_tensor(slice_node, 0, input_tensor);
-            
+
             std::string slice_tensor_name = slice_name + "_" + std::to_string(0);
             ir_tensor_t* slice_out_tensor = create_ir_tensor(graph, slice_tensor_name.c_str(), TENGINE_DT_FP32);
             set_ir_tensor_shape(slice_out_tensor, out_dims.data(), out_dims.size());
@@ -537,7 +537,7 @@ static int load_route(ir_graph_t* graph, ir_node_t* node, std::vector<std::strin
     int output_c = 0;
     for (int i = 0; i < layers_arr.size(); i++)
     {
-        if(slice_node_arr[i] != nullptr)
+        if (slice_node_arr[i] != nullptr)
         {
             ir_node_t* slice_node = slice_node_arr[i];
             ir_tensor_t* slice_out_tensor = get_ir_graph_tensor(graph, slice_node->output_tensors[0]);
@@ -565,7 +565,7 @@ static int load_route(ir_graph_t* graph, ir_node_t* node, std::vector<std::strin
 
     concat_param* param = (concat_param*)node->op.param_mem;
     param->axis = 1; // may cause fault
-     
+
     return 0;
 }
 
@@ -574,7 +574,7 @@ static int load_upsample(ir_graph_t* graph, ir_node_t* node, std::vector<std::st
     ir_tensor_t* tensor = find_tensor(graph, tensor_name_map[index - 1]);
     set_ir_node_input_tensor(node, 0, tensor);
     upsample_param* param = (upsample_param*)node->op.param_mem;
-    int scale = option_find_int(options, ( char* )"stride", 2);
+    int scale = option_find_int(options, (char*)"stride", 2);
     param->scale = scale;
 
     std::vector<int> out_dims;
@@ -598,9 +598,9 @@ static int load_max_pooling(ir_graph_t* graph, ir_node_t* node, std::vector<std:
         return -1;
     }
     set_ir_node_input_tensor(node, 0, tensor);
-    int stride = option_find_int(options, ( char* )"stride", 1);
-    int size = option_find_int(options, ( char* )"size", stride);
-    int padding = option_find_int_quiet(options, ( char* )"padding", size - 1);
+    int stride = option_find_int(options, (char*)"stride", 1);
+    int size = option_find_int(options, (char*)"size", stride);
+    int padding = option_find_int_quiet(options, (char*)"padding", size - 1);
 
     pool_param* param = (pool_param*)node->op.param_mem;
     param->kernel_h = size;
@@ -635,7 +635,7 @@ static int load_reorg(ir_graph_t* graph, ir_node_t* node, std::vector<std::strin
     ir_tensor_t* tensor = find_tensor(graph, tensor_name_map[index - 1]);
     set_ir_node_input_tensor(node, 0, tensor);
     reorg_param* param = (reorg_param*)node->op.param_mem;
-    int stride = option_find_int(options, ( char* )"stride", 1);
+    int stride = option_find_int(options, (char*)"stride", 1);
     param->stride = stride;
 
     std::vector<int> out_dims;
@@ -656,11 +656,11 @@ static int load_region(ir_graph_t* graph, ir_node_t* node, std::vector<std::stri
     set_ir_node_input_tensor(node, 0, tensor);
     region_param* param = (region_param*)node->op.param_mem;
 
-    int coords = option_find_int(options, ( char* )"coords", 4);
-    int classes = option_find_int(options, ( char* )"classes", 20);
-    int num = option_find_int(options, ( char* )"num", 1);
-    char* a = option_find_str(options, ( char* )"anchors", 0);
-    float thresh = option_find_float(options, ( char* )"thresh", .5);
+    int coords = option_find_int(options, (char*)"coords", 4);
+    int classes = option_find_int(options, (char*)"classes", 20);
+    int num = option_find_int(options, (char*)"num", 1);
+    char* a = option_find_str(options, (char*)"anchors", 0);
+    float thresh = option_find_float(options, (char*)"thresh", .5);
 
     param->num_classes = classes;
     param->num_box = num;

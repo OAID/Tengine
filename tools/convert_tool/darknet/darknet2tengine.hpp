@@ -51,13 +51,12 @@ extern "C" {
 #include "save_graph/op_include.h"
 }
 
-
 class darknet_serializer
 {
 public:
     graph_t darknet2tengine(std::string model_file, std::string proto_file);
     typedef int (*op_load_t)(ir_graph_t* graph, ir_node_t* node, std::vector<std::string>& tensor_name_map,
-                                list* options, int index, FILE* fp);
+                             list* options, int index, FILE* fp);
 
 private:
     std::unordered_map<std::string, std::pair<int, op_load_t> > op_load_map;
