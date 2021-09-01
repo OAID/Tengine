@@ -40,6 +40,7 @@ Tengine 核心代码由 4 个模块组成：
 ### 示例
 
 - [examples](examples/) 提供基础的分类、检测算法用例，根据 issue 需求持续更新。
+- [源安装](doc/docs_zh/quick_start/apt-get-install_user_manual.md) 提供ubuntu系统的apt-get命令行安装和试用，目前支持x86/A311D硬件。
 
 ### 模型仓库
 
