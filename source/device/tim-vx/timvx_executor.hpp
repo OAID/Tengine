@@ -54,6 +54,7 @@ extern "C" {
 
 #include "tim/vx/ops/activations.h"
 #include "tim/vx/ops/batchnorm.h"
+#include "tim/vx/ops/clip.h"
 #include "tim/vx/ops/concat.h"
 #include "tim/vx/ops/conv2d.h"
 #include "tim/vx/ops/deconv.h"
