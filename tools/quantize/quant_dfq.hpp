@@ -44,15 +44,15 @@ extern "C" {
 #include "quant_save_graph.hpp"
 #include "quant_utils.hpp"
 
-#define DEFAULT_IMG_H 227
-#define DEFAULT_IMG_W 227
-#define DEFAULT_SCALE1 1.f
-#define DEFAULT_SCALE2 1.f
-#define DEFAULT_SCALE3 1.f
-#define DEFAULT_MEAN1 104.007
-#define DEFAULT_MEAN2 116.669
-#define DEFAULT_MEAN3 122.679
-#define DEFAULT_LOOP_COUNT 1
+#define DEFAULT_IMG_H        227
+#define DEFAULT_IMG_W        227
+#define DEFAULT_SCALE1       1.f
+#define DEFAULT_SCALE2       1.f
+#define DEFAULT_SCALE3       1.f
+#define DEFAULT_MEAN1        104.007
+#define DEFAULT_MEAN2        116.669
+#define DEFAULT_MEAN3        122.679
+#define DEFAULT_LOOP_COUNT   1
 #define DEFAULT_THREAD_COUNT 1
 
 #define DO_DFQ 1
