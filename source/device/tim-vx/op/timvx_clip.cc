@@ -27,6 +27,7 @@
 extern "C"
 {
 #include "operator/op.h"
+#include "clip_param.h"
 }
 
 
@@ -36,9 +37,11 @@ bool VXEngine::AddClipNode(struct node* ir_node)
 
     struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+    
+    struct clip_param* param = (struct clip_param*)ir_node->op.param_mem;
 
-    auto relu = this->graph->CreateOperation<tim::vx::ops::Relu6>();
-    (*relu).BindInput( this->vx_tensor_map[input_tensor->index] )
+    auto clip = this->graph->CreateOperation<tim::vx::ops::Clip>(param->min, param->max);
+    (*clip).BindInput( this->vx_tensor_map[input_tensor->index] )
         .BindOutput({ this->vx_tensor_map[output_tensor->index] });
 
     return true;
