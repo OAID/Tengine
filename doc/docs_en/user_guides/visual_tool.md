@@ -36,7 +36,7 @@ After entering the Netron interface, click the icon in the upper left corner or 
 
  
 
-| ![img](https://raw.githubusercontent.com/BUG1989/tengine-docs/main/images/clip_image002.jpg) |
+| ![img](https://raw.githubusercontent.com/OAID/Tengine/tengine-lite/doc/docs_zh/images/clip_image002.jpg) |
 | ------------------------------------------------------------ |
 | Figure 1. Model Properties                                   |
 
@@ -74,7 +74,7 @@ Nodes are connected to form a network and different colors are displayed accordi
 
 The Convolution operator displays weight and bias dimension information by default.
 
-| ![img](https://raw.githubusercontent.com/BUG1989/tengine-docs/main/images/clip_image004.jpg) |
+| ![img](https://raw.githubusercontent.com/OAID/Tengine/tengine-lite/doc/docs_zh/images/clip_image004.jpg) |
 | ------------------------------------------------------------ |
 | Figure 2. Model Drawing                                      |
 
@@ -88,7 +88,7 @@ Each node contains an Operator.
 
 Operators have type type, name name, ATTRIBUTES, INPUTS and OUTPUTS.
 
-| ![img](https://raw.githubusercontent.com/BUG1989/tengine-docs/main/images/clip_image006.jpg) |
+| ![img](https://raw.githubusercontent.com/OAID/Tengine/tengine-lite/doc/docs_zh/images/clip_image006.jpg) |
 | ------------------------------------------------------------ |
 | Figure 3. Node Information                                   |
 

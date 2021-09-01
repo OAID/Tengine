@@ -56,6 +56,6 @@ graph TD
 ```
 >
 
-| ![img](https://raw.githubusercontent.com/BUG1989/tengine-docs/main/images/clip_image008.png)|
+| ![img](https://raw.githubusercontent.com/OAID/Tengine/tengine-lite/doc/docs_zh/images/clip_image008.png)|
 | ------------------------------------------------------------ |
 | 图1 推理流程图                               |

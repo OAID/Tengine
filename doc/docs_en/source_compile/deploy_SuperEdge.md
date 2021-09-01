@@ -187,6 +187,6 @@ yolo-76d95967bb-zxggk   1/1     Running   3          79m
 - You Make it now!  Enjoy it and Check the  detection results in monitor. 
 
 
-<img src="http://tengine2.openailab.com:9527/openailab/demo.jpg" style="zoom:67%;" />
+![img](../images/oal_demo.jpg)
 
 

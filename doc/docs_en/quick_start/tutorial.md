@@ -52,6 +52,6 @@ graph TD
     F --> O(inference result)
 ```
 >
-| ![img](https://raw.githubusercontent.com/BUG1989/tengine-docs/main/images/clip_image008.png)|
+| ![img](https://raw.githubusercontent.com/OAID/Tengine/tengine-lite/doc/docs_zh/images/clip_image008.png)|
 | ------------------------------------------------------------ |
 | Figure 1 Inference Process  
