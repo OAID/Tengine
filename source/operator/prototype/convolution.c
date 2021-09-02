@@ -69,7 +69,8 @@ static int infer_shape(ir_node_t* node)
         return -1;
     }
 
-    int out_c = conv_param->output_channel;
+    ir_tensor_t* weight = get_ir_graph_tensor(graph, node->input_tensors[1]);
+    int out_c = weight->dims[0];
     int out_h, out_w;
 
     /* handle the same padding case, which pad_h0 and pad_h1 is -1 (SAME_UPPER)
