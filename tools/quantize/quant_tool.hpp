@@ -61,7 +61,6 @@ typedef std::unordered_map<uint32_t, std::vector<uint32_t> > dict_uint2vecuint;
 typedef std::unordered_map<uint32_t, std::string> dict_uint2str;
 typedef std::unordered_map<uint32_t, std::vector<double> > dict_uint2doublex;
 
-
 #define ALGORITHM_MIN_MAX 0
 #define ALGORITHM_KL      1
 #define ALGORITHM_ACIQ    2
@@ -89,8 +88,8 @@ public:
 
 private:
     void recursion_pass_through(struct graph* graphn, const char* layer_name, struct tensor* t,
-                                dict_str2int &layer_used, dict_str2float &layer_scale,
-                                dict_str2float &layer_zeropoint, dict_str2int &layer_pass);
+                                dict_str2int& layer_used, dict_str2float& layer_scale,
+                                dict_str2float& layer_zeropoint, dict_str2int& layer_pass);
 
     struct exec_graph* get_exec_graph(struct graph* graphn);
     void load_activation_scale(struct graph* graphn, const char* scale_file, int mode_sc);
@@ -100,16 +99,16 @@ private:
     void check_for_interlearve();
     void weight_bias_requant(int search);
     void conv_hcl_interleave_pack4_fp32(int M, int K, float* pA, float* pA_t);
-    void activation_requant(float* data, int elem_num, int bitcount, int symmetry, float scale, int zero_point=0);
+    void activation_requant(float* data, int elem_num, int bitcount, int symmetry, float scale, int zero_point = 0);
     void weight_requant(struct tensor* weight_tensor, float* data, int elem_num, int bitcount, int symmetry, int elem_channel);
     void weight_requant_search(struct tensor* weight_tensor, float* data, int elem_num, int bitcount, int symmetry, int elem_channel, float zoom);
     void weight_requant_search(struct tensor* weight_tensor, float* data, int elem_num, int bitcount, int symmetry, int elem_channel, float* zoom);
     void bias_requant(struct tensor* input_tensor, struct tensor* weight_tensor, struct tensor* bias_tensor,
                       float* data, int elem_num, int elem_channel);
     void set_node_input_output_tensor(int idx, int imgi, int snum);
-    double cosin_similarity(std::vector<float>* in_a,std::vector<float>* in_b, uint32_t imgs_num, uint32_t output_num);
-    double cosin_similarity(std::vector<std::vector<float> > &in_a,std::vector<std::vector<float> > &in_b, uint32_t imgs_num, uint32_t output_num);
-    void cosin_similarity(std::vector<double> &cosin, std::vector<std::vector<float> > &in_a,std::vector<std::vector<float> > &in_b, uint32_t imgs_num, uint32_t output_num, uint32_t output_channel);  // cosin dis perchannel
+    double cosin_similarity(std::vector<float>* in_a, std::vector<float>* in_b, uint32_t imgs_num, uint32_t output_num);
+    double cosin_similarity(std::vector<std::vector<float> >& in_a, std::vector<std::vector<float> >& in_b, uint32_t imgs_num, uint32_t output_num);
+    void cosin_similarity(std::vector<double>& cosin, std::vector<std::vector<float> >& in_a, std::vector<std::vector<float> >& in_b, uint32_t imgs_num, uint32_t output_num, uint32_t output_channel); // cosin dis perchannel
     void weight_bias_reset();
     void free_used_layers(int idx);
     void gen_weight_scale(struct tensor* weight_tensor, float* data, int elem_num, int bitcount, int symmetry, int elem_channel);
@@ -130,9 +129,9 @@ public:
     int img_c;
     int img_h;
     int img_w;
-    float mean[3];      // value of mean (mean value, default is 104.0,117.0,123.0)
-    float scale[3];     // value of normalize (scale value, default is 1.0,1.0,1.0)
-    int center_crop;    // flag which indicates that center crop process image is necessary(0:OFF, 1:ON, default is 0)
+    float mean[3];   // value of mean (mean value, default is 104.0,117.0,123.0)
+    float scale[3];  // value of normalize (scale value, default is 1.0,1.0,1.0)
+    int center_crop; // flag which indicates that center crop process image is necessary(0:OFF, 1:ON, default is 0)
     int letterbox_rows;
     int letterbox_cols;
     int sw_RGB;         // flag which indicates that swap first and last channels in 3-channel image is necessary(0:OFF, 1:ON, default is 1)
@@ -142,13 +141,13 @@ public:
     bool evaluate;      // evaluate quantitative losses
 
 private: // system variable
-    dict_uint2uint          ir_exec;
-    dict_uint2uint          exec_ir;
-    dict_uint2vecuint       dict_free;
-    dict_uint2uint          execidx_elemnum;
-    dict_uint2uint          execidx_elemsize;
-    dict_uint2str           execidx_nodename;
-    dict_uint2doublex       execidx_loss;
+    dict_uint2uint ir_exec;
+    dict_uint2uint exec_ir;
+    dict_uint2vecuint dict_free;
+    dict_uint2uint execidx_elemnum;
+    dict_uint2uint execidx_elemsize;
+    dict_uint2str execidx_nodename;
+    dict_uint2doublex execidx_loss;
 
     int max_search_img_num;
 
@@ -169,8 +168,8 @@ private: // ir graph variable
 
     struct graph* graphn_fp32;
     struct graph* graphn_fake_quant;
-    struct tensor*  graph_input_tensor_fp32;
-    struct tensor*  graph_input_tensor_fake_quant;
+    struct tensor* graph_input_tensor_fp32;
+    struct tensor* graph_input_tensor_fake_quant;
     struct exec_graph* exec_graph_fp32;
     struct exec_graph* exec_graph_fake_quant;
     int exec_node_num;

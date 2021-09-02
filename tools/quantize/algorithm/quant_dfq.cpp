@@ -33,20 +33,19 @@ int QuantTool::data_free_quant()
     int loop_count = 1;
     const char* image_file = nullptr;
 
-
     /* set runtime options */
     struct options opt;
     opt.num_thread = num_thread;
     opt.cluster = TENGINE_CLUSTER_ALL;
     opt.precision = TENGINE_MODE_FP32;
 
-//    /* inital tengine */
-//    if (init_tengine() != 0)
-//    {
-//        fprintf(stderr, "Initial tengine failed.\n");
-//        return -1;
-//    }
-//    fprintf(stderr, "tengine-lite library version: %s\n", get_tengine_version());
+    //    /* inital tengine */
+    //    if (init_tengine() != 0)
+    //    {
+    //        fprintf(stderr, "Initial tengine failed.\n");
+    //        return -1;
+    //    }
+    //    fprintf(stderr, "tengine-lite library version: %s\n", get_tengine_version());
 
     /* create graph, load tengine model xxx.tmfile */
     graph_t graph = create_graph(NULL, "tengine", model_file.c_str());
@@ -58,21 +57,21 @@ int QuantTool::data_free_quant()
     }
 
     struct graph* graphn = (struct graph*)graph;
-    struct node_graph* node_proto = ( struct node_graph* )sys_malloc( sizeof(struct node_graph) * graphn->node_num);
+    struct node_graph* node_proto = (struct node_graph*)sys_malloc(sizeof(struct node_graph) * graphn->node_num);
 
     for (int i = 0; i < graphn->node_num; i++)
     {
-        struct node* n = graphn->node_list[i];                        //ir node
-        const uint16_t node_idx = n->index;                               //node idx
+        struct node* n = graphn->node_list[i]; //ir node
+        const uint16_t node_idx = n->index;    //node idx
         auto op_type = n->op.type;
-        const char* layer_name = n->name;                               //layer name
+        const char* layer_name = n->name; //layer name
 
-        const uint16_t input_num = n->input_num;                    //input num
-        const uint16_t output_num = n->output_num;                  //output num
+        const uint16_t input_num = n->input_num;   //input num
+        const uint16_t output_num = n->output_num; //output num
 
         node_proto[i].pass = 0;
-//        node_proto[i].input_node_list = create_vector(sizeof(uint16_t), NULL);
-//        node_proto[i].output_node_list = create_vector(sizeof(uint16_t), NULL);
+        //        node_proto[i].input_node_list = create_vector(sizeof(uint16_t), NULL);
+        //        node_proto[i].output_node_list = create_vector(sizeof(uint16_t), NULL);
 
         for (int j = 0; j < input_num; j++)
         {
@@ -95,10 +94,10 @@ int QuantTool::data_free_quant()
 
     for (int i = 0; i < graphn->node_num; i++)
     {
-        struct node* n = graphn->node_list[i];                       //ir node
-        const uint16_t node_idx = n->index;                               //node idx
+        struct node* n = graphn->node_list[i]; //ir node
+        const uint16_t node_idx = n->index;    //node idx
         auto op_type = n->op.type;
-        const char* layer_name = n->name;                               //layer name
+        const char* layer_name = n->name; //layer name
         if (op_type != NULL)
         {
             if (OP_CONV != op_type && OP_FC != op_type)
@@ -125,23 +124,23 @@ int QuantTool::data_free_quant()
 
     for (int i = 0; i < graphn->node_num; i++)
     {
-        struct node* n = graphn->node_list[i];                        //ir node
-        const uint16_t node_idx = n->index;                               //node idx
+        struct node* n = graphn->node_list[i]; //ir node
+        const uint16_t node_idx = n->index;    //node idx
         auto op_name = n->op.type;
-        const char* layer_name = n->name;                               //layer name
+        const char* layer_name = n->name; //layer name
 
-        const uint16_t input_num = n->input_num;                    //input num
-        const uint16_t output_num = n->output_num;                  //output num
+        const uint16_t input_num = n->input_num;   //input num
+        const uint16_t output_num = n->output_num; //output num
 
         if (op_name != NULL)
         {
             if (OP_CONV == op_name)
             {
                 // DW_Conv && Direct_Conv
-                struct conv_param* conv_param = ( struct conv_param* )n->op.param_mem;
+                struct conv_param* conv_param = (struct conv_param*)n->op.param_mem;
                 if (conv_param->group == conv_param->output_channel)
                 {
-//                    printf("    #### DW Conv ####\n");
+                    //                    printf("    #### DW Conv ####\n");
                     if (node_proto[i].input_node_list.size() == 1 && node_proto[i].output_node_list.size() == 1)
                     {
                         uint16_t node_input_id = node_proto[i].input_node_list[0];
@@ -149,13 +148,11 @@ int QuantTool::data_free_quant()
                         auto op_name0 = graphn->node_list[node_input_id]->op.type;
                         auto op_name2 = graphn->node_list[node_input_id]->op.type;
 
-                        if (node_proto[node_input_id].output_node_list.size() == 1 &&
-                            node_proto[node_output_id].input_node_list.size() == 1 &&
-                            OP_CONV == op_name0 && OP_CONV == op_name2)
+                        if (node_proto[node_input_id].output_node_list.size() == 1 && node_proto[node_output_id].input_node_list.size() == 1 && OP_CONV == op_name0 && OP_CONV == op_name2)
                         {
-                            node_proto[i].pass = 1;                 //layer1
-                            node_proto[node_input_id].pass = 1;    //layer0
-                            node_proto[node_output_id].pass = 1;   //layer2
+                            node_proto[i].pass = 1;              //layer1
+                            node_proto[node_input_id].pass = 1;  //layer0
+                            node_proto[node_output_id].pass = 1; //layer2
 
                             // layer0 min/max range
                             struct node* nodeP = graphn->node_list[node_input_id];
@@ -178,7 +175,7 @@ int QuantTool::data_free_quant()
                                         layer0_min[d0] = data_layer0[dims123 * d0 + d1];
                                 }
                             }
-//                            printf("### %d ###\n",dims0);
+                            //                            printf("### %d ###\n",dims0);
                             for (int d0 = 0; d0 < dims0; d0++)
                             {
                                 layer0_range[d0] = layer0_max[d0] - layer0_min[d0];
@@ -205,7 +202,7 @@ int QuantTool::data_free_quant()
                                         layer1_min[d0] = data_layer1[dims123 * d0 + d1];
                                 }
                             }
-//                            printf("### %d ###\n",dims0);
+                            //                            printf("### %d ###\n",dims0);
                             for (int d0 = 0; d0 < dims0; d0++)
                             {
                                 layer1_range[d0] = layer1_max[d0] - layer1_min[d0];
@@ -240,19 +237,19 @@ int QuantTool::data_free_quant()
                                     }
                                 }
                             }
-//                            printf("### %d ###\n",dims1);
+                            //                            printf("### %d ###\n",dims1);
                             for (int d1 = 0; d1 < dims1; d1++)
                             {
                                 layer2_range[d1] = layer2_max[d1] - layer2_min[d1];
                             }
 
-//////////////////////////////////////////////////////////////////////////////////
+                            //////////////////////////////////////////////////////////////////////////////////
 
                             // layer ops sqrt
                             float ops_range[dims1];
                             for (int ops = 0; ops < dims1; ops++)
                             {
-                                ops_range[ops] = pow(layer0_range[ops] * layer1_range[ops] * layer2_range[ops], 1.0/3);
+                                ops_range[ops] = pow(layer0_range[ops] * layer1_range[ops] * layer2_range[ops], 1.0 / 3);
                             }
 
                             float S01[dims1];
@@ -268,19 +265,19 @@ int QuantTool::data_free_quant()
                                 }
                                 else
                                 {
-                                    S01[ops] = layer0_range[ops]/ops_range[ops];
-                                    S12_F[ops] = layer2_range[ops]/ops_range[ops];
+                                    S01[ops] = layer0_range[ops] / ops_range[ops];
+                                    S12_F[ops] = layer2_range[ops] / ops_range[ops];
                                 }
                                 if (layer0_range[ops] == 0)
                                     S01_F[ops] = 0.0;
                                 else
-                                    S01_F[ops] = ops_range[ops]/layer0_range[ops];
+                                    S01_F[ops] = ops_range[ops] / layer0_range[ops];
                                 if (layer2_range[ops] == 0)
                                     S12[ops] = 0.0;
                                 else
-                                    S12[ops] = ops_range[ops]/layer2_range[ops];
+                                    S12[ops] = ops_range[ops] / layer2_range[ops];
                             }
-//////////////////////////////////////////////////////////////////////////////////
+                            //////////////////////////////////////////////////////////////////////////////////
 
                             // layer0 output
                             nodeP = graphn->node_list[node_input_id];
@@ -296,7 +293,7 @@ int QuantTool::data_free_quant()
                             }
                             input_tensor = get_ir_graph_tensor(graphn, nodeP->input_tensors[2]);
                             dims0 = input_tensor->dims[0];
-                            float* data_layer0_bias = (float *)sys_malloc(sizeof(float) * dims0);
+                            float* data_layer0_bias = (float*)sys_malloc(sizeof(float) * dims0);
                             data_layer0_bias = (float*)input_tensor->data;
                             for (int d0 = 0; d0 < dims0; d0++)
                             {
@@ -344,7 +341,7 @@ int QuantTool::data_free_quant()
                 }
                 else
                 {
-//                    printf("    #### Direct Conv ####\n");
+                    //                    printf("    #### Direct Conv ####\n");
                     if (node_proto[i].pass == 0)
                     {
                         if (node_proto[i].input_node_list.size() == 1)
@@ -354,11 +351,10 @@ int QuantTool::data_free_quant()
                             {
                                 auto op_name0 = graphn->node_list[node_input_id]->op.type;
 
-                                if (node_proto[node_input_id].output_node_list.size() == 1 &&
-                                    op_name0 == OP_CONV)
+                                if (node_proto[node_input_id].output_node_list.size() == 1 && op_name0 == OP_CONV)
                                 {
-                                    node_proto[i].pass = 1;                 //layer1
-                                    node_proto[node_input_id].pass = 1;     //layer0
+                                    node_proto[i].pass = 1;             //layer1
+                                    node_proto[node_input_id].pass = 1; //layer0
 
                                     // layer0 min/max range
                                     struct node* nodeP = graphn->node_list[node_input_id];
@@ -381,7 +377,7 @@ int QuantTool::data_free_quant()
                                                 layer0_min[d0] = data_layer0[dims123 * d0 + d1];
                                         }
                                     }
-//                                    printf("### %d ###\n",dims0);
+                                    //                                    printf("### %d ###\n",dims0);
                                     for (int d0 = 0; d0 < dims0; d0++)
                                     {
                                         layer0_range[d0] = layer0_max[d0] - layer0_min[d0];
@@ -398,7 +394,7 @@ int QuantTool::data_free_quant()
                                     std::vector<float> layer1_min(dims0, 0.0f);
                                     std::vector<float> layer1_range(dims0, 0.0f);
 
-                                   float* data_layer1 = (float*)input_tensor->data;
+                                    float* data_layer1 = (float*)input_tensor->data;
                                     for (int d0 = 0; d0 < dims0; d0++)
                                     {
                                         for (int d1 = 0; d1 < dims1; d1++)
@@ -416,13 +412,13 @@ int QuantTool::data_free_quant()
                                             }
                                         }
                                     }
-//                                    printf("### %d ###\n",dims1);
+                                    //                                    printf("### %d ###\n",dims1);
                                     for (int d0 = 0; d0 < dims1; d0++)
                                     {
                                         layer1_range[d0] = layer1_max[d0] - layer1_min[d0];
                                     }
 
-//////////////////////////////////////////////////////////////////////////////////
+                                    //////////////////////////////////////////////////////////////////////////////////
 
                                     // layer ops sqrt
                                     float ops_range[dims1];
@@ -441,15 +437,15 @@ int QuantTool::data_free_quant()
                                         }
                                         else
                                         {
-                                            S01[ops] = layer0_range[ops]/ops_range[ops];
+                                            S01[ops] = layer0_range[ops] / ops_range[ops];
                                         }
                                         if (layer0_range[ops] == 0)
                                             S01_F[ops] = 0.0;
                                         else
-                                            S01_F[ops] = ops_range[ops]/layer0_range[ops];
+                                            S01_F[ops] = ops_range[ops] / layer0_range[ops];
                                     }
-//////////////////////////////////////////////////////////////////////////////////
-                                     // layer0 output
+                                    //////////////////////////////////////////////////////////////////////////////////
+                                    // layer0 output
                                     nodeP = graphn->node_list[node_input_id];
                                     input_tensor = get_ir_graph_tensor(graphn, nodeP->input_tensors[1]);
                                     dims0 = input_tensor->dims[0];
@@ -463,7 +459,7 @@ int QuantTool::data_free_quant()
                                     }
                                     input_tensor = get_ir_graph_tensor(graphn, nodeP->input_tensors[2]);
                                     dims0 = input_tensor->dims[0];
-                                    float* data_layer0_bias = (float *)sys_malloc(sizeof(float) * dims0);
+                                    float* data_layer0_bias = (float*)sys_malloc(sizeof(float) * dims0);
                                     data_layer0_bias = (float*)input_tensor->data;
                                     for (int d0 = 0; d0 < dims0; d0++)
                                     {
@@ -503,8 +499,8 @@ int QuantTool::data_free_quant()
 
     /* set the shape, data buffer of input_tensor of the graph */
     int img_size = img_h * img_w * img_c;
-    int dims[] = {1, img_c, img_h, img_w};    // nchw
-    float* input_data = ( float* )malloc(img_size * sizeof(float));
+    int dims[] = {1, img_c, img_h, img_w}; // nchw
+    float* input_data = (float*)malloc(img_size * sizeof(float));
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == NULL)
@@ -560,17 +556,17 @@ int QuantTool::data_free_quant()
 
     /* get the result of classification */
     tensor_t output_tensor = get_graph_output_tensor(graph, 0, 0);
-    float* output_data = ( float* )get_tensor_buffer(output_tensor);
+    float* output_data = (float*)get_tensor_buffer(output_tensor);
     int output_size = get_tensor_buffer_size(output_tensor) / sizeof(float);
 
-//    printf("out put data %f %d \n",output_data[0], output_size);
+    //    printf("out put data %f %d \n",output_data[0], output_size);
     fprintf(stderr, "--------------------------------------\n");
 
     /* release tengine */
     free(input_data);
     postrun_graph(graph);
     destroy_graph(graph);
-//    release_tengine();
+    //    release_tengine();
 
     return 0;
 }

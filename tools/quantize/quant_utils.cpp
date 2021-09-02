@@ -421,7 +421,7 @@ std::vector<uint32_t> histCount(float* data, uint32_t elem_num, float abs_max)
         if (data[i] != 0)
         {
             uint32_t hist_idx = round(std::abs(data[i]) / bin_scale);
-            hist[hist_idx] ++;
+            hist[hist_idx]++;
         }
     }
     return hist;
