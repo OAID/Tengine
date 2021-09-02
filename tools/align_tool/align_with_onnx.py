@@ -101,6 +101,7 @@ class AlignOnnx():
 
         # set inputs , you can change your input here
         input_shape = session.get_inputs()[0].shape
+        print(input_shape)
         if self.tengine_model is not None:
             input_array = np.random.randn(*input_shape).astype(np.float32)
         else:
@@ -139,7 +140,7 @@ class AlignOnnx():
         print("-------------------------------------------------")
         print("export onnx output to text , please wait a moment")
         for one_node in tqdm(self.onnx_model.graph.node):
-            sufix = self.export_path + '/' + one_node.name
+            sufix = self.export_path + '/' + one_node.name.replace('/','-')
             for i, input in enumerate(one_node.input):
                 if input not in const_name:
                     self._write_data(sufix + f'_in_blob_data.txt', result[outputs.index(input)])
@@ -265,7 +266,7 @@ class AlignOnnx():
             print(out_info)
 
             for one_node in self.onnx_model.graph.node:
-                text_file_name = [one_node.name + "_out_blob_data.txt", one_node.name + "_in_blob_data.txt"]
+                text_file_name = [(one_node.name + "_out_blob_data.txt").replace('/','-'), (one_node.name + "_in_blob_data.txt").replace('/','-')]
 
                 def compare_and_write(file_name, compare_input=False):
                     if file_name in tm_txt_list:
