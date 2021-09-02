@@ -32,6 +32,8 @@
 #include <set>
 #include <algorithm>
 #include <fstream>
+#include <queue>
+#include <stack>
 
 #include "graph.pb.h"
 
@@ -59,6 +61,8 @@ extern "C" {
 #define TF_RNN_GRU        1
 #define TF_RNN_BASIC_LSTM 2
 #define TF_RNN_BASIC_RNN  3
+#define FUSE_NODE         10
+static int NCHW_axis_swap[] = {0, 2, 3, 1};
 
 struct TFNode
 {
@@ -72,6 +76,9 @@ struct TFNode
     ir_tensor_t* ir_tensor;
     bool no_static_node;
     int BNAddType;
+    std::vector<std::string> in_tensors;
+    std::vector<std::string> out_tensors;
+    int biasAdd;
 
     TFNode()
     {
@@ -245,10 +252,15 @@ private:
     int FuseComposedBN(TFNode* cur_node);
     int optimize_rnn();
     void CleanupResizeNearestNeighbor();
+    int DFSGraph(ir_graph_t* graph);
+
     tensorflow::GraphDef tf_net;
     TFGraph tf_graph;
     std::vector<std::string> input_tensors;
     std::vector<std::string> output_tensors;
+    std::set<TFNode*> ck_graph;
+    std::vector<TFNode*> out_graph;
+    int fused_node_count;
 };
 
 #endif
