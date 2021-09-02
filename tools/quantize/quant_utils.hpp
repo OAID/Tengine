@@ -40,6 +40,7 @@ void get_input_data_cv(const char* image_file, float* input_data, int img_c, int
 void readFileList(std::string basePath, std::vector<std::string>& imgs);
 
 std::vector<uint32_t> histCount(float* data, uint32_t elem_num, float max_val, float min_val);
+std::vector<uint32_t> histCount(float* data, uint32_t elem_num, float abs_max);
 
 float compute_kl_divergence(std::vector<float>& dist_a, std::vector<float>& dist_b);
 
