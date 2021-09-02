@@ -24,6 +24,10 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 struct serializer;
 struct op;
 struct method;
@@ -198,3 +202,7 @@ int unregister_op(int type, int version);
  * @return statue value, 0 success, other value failure.
  */
 int release_op_registry();
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */

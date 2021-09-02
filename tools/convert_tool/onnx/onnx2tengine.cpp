@@ -57,7 +57,7 @@ ir_tensor_t* find_tensor(ir_graph_t* graph, const std::string& tensor_name)
     return nullptr;
 }
 
-int change_node_op(ir_node_t* node, int new_op_type)
+static int change_node_op(ir_node_t* node, int new_op_type)
 {
     sys_free(node->op.param_mem);
     node->op.type = new_op_type;
@@ -162,7 +162,7 @@ int onnx_serializer::load_model_file(std::string model_file, onnx::ModelProto& m
     }
     if (op_set != -1)
     {
-        fprintf(stderr, "Model op set is :%d\n", op_set);
+        fprintf(stderr, "Model op set is: %d\n", op_set);
     }
 
     return 0;
@@ -200,7 +200,6 @@ int onnx_serializer::load_constant_tensor(ir_graph_t* graph, const onnx::GraphPr
             const onnx::TensorProto& onnx_tensor = node_tensor[node.input(1)];
             std::pair<std::string, bool> t(node.input(1), 0);
             tensor_check.insert(t);
-            fprintf(stderr, "node:%s, tensor:%s\n", node.name().c_str(), onnx_tensor.name().c_str());
             int tensor_data_type = get_onnx_tensor_data_type(onnx_tensor);
             if (tensor_data_type < 0)
             {
@@ -452,12 +451,7 @@ int onnx_serializer::set_graph_input(ir_graph_t* graph, const onnx::GraphProto& 
         input_nodes.push_back(node->index);
     }
 
-    std::vector<int16_t> node_idx;
-    for (int i = 0; i < input_nodes.size(); i++)
-    {
-        node_idx.push_back(input_nodes[i]);
-    }
-    set_ir_graph_input_node(graph, node_idx.data(), input_nodes.size());
+    set_ir_graph_input_node(graph, input_nodes.data(), input_nodes.size());
     return 0;
 }
 
@@ -587,7 +581,7 @@ int onnx_serializer::set_graph_output(ir_graph_t* graph, const onnx::GraphProto&
     return 0;
 }
 
-int deal_old_softmax(ir_graph_t* graph)
+static int deal_old_softmax(ir_graph_t* graph)
 {
     std::vector<ir_node_t*> old_spec_softmax_nodes;
 
@@ -683,7 +677,7 @@ int deal_old_softmax(ir_graph_t* graph)
     return 0;
 }
 
-int reduce2avgpool(ir_graph_t* graph)
+static int reduce2avgpool(ir_graph_t* graph)
 {
     std::vector<ir_node_t*> reduce_mean_nodes;
 
@@ -726,12 +720,17 @@ int reduce2avgpool(ir_graph_t* graph)
 
 int onnx_serializer::optimize_graph(ir_graph_t* graph)
 {
+    set_log_level(LOG_EMERG);
     if (infer_ir_graph_shape(graph) < 0)
-        return -1;
+    {
+        fprintf(stderr, "Skip internal optimize in onnx serializer.\n");
+        return 0;
+    }
     if (deal_old_softmax(graph) < 0)
         return -1;
     if (reduce2avgpool(graph) < 0)
         return -1;
+    fprintf(stderr, "Internal optimize in onnx serializer done.\n");
 
     return 0;
 }
@@ -787,7 +786,7 @@ graph_t onnx_serializer::onnx2tengine(std::string model_file)
     return ir_graph;
 }
 
-int load_conv(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
+static int load_conv(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct conv_param* conv_param = (struct conv_param*)node->op.param_mem;
     for (int k = 0; k < onnx_node.attribute_size(); k++)
@@ -868,14 +867,14 @@ int load_conv(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_no
     return 0;
 }
 
-int load_relu(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
+static int load_relu(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct relu_param* relu_param = (struct relu_param*)node->op.param_mem;
     relu_param->negative_slope = 0.f;
     return 0;
 }
 
-int load_pool(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
+static int load_pool(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct pool_param* pool_param = (struct pool_param*)node->op.param_mem;
     const std::string& onnx_op = onnx_node.op_type();
@@ -945,7 +944,7 @@ int load_pool(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_no
     return 0;
 }
 
-int load_flatten(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
+static int load_flatten(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct flatten_param* flatten_param = (struct flatten_param*)node->op.param_mem;
     flatten_param->axis = 1;
@@ -958,7 +957,7 @@ int load_flatten(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx
     return 0;
 }
 
-int load_gemm(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
+static int load_gemm(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct gemm_param* gemm_param = (struct gemm_param*)node->op.param_mem;
     // set default
@@ -1047,7 +1046,7 @@ int load_gemm(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_no
     return 0;
 }
 
-int load_concat(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
+static int load_concat(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct concat_param* concat_param = (struct concat_param*)node->op.param_mem;
 
@@ -1063,7 +1062,7 @@ int load_concat(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_
     return 0;
 }
 
-int load_bn(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
+static int load_bn(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct batchnorm_param* batchnorm_param = (struct batchnorm_param*)node->op.param_mem;
 
@@ -1081,7 +1080,7 @@ int load_bn(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node
     return 0;
 }
 
-int load_eltwise(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
+static int load_eltwise(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct eltwise_param* eltwise_param = (struct eltwise_param*)node->op.param_mem;
     const std::string& op_name = onnx_node.op_type();
@@ -1121,7 +1120,7 @@ int load_eltwise(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx
     return 0;
 }
 
-int load_transpose(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
+static int load_transpose(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct transpose_param* transpose_param = (struct transpose_param*)node->op.param_mem;
 
@@ -1137,7 +1136,7 @@ int load_transpose(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& on
     return 0;
 }
 
-int load_clip(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
+static int load_clip(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct clip_param* clip_param = (struct clip_param*)node->op.param_mem;
 
@@ -1171,7 +1170,7 @@ int load_clip(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_no
     return 0;
 }
 
-int load_reshape(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
+static int load_reshape(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct reshape_param* reshape_param = (struct reshape_param*)node->op.param_mem;
 
@@ -1194,13 +1193,13 @@ int load_reshape(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx
     return 0;
 }
 
-int load_no_param(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
+static int load_no_param(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     // no param
     return 0;
 }
 
-int load_softmax(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
+static int load_softmax(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct softmax_param* softmax_param = (struct softmax_param*)node->op.param_mem;
     softmax_param->axis = 1; // default
@@ -1217,7 +1216,7 @@ int load_softmax(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx
     return 0;
 }
 
-int load_elu(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
+static int load_elu(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct elu_param* elu_param = (struct elu_param*)node->op.param_mem;
 
@@ -1234,7 +1233,7 @@ int load_elu(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_nod
     return 0;
 }
 
-int load_interp(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
+static int load_interp(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     std::string mode = "nearest";
     for (int k = 0; k < onnx_node.attribute_size(); k++)
@@ -1318,7 +1317,7 @@ int load_interp(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_
     return 0;
 }
 
-int load_leaky_relu(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
+static int load_leaky_relu(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct relu_param* relu_param = (struct relu_param*)node->op.param_mem;
     const onnx::AttributeProto& attr = onnx_node.attribute(0);
@@ -1327,7 +1326,7 @@ int load_leaky_relu(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& o
     return 0;
 }
 
-int load_slice(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
+static int load_slice(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct slice_param* slice_param = (struct slice_param*)node->op.param_mem;
 
@@ -1391,7 +1390,7 @@ int load_slice(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_n
     return 0;
 }
 
-int load_split(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
+static int load_split(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct split_param* split_param = (struct split_param*)node->op.param_mem;
     split_param->is_onnx = true;
@@ -1420,7 +1419,7 @@ int load_split(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_n
     return 0;
 }
 
-int load_unsqueeze(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
+static int load_unsqueeze(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct unsqueeze_param* unsqueeze_param = (struct unsqueeze_param*)node->op.param_mem;
 
@@ -1462,7 +1461,7 @@ int load_unsqueeze(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& on
     return 0;
 }
 
-int load_squeeze(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
+static int load_squeeze(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct squeeze_param* squeeze_param = (struct squeeze_param*)node->op.param_mem;
 
@@ -1496,7 +1495,7 @@ int load_squeeze(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx
     return 0;
 }
 
-int load_matmul(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
+static int load_matmul(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     ir_tensor_t* input_tensor = find_tensor(graph, onnx_node.input(0));
     ir_tensor_t* weight_tensor = find_tensor(graph, onnx_node.input(1));
@@ -1535,7 +1534,7 @@ int load_matmul(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_
     return 0;
 }
 
-int load_reducel2(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
+static int load_reducel2(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct reducel2_param* reducel2_param = (struct reducel2_param*)node->op.param_mem;
 
@@ -1555,7 +1554,7 @@ int load_reducel2(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onn
     return 0;
 }
 
-int load_gather(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
+static int load_gather(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct gather_param* gather_param = (struct gather_param*)node->op.param_mem;
 
@@ -1575,7 +1574,7 @@ int load_gather(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_
     return 0;
 }
 
-int load_comparison(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
+static int load_comparison(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct comparison_param* comparison_param = (struct comparison_param*)node->op.param_mem;
     const std::string& op_name = onnx_node.op_type();
@@ -1596,7 +1595,7 @@ int load_comparison(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& o
     return 0;
 }
 
-int load_LRN(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
+static int load_LRN(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct lrn_param* lrn_param = (struct lrn_param*)node->op.param_mem;
     for (int k = 0; k < onnx_node.attribute_size(); k++)
@@ -1623,7 +1622,7 @@ int load_LRN(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_nod
     return 0;
 }
 
-int load_unary(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
+static int load_unary(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct unary_param* unary_param = (struct unary_param*)node->op.param_mem;
     const std::string& op_name = onnx_node.op_type();
@@ -1664,7 +1663,7 @@ int load_unary(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_n
     return 0;
 }
 
-int load_logical(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
+static int load_logical(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct logical_param* logical_param = (struct logical_param*)node->op.param_mem;
     const std::string& op_name = onnx_node.op_type();
@@ -1681,7 +1680,7 @@ int load_logical(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx
     return 0;
 }
 
-int load_pad(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
+static int load_pad(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct pad_param* pad_param = (struct pad_param*)node->op.param_mem;
 
@@ -1762,7 +1761,7 @@ int load_pad(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_nod
     return 0;
 }
 
-int load_reduce(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
+static int load_reduce(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct reduction_param* reduction_param = (struct reduction_param*)node->op.param_mem;
     const std::string& op_name = onnx_node.op_type();
@@ -1896,7 +1895,7 @@ int load_reduce(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_
     return 0;
 }
 
-int load_argmax(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
+static int load_argmax(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct argmax_param* argmax_param = (struct argmax_param*)node->op.param_mem;
 
@@ -1918,7 +1917,7 @@ int load_argmax(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_
     return 0;
 }
 
-int load_argmin(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
+static int load_argmin(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct argmin_param* argmin_param = (struct argmin_param*)node->op.param_mem;
 
@@ -1940,7 +1939,7 @@ int load_argmin(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_
     return 0;
 }
 
-int load_log_softmax(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
+static int load_log_softmax(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct logsoftmax_param* logsoftmax_param = (struct logsoftmax_param*)node->op.param_mem;
 
@@ -1958,7 +1957,7 @@ int load_log_softmax(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& 
     return 0;
 }
 
-int load_deconv(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
+static int load_deconv(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct deconv_param* deconv_param = (struct deconv_param*)node->op.param_mem;
 
@@ -2018,7 +2017,7 @@ int load_deconv(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_
     return 0;
 }
 
-int load_scatter(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
+static int load_scatter(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct scatter_param* scatter_param = (struct scatter_param*)node->op.param_mem;
 
@@ -2037,7 +2036,7 @@ int load_scatter(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx
     return 0;
 }
 
-int load_selu(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
+static int load_selu(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct selu_param* selu_param = (struct selu_param*)node->op.param_mem;
 
@@ -2057,7 +2056,7 @@ int load_selu(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_no
     return 0;
 }
 
-int load_hard_sigmoid(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
+static int load_hard_sigmoid(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct hard_sigmoid_param* hard_sigmoid_param = (struct hard_sigmoid_param*)node->op.param_mem;
 
@@ -2077,7 +2076,7 @@ int load_hard_sigmoid(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto&
     return 0;
 }
 
-int load_tile(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
+static int load_tile(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct tile_param* tile_param = (struct tile_param*)node->op.param_mem;
     tile_param->frame_flag = 1;
@@ -2085,7 +2084,7 @@ int load_tile(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_no
     return 0;
 }
 
-int load_cast(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
+static int load_cast(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct cast_param* cast_param = (struct cast_param*)node->op.param_mem;
 
@@ -2100,7 +2099,7 @@ int load_cast(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_no
     return 0;
 }
 
-int load_depth_to_space(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
+static int load_depth_to_space(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct depthtospace_param* depthtospace_param = (struct depthtospace_param*)node->op.param_mem;
 
@@ -2116,7 +2115,7 @@ int load_depth_to_space(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProt
     return 0;
 }
 
-int load_instance_norm(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
+static int load_instance_norm(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct instancenorm_Param* instancenorm_param = (struct instancenorm_Param*)node->op.param_mem;
 
@@ -2130,11 +2129,22 @@ int load_instance_norm(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto
     return 0;
 }
 
-int load_resize(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
+static int load_resize(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct interp_param* interp_param = (struct interp_param*)node->op.param_mem;
     interp_param->height_scale = 0;
     interp_param->width_scale = 0;
+
+    int align_corner = 0;
+    for (int k = 0; k < onnx_node.attribute_size(); k++)
+    {
+        const onnx::AttributeProto& attr = onnx_node.attribute(k);
+        if (attr.name() == "coordinate_transformation_mode")
+        {
+            if (attr.s() == "align_corners")
+                align_corner = 1;
+        }
+    }
 
     if (onnx_node.input_size() == 1)
     {
@@ -2198,13 +2208,13 @@ int load_resize(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_
     }
     else if (mode == "bilinear" || mode == "linear")
     {
-        interp_param->resize_type = 2;
+        interp_param->resize_type = align_corner == 0 ? 2 : 4;
     }
 
     return 0;
 }
 
-int load_LSTM(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
+static int load_LSTM(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct lstm_param* lstm_param = (struct lstm_param*)node->op.param_mem;
 
@@ -2226,7 +2236,7 @@ int load_LSTM(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_no
     return 0;
 }
 
-int load_expand(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
+static int load_expand(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct expand_param* expand_param = (struct expand_param*)node->op.param_mem;
 

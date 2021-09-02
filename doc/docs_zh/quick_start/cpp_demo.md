@@ -32,7 +32,7 @@ tengine_lite_lib.cxx.armv8           Tengine 预测库
 
 ## 3. 准备预测部署模型
 
-(1) 模型下载：下载mobilenet_v1(<font size=4 color=orange>待补充</font>)模型后解压，可得到.tmfile后缀的模型文件。可通过模型可视化工具[Netron](https://lutzroeder.github.io/netron/)打开文件夹下的model文件，查看模型结构。
+(1) 模型下载：下载mobilenet_v1(<font size=4 color=orange>待补充</font>)模型后解压，可得到.tmfile后缀的模型文件。可通过模型可视化工具 [Netron](https://lutzroeder.github.io/netron/) 打开文件夹下的model文件，查看模型结构。
 
 ## 4. 编译预测示例程序
 

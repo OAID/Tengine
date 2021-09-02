@@ -11,10 +11,12 @@ sudo apt install python3-opencv
 #### 2. 安装pytengine
 
 ~~~
+cd <tengine-lite>/pytengine/
 sudo python3 setup.py install
 ~~~
-If the directory dose not exist, create it and try again. Note: python3.X must be your won python3 version.
+If the directory does not exist, create it and try again. Note: python3.X must be your own python3 version.
 ~~~
+cd <tengine-lite>/pytengine/
 sudo mkdir -p /usr/local/lib/python3.X/{dist-packages,site-packages}
 sudo python3 setup.py install
 ~~~

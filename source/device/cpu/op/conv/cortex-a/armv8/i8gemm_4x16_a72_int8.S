@@ -294,34 +294,34 @@ to_int8:
     smax    v5.4s, v1.4s, v4.4s
     smin    v4.4s, v1.4s, v4.4s
 
-    SQRDMULH    v16.4s, v16.4s, v0.4s
-    SQRDMULH    v17.4s, v17.4s, v0.4s
-    SQRDMULH    v18.4s, v18.4s, v0.4s
-    SQRDMULH    v19.4s, v19.4s, v0.4s
+    sqrdmulh    v16.4s, v16.4s, v0.4s
+    sqrdmulh    v17.4s, v17.4s, v0.4s
+    sqrdmulh    v18.4s, v18.4s, v0.4s
+    sqrdmulh    v19.4s, v19.4s, v0.4s
 
     ldr     q0, [x5, 0x10]
     add     x2, x4, x6, lsl #1
-    SQRDMULH     v20.4s,v20.4s,v0.4s
-    SQRDMULH     v21.4s,v21.4s,v0.4s
+    sqrdmulh     v20.4s,v20.4s,v0.4s
+    sqrdmulh     v21.4s,v21.4s,v0.4s
     add     x3, x1, x6, lsl #1
-    SQRDMULH     v22.4s,v22.4s,v0.4s
-    SQRDMULH     v23.4s,v23.4s,v0.4s
+    sqrdmulh     v22.4s,v22.4s,v0.4s
+    sqrdmulh     v23.4s,v23.4s,v0.4s
     add     x9, x4, x6, lsl #2
     add     x10, x1, x6, lsl #2
     add     x11, x2, x6, lsl #2
     add     x12, x3, x6, lsl #2
 
     ldr     q0, [x5, 0x20]
-    SQRDMULH     v24.4s,v24.4s,v0.4s
-    SQRDMULH     v25.4s,v25.4s,v0.4s
-    SQRDMULH     v26.4s,v26.4s,v0.4s
-    SQRDMULH     v27.4s,v27.4s,v0.4s
+    sqrdmulh     v24.4s,v24.4s,v0.4s
+    sqrdmulh     v25.4s,v25.4s,v0.4s
+    sqrdmulh     v26.4s,v26.4s,v0.4s
+    sqrdmulh     v27.4s,v27.4s,v0.4s
 
     ldr     q0, [x5, 0x30]
-    SQRDMULH     v28.4s,v28.4s,v0.4s
-    SQRDMULH     v29.4s,v29.4s,v0.4s
-    SQRDMULH     v30.4s,v30.4s,v0.4s
-    SQRDMULH     v31.4s,v31.4s,v0.4s
+    sqrdmulh     v28.4s,v28.4s,v0.4s
+    sqrdmulh     v29.4s,v29.4s,v0.4s
+    sqrdmulh     v30.4s,v30.4s,v0.4s
+    sqrdmulh     v31.4s,v31.4s,v0.4s
 
     sshl        v16.4s, v16.4s, v5.4s
     sshl        v17.4s, v17.4s, v5.4s

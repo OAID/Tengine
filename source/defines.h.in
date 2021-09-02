@@ -44,6 +44,7 @@
 #define MODEL_FORMAT_TENSORFLOW     5
 #define MODEL_FORMAT_TFLITE         6
 #define MODEL_FORMAT_DLA            7
+#define MODEL_FORMAT_DARKNET        8
 
 #define TE_NODE_TYPE_INTER          1
 #define TE_NODE_TYPE_INPUT          2

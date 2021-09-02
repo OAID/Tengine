@@ -30,13 +30,13 @@
 #include <opencv2/videoio.hpp>
 #include <opencv2/highgui.hpp>
 
-namespace pipe {
+namespace pipeline {
 
 class VideoCamera : public Node<Param<void>, Param<cv::Mat> >
 {
 public:
-    VideoCamera(const std::string video_path = "")
-        : m_path(video_path)
+    VideoCamera(const std::string video_path = "", const int h = 480, const int w = 640)
+        : m_path(video_path), m_height(h), m_width(w)
     {
     }
 
@@ -60,6 +60,9 @@ public:
             }
 
 #if CV_VERSION_MAJOR < 4
+            cap.set(CV_CAP_PROP_FRAME_WIDTH, m_width);
+            cap.set(CV_CAP_PROP_FRAME_HEIGHT, m_height);
+
             double rate = cap.get(CV_CAP_PROP_FPS);
             fprintf(stdout, "rate %lf\n", rate);
             fprintf(stdout, "pan %lf\n", cap.get(CV_CAP_PROP_PAN));
@@ -71,7 +74,7 @@ public:
             fprintf(stdout, "saturation = %.2f\n", cap.get(CV_CAP_PROP_SATURATION));
             fprintf(stdout, "hue = %.2f\n", cap.get(CV_CAP_PROP_HUE));
             fprintf(stdout, "exposure = %.2f\n", cap.get(CV_CAP_PROP_EXPOSURE));
-#else 
+#else
       double rate = cap.get(cv::VideoCaptureProperties::CAP_PROP_FPS);
 #endif
 
@@ -88,7 +91,7 @@ public:
                     break;
                 }
 
-                auto success = output<0>()->try_push(mat.clone());
+                auto success = output<0>()->try_push(std::move(mat.clone()));
                 if (not success)
                 {
                     fprintf(stdout, "drop " __FILE__ "\n");
@@ -101,7 +104,8 @@ public:
 
 private:
     std::string m_path;
+    int m_height, m_width;
     std::once_flag flag;
 };
 
-} // namespace pipe
+} // namespace pipeline

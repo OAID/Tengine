@@ -35,6 +35,7 @@
 #include <queue>
 #include <stack>
 
+
 #include "graph.pb.h"
 
 #include <google/protobuf/io/coded_stream.h>
@@ -63,6 +64,7 @@ extern "C" {
 #define TF_RNN_BASIC_RNN  3
 #define FUSE_NODE         10
 static int NCHW_axis_swap[] = {0, 2, 3, 1};
+
 struct TFNode
 {
     int idx;
@@ -78,6 +80,7 @@ struct TFNode
     std::vector<std::string> in_tensors;
     std::vector<std::string> out_tensors;
     int biasAdd;
+
     TFNode()
     {
         no_static_node = false;
@@ -251,6 +254,7 @@ private:
     int optimize_rnn();
     void CleanupResizeNearestNeighbor();
     int DFSGraph(ir_graph_t* graph);
+
     tensorflow::GraphDef tf_net;
     TFGraph tf_graph;
     std::vector<std::string> input_tensors;
@@ -258,6 +262,7 @@ private:
     std::set<TFNode*> ck_graph;
     std::vector<TFNode*> out_graph;
     int fused_node_count;
+
 };
 
 #endif

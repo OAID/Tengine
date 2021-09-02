@@ -24,14 +24,22 @@
 
 #include <iostream>
 #include <stdlib.h>
+#ifdef _MSC_VER
+#include <io.h>
+#include <msc_getopt.h>
+#else
 #include <unistd.h>
+#endif
 
-#include "tengine/c_api.h"
+#include "api/c_api.h"
 #include "save_graph/save_graph.hpp"
 #include "onnx/onnx2tengine.hpp"
 #include "caffe/caffe2tengine.hpp"
 #include "ncnn/ncnn2tengine.hpp"
 #include "tensorflow/tf2tengine.hpp"
+#include "mxnet/mxnet2tengine.hpp"
+#include "tflite/tflite2tengine.hpp"
+#include "darknet/darknet2tengine.hpp"
 #include "utils/graph_optimizer/graph_opt.hpp"
 
 const char* help_params = "[Convert Tools Info]: optional arguments:\n"
@@ -42,8 +50,10 @@ const char* help_params = "[Convert Tools Info]: optional arguments:\n"
                           "\t-o    output model    path to output fp32 tmfile\n";
 
 const char* example_params = "[Convert Tools Info]: example arguments:\n"
-                             "\t./convert_tool -f caffe -p ./mobilenet.prototxt -m ./mobilenet.caffemodel -o ./mobilenet.tmfile\n";
-
+                             "\t./convert_tool -f onnx -m ./mobilenet.onnx -o ./mobilenet.tmfile\n"
+                             "\t./convert_tool -f caffe -p ./mobilenet.prototxt -m ./mobilenet.caffemodel -o ./mobilenet.tmfile\n"
+                             "\t./convert_tool -f mxnet -p ./mobilenet.params -m ./mobilenet.json -o ./mobilenet.tmfile\n"
+                             "\t./convert_tool -f darknet -p ./yolov3.weights -m ./yolov3.cfg -o yolov3.tmfile\n";
 void show_usage()
 {
     fprintf(stderr, "%s\n", help_params);
@@ -184,12 +194,27 @@ int main(int argc, char* argv[])
         tensorflow_serializer tf2t;
         graph = tf2t.tensorflow2tengine(model_file);
     }
+    else if (file_format == "mxnet")
+    {
+        mxnet_serializer m2t;
+        graph = m2t.mxnet2tengine(model_file, proto_file);
+    }
+    else if (file_format == "tflite")
+    {
+        tflite_serializer l2t;
+        graph = l2t.tflite2tengine(model_file);
+    }
+    else if (file_format == "darknet")
+    {
+        darknet_serializer d2t;
+        graph = d2t.darknet2tengine(model_file, proto_file);
+    }
     else
     {
-        fprintf(stderr, "Convert model failed: support onnx only...\n");
+        fprintf(stderr, "Convert model failed: unsupport model format.\n");
         return -1;
     }
-    // dump_graph(graph);
+
     if (graph == NULL)
     {
         fprintf(stderr, "Convert model failed.\n");

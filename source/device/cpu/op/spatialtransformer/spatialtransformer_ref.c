@@ -97,6 +97,116 @@ int BilinearSampling(int o_n, int o_c, int o_h, int o_w, int i_c, int i_h, int i
     return 1;
 }
 
+int ref_spatialtransformer_uint8(struct tensor* input_tensor, struct tensor* input_tensor1, struct tensor* output_tensor,
+                                 struct spatialtransformer_param* param, int num_thread)
+{
+    int indices_dim_size = input_tensor->dim_num;
+
+    int total_size = input_tensor->elem_num;
+    int loc_size = input_tensor1->elem_num;
+
+    /* dequant */
+    uint8_t* input_uint8 = (uint8_t*)input_tensor->data;
+    uint8_t* loc_uint8 = (uint8_t*)input_tensor1->data;
+    uint8_t* output_uint8 = (uint8_t*)output_tensor->data;
+    float input_scale = input_tensor->scale;
+    float loc_scale = input_tensor1->scale;
+    float output_scale = output_tensor->scale;
+    int32_t input_zero = input_tensor->zero_point;
+    int32_t loc_zero = input_tensor1->zero_point;
+    int32_t output_zero = output_tensor->zero_point;
+
+    float* in_data = (float*)malloc(total_size * sizeof(float));
+    float* out_data = (float*)malloc(sizeof(float) * 3 * param->target_shape[0] * param->target_shape[1]);
+    float* loc_data = (float*)malloc(loc_size * sizeof(float));
+
+    for (int i = 0; i < total_size; i++)
+    {
+        in_data[i] = ((float)input_uint8[i] - (float)input_zero) * input_scale;
+    }
+
+    for (int i = 0; i < loc_size; i++)
+    {
+        loc_data[i] = ((float)loc_uint8[i] - (float)loc_zero) * loc_scale;
+    }
+
+    int batch = input_tensor->dims[1];
+    float* workspace = (float*)malloc(sizeof(float) * 3 * param->target_shape[0] * param->target_shape[1]);
+    int target_shape_hw = param->target_shape[0] * param->target_shape[1];
+    for (int i = 1; i <= target_shape_hw; i++)
+    {
+        workspace[0 * target_shape_hw + i - 1] = -1.0 + (i - 1) % param->target_shape[1] * 2.0 / (param->target_shape[1] - 1);
+        workspace[1 * target_shape_hw + i - 1] = -1.0 + (i - 1) / param->target_shape[1] * 2.0 / (param->target_shape[0] - 1);
+        workspace[2 * target_shape_hw + i - 1] = 1.0;
+    }
+    int m = 2;
+    int p = target_shape_hw;
+    int n = 3;
+
+    float* grid_src = (float*)malloc(sizeof(float) * 2 * target_shape_hw * batch);
+    float* grid_dst = (float*)malloc(sizeof(float) * 3 * target_shape_hw);
+
+    for (int i = 0; i < 3 * target_shape_hw; i++)
+    {
+        grid_dst[i] = workspace[i];
+    }
+    if (param->transformer_type == 0)
+    { // Affine
+        for (int b = 0; b < batch; b++)
+        {
+            int index = b * target_shape_hw;
+            float* grid_src_batch = grid_src + 0;
+            for (int i = 0; i < m; i++)
+            {
+                for (int j = 0; j < target_shape_hw; j++)
+                {
+                    grid_src_batch[i * p + j] = 0;
+                    for (int a = 1; a <= n; a++)
+                    {
+                        grid_src_batch[i * p + j] += loc_data[i * n + a - 1] * grid_dst[(a - 1) * p + j];
+                    }
+                }
+            }
+        }
+    }
+
+    if (param->sampler_type == 1)
+    { // Bilinear
+        int o_n = output_tensor->dims[0];
+        int o_c = output_tensor->dims[1];
+        int o_h = output_tensor->dims[2];
+        int o_w = output_tensor->dims[3];
+        int i_c = input_tensor->dims[1];
+        int i_h = input_tensor->dims[2];
+        int i_w = input_tensor->dims[3];
+        int ret = BilinearSampling(o_n, o_c, o_h, o_w, i_c, i_h, i_w, in_data, out_data, grid_src);
+    }
+    else
+    {
+        TLOG_ERR("Extra type not support yet\n");
+    }
+
+    /* quant */
+    for (int i = 0; i < total_size; i++)
+    {
+        int udata = round(out_data[i] / output_scale + output_zero);
+        if (udata > 255)
+            udata = 255;
+        else if (udata < 0)
+            udata = 0;
+        output_uint8[i] = udata;
+    }
+
+    free(in_data);
+    free(out_data);
+    free(loc_data);
+
+    free(grid_src);
+    free(grid_dst);
+    free(workspace);
+    return 0;
+}
+
 int ref_spatialtransformer_fp32(struct tensor* input_tensor, struct tensor* input_tensor1, struct tensor* output_tensor,
                                 struct spatialtransformer_param* param, int num_thread)
 {
@@ -202,8 +312,15 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
     struct spatialtransformer_param* spatialtransformer_param = (struct spatialtransformer_param*)ir_node->op.param_mem;
 
-    int ret = ref_spatialtransformer_fp32(input_tensor, input_tensor1, output_tensor,
+    int ret = -1;
+    if (input_tensor->data_type == TENGINE_DT_UINT8)
+        ret = ref_spatialtransformer_uint8(input_tensor, input_tensor1, output_tensor,
+                                           spatialtransformer_param, exec_graph->num_thread);
+    else if (input_tensor->data_type == TENGINE_DT_FP32)
+        ret = ref_spatialtransformer_fp32(input_tensor, input_tensor1, output_tensor,
                                           spatialtransformer_param, exec_graph->num_thread);
+    else
+        TLOG_ERR("Input data type %d not to be supported.\n", input_tensor->data_type);
     if (ret != 0)
         return -1;
 

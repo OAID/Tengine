@@ -19,7 +19,7 @@
 
 ## 下载
 
-当前我们提供预编译好的可执行文件, 您可以从这里获取 [quant_tool_int8](https://github.com/OAID/Tengine/releases/download/lite-v1.3/quant_tool_int8)。
+当前我们提供预编译好的可执行文件, 您可以从这里获取 [quant_tool_int8](https://github.com/OAID/Tengine/releases/download/lite-v1.3/quant_tool_int8)
 
 ## 安装依赖库
 

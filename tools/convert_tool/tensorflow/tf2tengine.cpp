@@ -337,6 +337,7 @@ int tensorflow_serializer::construct_graph()
         tf_node->pb_defs.push_back(&tf_net.node(i));
 
         tf_graph.seq_nodes.push_back(tf_node);
+
         node_map[tf_node->name] = tf_node;
     }
 
@@ -347,6 +348,7 @@ int tensorflow_serializer::construct_graph()
         const std::string& name = node_param.name();
 
         TFNode* cur_node = node_map[name];
+
         for (int j = 0; j < node_param.input_size(); j++)
         {
             const std::string& input_name = node_param.input(j);
@@ -368,9 +370,7 @@ int tensorflow_serializer::construct_graph()
                 TLOG_ERR("cannot find input: %s for node: %s \n", input_name.c_str(), name.c_str());
                 return false;
             }
-            // input_node->name = input_node->name+ "/" + node_param.op();
             cur_node->inputs.push_back(input_node);
-            // cur_node->name = cur_node->name+"/"+cur_node->op;
             input_node->outputs.push_back(cur_node);
         }
     }
@@ -990,7 +990,6 @@ int tensorflow_serializer::optimize_graph()
                 cur_node->biasAdd = 0;
             }
         }
-
         ir++;
     }
 
@@ -1610,6 +1609,13 @@ void tensorflow_serializer::StripRNNScope(std::string& rnn_scope, int rnn_type)
 
             rnn_node->inputs.push_back(input_node);
 
+            if (input_node->op == "Identity")
+            {
+                TFNode* parent_node = input_node->inputs[0];
+
+                MergeChildNode(parent_node, input_node);
+            }
+
             set_ir++;
         }
 
@@ -1874,6 +1880,7 @@ int tensorflow_serializer::generate_graph(ir_graph_t* graph)
         else
             tf_node = tf_graph.seq_nodes[i];
 
+
         if (tf_node->op == "Placeholder" || tf_node->op == "Const")
             continue;
 
@@ -1908,7 +1915,6 @@ int tensorflow_serializer::generate_graph(ir_graph_t* graph)
             {
                 tensor = get_ir_graph_tensor(graph, tensor_idx);
             }
-            int idx = get_ir_tensor_index_from_name(graph, tensor->name);
             set_ir_node_input_tensor(ir_node, in, tensor);
             input_tensors.push_back(node->name.c_str());
         }
@@ -1928,8 +1934,8 @@ int tensorflow_serializer::generate_graph(ir_graph_t* graph)
             }
             set_ir_node_output_tensor(ir_node, out, tensor);
             output_tensors.push_back(node->name.c_str());
-            int tdx = get_ir_tensor_index_from_name(graph, tensor->name);
         }
+
         op_load_t loader = op_load_map[tf_node->op].second;
         if (loader(tf_node, tf_graph, graph, ir_node) < 0)
         {
@@ -2035,6 +2041,7 @@ int tensorflow_serializer::DFSGraph(ir_graph_t* graph)
         }
         out_graph.push_back(node);
     }
+
     return 0;
 }
 
@@ -2057,6 +2064,7 @@ int tensorflow_serializer::load_graph(ir_graph_t* graph)
     if (generate_graph(graph) < 0)
         return -1;
     fprintf(stderr, "Process 3: Finish load graph node \n");
+
     if (set_graph_output(graph) < 0)
         return -1;
     fprintf(stderr, "Process 4: Finish set graph output \n");
@@ -2487,6 +2495,7 @@ int load_pad(TFNode* tf_node, TFGraph& tf_graph, ir_graph_t* graph, ir_node_t* n
     param->pad_3_w = paddings[7];
     return 0;
 }
+
 int load_concat(TFNode* tf_node, TFGraph& tf_graph, ir_graph_t* graph, ir_node_t* node)
 {
     struct concat_param* param = (struct concat_param*)node->op.param_mem;
@@ -2554,10 +2563,7 @@ int load_gemm(TFNode* tf_node, TFGraph& tf_graph, ir_graph_t* graph, ir_node_t* 
     fcparam->num_output = weight_tensor->dims[0];
     return 0;
 }
-int load_biasadd(TFNode* tf_node, TFGraph& tf_graph, ir_graph_t* graph, ir_node_t* node)
-{
-    return 0;
-}
+
 void tensorflow_serializer::register_op_load()
 {
     op_load_map["AvgPool"] = std::pair<int, op_load_t>(OP_POOL, load_pool);
@@ -2583,5 +2589,5 @@ void tensorflow_serializer::register_op_load()
     op_load_map["Pad"] = std::pair<int, op_load_t>(OP_PAD, load_pad);
     op_load_map["ConcatV2"] = std::pair<int, op_load_t>(OP_CONCAT, load_concat);
     op_load_map["MatMul"] = std::pair<int, op_load_t>(OP_FC, load_gemm);
-    // op_load_map["BiasAdd"] = std::pair<int, op_load_t>(OP_BIAS, load_biasadd);
+
 }

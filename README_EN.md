@@ -31,14 +31,14 @@ The core code of Tengine Lite consists of 4 modules:
 
 ## Architecture
 
-![Tengine Architecture](doc/architecture.png)
+![Tengine Architecture](doc/docs_en/images/architecture.png)
 
 
 ## How to use
 
 ### Compile
 
-- [Quick Compilation](doc/compile.md) Simple cross-platform compilation based on cmake.
+- [Quick Compilation](doc/docs_en/source_compile) Simple cross-platform compilation based on cmake.
 
 ### Example
 
@@ -62,7 +62,7 @@ The core code of Tengine Lite consists of 4 modules:
 
 ### NPU Plugin
 
-- [TIM-VX](doc/npu_tim-vx_user_manual.md) VeriSilicon NPU user manual.
+- [TIM-VX](doc/docs_zh/source_compile/compile_timvx.md) VeriSilicon NPU user manual.
 
 ### AutoKernel Plugin
 
@@ -70,11 +70,11 @@ The core code of Tengine Lite consists of 4 modules:
 
 ### Container
 
-- [SuperEdge](https://github.com/superedge/superedge) [How to use Tengine with SuperEdge](doc/superedge_user_manual.md).
+- [SuperEdge](https://github.com/superedge/superedge) [How to use Tengine with SuperEdge](doc/docs_en/source_compile/deploy_SuperEdge.md).
 
 ## Roadmap
 
-- [Road map](doc/roadmap.md)
+- [Road map](doc/docs_en/introduction/roadmap.md)
 
 ## Acknowledgement
 
@@ -100,7 +100,7 @@ Tengine Lite got ideas and developed based on these projects：
 
 ## FAQ
 
-- [FAQ common questions](doc/faq.md)
+- [FAQ common questions](doc/docs_en/introduction/faq.md)
 
 ## Tech Forum
 

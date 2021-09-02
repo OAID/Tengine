@@ -134,6 +134,21 @@ int delete_node(ir_graph_t* graph, int16_t pre_node_id, int16_t del_node_id)
         }
     }
 
+    /* delete const tensor&node of input */
+    for (int i = 1; i < del_node->input_num; i++)
+    {
+        ir_tensor_t* tensor = get_ir_graph_tensor(graph, del_node->input_tensors[i]);
+        ir_node_t* node = get_ir_graph_node(graph, tensor->producer);
+
+        if (tensor->tensor_type == TENSOR_TYPE_CONST)
+        {
+            if (erase_tensor_id(graph, tensor->index) < 0 || erase_node_id(graph, node->index) < 0)
+            {
+                return -1;
+            }
+        }
+    }
+
     /* delete node */
     if (erase_tensor_id(graph, del_node->output_tensors[0]) < 0 || erase_node_id(graph, del_node->index) < 0)
     {
@@ -339,6 +354,37 @@ int add_node_above(ir_graph_t* graph, int16_t down_node_id, int add_node_type, c
                 graph->input_nodes[i] = add_node->index;
         }
     }
+
+    /* insert node id */
+    if (insert_node_id(graph, add_node->index, down_node_id) < 0)
+        return -1;
+
+    /* insert tensor id */
+    if (insert_tensor_id(graph, add_tensor->index, down_node->output_tensors[0]) < 0)
+        return -1;
+
+    return add_node->index;
+}
+
+int add_const_node_above(ir_graph_t* graph, int16_t down_node_id, const char* name)
+{
+    /* get all up nodes */
+    ir_node_t* down_node = get_ir_graph_node(graph, down_node_id);
+
+    /* create const node and its own tensor */
+    ir_node_t* add_node = create_ir_node(graph, name, OP_CONST, 1);
+    if (add_node == nullptr)
+        return -1;
+    ir_tensor_t* add_tensor = create_ir_tensor(graph, name, TENGINE_DT_FP32);
+    if (add_tensor == nullptr)
+        return -1;
+    add_tensor->tensor_type = TENSOR_TYPE_CONST;
+    set_ir_node_output_tensor(add_node, 0, add_tensor);
+
+    down_node->input_num++;
+    down_node->input_tensors[down_node->input_num - 1] = add_tensor->index;
+    add_tensor->consumer[0] = down_node_id;
+    add_tensor->consumer_num = 1;
 
     /* insert node id */
     if (insert_node_id(graph, add_node->index, down_node_id) < 0)

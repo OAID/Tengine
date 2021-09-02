@@ -270,6 +270,64 @@ static int ref_transpose_fp32(float* input, float* output, const struct ref_tran
     return 0;
 }
 
+static int ref_transpose_int8(struct tensor* input_tensor, struct tensor* output_tensor, const struct ref_transpose_param* param)
+{
+    /* dequant */
+    int8_t* input_int8 = (int8_t*)input_tensor->data;
+    int8_t* output_int8 = (int8_t*)output_tensor->data;
+    float input_scale = input_tensor->scale;
+    float output_scale = output_tensor->scale;
+    int32_t input_zero = input_tensor->zero_point;
+    int32_t output_zero = output_tensor->zero_point;
+    int input_size = input_tensor->elem_num;
+    int output_size = output_tensor->elem_num;
+
+    float* input = (float*)sys_malloc(input_size * sizeof(float));
+    float* output = (float*)sys_malloc(output_size * sizeof(float));
+
+    for (int i = 0; i < input_size; i++)
+    {
+        input[i] = ((float)input_int8[i] - (float)input_zero) * input_scale;
+    }
+
+    switch (param->dims)
+    {
+    case 2:
+        transpose2d(input, output, param);
+        break;
+    case 3:
+        transpose3d(input, output, param);
+        break;
+    case 4:
+        transpose4d(input, output, param);
+        break;
+    case 5:
+        transpose5d(input, output, param);
+        break;
+    case 6:
+        transpose6d(input, output, param);
+        break;
+    default:
+        break;
+    }
+
+    /* quant */
+    for (int i = 0; i < output_size; i++)
+    {
+        int idata = round(output[i] / output_scale + output_zero);
+        if (idata > 127)
+            idata = 127;
+        else if (idata < -127)
+            idata = -127;
+        output_int8[i] = idata;
+    }
+
+    sys_free(input);
+    sys_free(output);
+
+    return 0;
+}
+
 static int ref_transpose_uint8(struct tensor* input_tensor, struct tensor* output_tensor, const struct ref_transpose_param* param)
 {
     /* dequant */
@@ -406,6 +464,8 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     int ret = -1;
     if (input_tensor->data_type == TENGINE_DT_FP32)
         ret = ref_transpose_fp32((float*)in_data, (float*)out_data, op_param);
+    else if (input_tensor->data_type == TENGINE_DT_INT8)
+        ret = ref_transpose_int8(input_tensor, output_tensor, op_param);
     else if (input_tensor->data_type == TENGINE_DT_UINT8)
         ret = ref_transpose_uint8(input_tensor, output_tensor, op_param);
 
