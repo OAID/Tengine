@@ -1880,7 +1880,6 @@ int tensorflow_serializer::generate_graph(ir_graph_t* graph)
         else
             tf_node = tf_graph.seq_nodes[i];
 
-
         if (tf_node->op == "Placeholder" || tf_node->op == "Const")
             continue;
 
@@ -2589,5 +2588,4 @@ void tensorflow_serializer::register_op_load()
     op_load_map["Pad"] = std::pair<int, op_load_t>(OP_PAD, load_pad);
     op_load_map["ConcatV2"] = std::pair<int, op_load_t>(OP_CONCAT, load_concat);
     op_load_map["MatMul"] = std::pair<int, op_load_t>(OP_FC, load_gemm);
-
 }

@@ -35,7 +35,6 @@
 #include <queue>
 #include <stack>
 
-
 #include "graph.pb.h"
 
 #include <google/protobuf/io/coded_stream.h>
@@ -262,7 +261,6 @@ private:
     std::set<TFNode*> ck_graph;
     std::vector<TFNode*> out_graph;
     int fused_node_count;
-
 };
 
 #endif
