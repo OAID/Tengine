@@ -224,6 +224,8 @@ int load_const_tensor(TFNode* tf_node, ir_graph_t* graph)
     set_ir_node_output_tensor(node, 0, tensor);
     tf_node->ir_node = node;
     tf_node->ir_tensor = tensor;
+
+    return 0;
 }
 
 int tensorflow_serializer::set_graph_input(ir_graph_t* graph)
@@ -335,7 +337,6 @@ int tensorflow_serializer::construct_graph()
         tf_node->pb_defs.push_back(&tf_net.node(i));
 
         tf_graph.seq_nodes.push_back(tf_node);
-
         node_map[tf_node->name] = tf_node;
     }
 
@@ -346,10 +347,9 @@ int tensorflow_serializer::construct_graph()
         const std::string& name = node_param.name();
 
         TFNode* cur_node = node_map[name];
-
         for (int j = 0; j < node_param.input_size(); j++)
         {
-            const std::string& input_name = node_param.input(j);
+            const std::string& input_name = node_param.input(j) ;
             std::string::size_type pos = input_name.find(":");
             std::string cleanup_name;
 
@@ -368,8 +368,9 @@ int tensorflow_serializer::construct_graph()
                 TLOG_ERR("cannot find input: %s for node: %s \n", input_name.c_str(), name.c_str());
                 return false;
             }
-
+            // input_node->name = input_node->name+ "/" + node_param.op();
             cur_node->inputs.push_back(input_node);
+            // cur_node->name = cur_node->name+"/"+cur_node->op;
             input_node->outputs.push_back(cur_node);
         }
     }
@@ -428,6 +429,8 @@ int DisconnectNode(TFNode* cur_node)
     }
 
     cur_node->outputs.clear();
+
+    return 0;
 }
 
 int tensorflow_serializer::MergeParentNode(TFNode* base_node, TFNode* parent_node)
@@ -613,7 +616,10 @@ int tensorflow_serializer::BNRecursiveInputMerge(TFNode* node)
         BNRecursiveInputMerge(input_node);
         MergeParentNode(node, input_node);
     }
+
+    return 0;
 }
+
 int tensorflow_serializer::FuseComposedBN(TFNode* cur_node)
 {
     BNRecursiveInputMerge(cur_node);
@@ -632,19 +638,22 @@ int tensorflow_serializer::FuseComposedBN(TFNode* cur_node)
         if (node->name.find("/add/y") != std::string::npos)
             node->no_static_node = true;
     }
+
+    return 0;
 }
+
 int tensorflow_serializer::MergeChildNode(TFNode* base_node, TFNode* child_node)
 {
     auto output_ir = base_node->outputs.begin();
 
-    while (output_ir != base_node->outputs.end())
+    while(output_ir != base_node->outputs.end())
     {
-        if (*output_ir == child_node)
+        if(*output_ir == child_node)
             break;
         output_ir++;
     }
 
-    if (child_node->outputs.size() == 1)
+    if(child_node->outputs.size() == 1)
     {
         *output_ir = child_node->outputs[0];
     }
@@ -654,11 +663,11 @@ int tensorflow_serializer::MergeChildNode(TFNode* base_node, TFNode* child_node)
         base_node->outputs.insert(base_node->outputs.end(), child_node->outputs.begin(), child_node->outputs.end());
     }
 
-    for (auto node : child_node->outputs)
+    for(auto node : child_node->outputs)
     {
-        for (unsigned int i = 0; i < node->inputs.size(); i++)
+        for(unsigned int i = 0; i < node->inputs.size(); i++)
         {
-            if (node->inputs[i] == child_node)
+            if(node->inputs[i] == child_node)
             {
                 node->inputs[i] = base_node;
                 break;
@@ -666,19 +675,21 @@ int tensorflow_serializer::MergeChildNode(TFNode* base_node, TFNode* child_node)
         }
     }
 
+
+
     auto ir = child_node->inputs.begin();
 
-    while (ir != child_node->inputs.end())
+    while(ir != child_node->inputs.end())
     {
         TFNode* node = *ir;
 
-        if (node != base_node)
+        if(node != base_node)
         {
             base_node->inputs.push_back(node);
 
-            for (unsigned int i = 0; i < node->outputs.size(); i++)
+            for(unsigned int i = 0; i < node->outputs.size(); i++)
             {
-                if (node->outputs[i] == child_node)
+                if(node->outputs[i] == child_node)
                 {
                     node->outputs[i] = base_node;
                     break;
@@ -758,6 +769,7 @@ void tensorflow_serializer::MergeReluMinimum()
 
 int tensorflow_serializer::optimize_graph()
 {
+    fused_node_count = 0;
     /* first clean up the predictions module of TF */
     auto ir = tf_graph.seq_nodes.begin();
 
@@ -911,7 +923,6 @@ int tensorflow_serializer::optimize_graph()
 
             break;
         }
-
         ir++;
     }
 
@@ -972,13 +983,19 @@ int tensorflow_serializer::optimize_graph()
 
             if (output_node->op == "BiasAdd" || output_node->op == "Add")
             {
+                cur_node->biasAdd = 1;
+                fused_node_count++;
                 MergeChildNode(cur_node, output_node);
+            }
+            else
+            {
+                cur_node->biasAdd = 0;
             }
         }
 
         ir++;
     }
-
+    
     /* merge composed BatchNormal */
 
     ir = tf_graph.seq_nodes.begin();
@@ -1595,13 +1612,6 @@ void tensorflow_serializer::StripRNNScope(std::string& rnn_scope, int rnn_type)
 
             rnn_node->inputs.push_back(input_node);
 
-            if (input_node->op == "Identity")
-            {
-                TFNode* parent_node = input_node->inputs[0];
-
-                MergeChildNode(parent_node, input_node);
-            }
-
             set_ir++;
         }
 
@@ -1799,6 +1809,21 @@ int tensorflow_serializer::optimize_rnn()
     return true;
 }
 
+int find_tensor_index(ir_graph_t* graph, std::string t_name, TFNode* node)
+{
+    int tensor_idx = -1;
+    for (int i = 0; i < graph->tensor_num; i++)
+    {
+        const ir_tensor_t* const tensor = graph->tensor_list[i];
+
+        if (tensor->name && 0 == strcmp(tensor->name, node->name.c_str()))
+        {
+            tensor_idx = i;
+        }
+    }
+    return tensor_idx;
+}
+
 int tensorflow_serializer::generate_graph(ir_graph_t* graph)
 {
     int node_number = tf_graph.seq_nodes.size();
@@ -1832,15 +1857,30 @@ int tensorflow_serializer::generate_graph(ir_graph_t* graph)
             load_const_tensor(tf_node, graph);
             continue;
         }
-    }
 
-    for (int i = 0; i < (int)tf_graph.seq_nodes.size(); i++)
+    }
+ 
+    int count = 0;
+    if(fused_node_count > FUSE_NODE)
     {
-        TFNode* tf_node = tf_graph.seq_nodes[i];
+        count = (int)out_graph.size();
+    }
+    else
+    {
+        count = (int)tf_graph.seq_nodes.size();
+    }
+    for (int i = 0; i < count; i++)
+    {
+        TFNode* tf_node = nullptr;
+        if(fused_node_count > FUSE_NODE)
+            tf_node = out_graph[i];
+        else
+            tf_node = tf_graph.seq_nodes[i];
 
         if (tf_node->op == "Placeholder" || tf_node->op == "Const")
             continue;
 
+    
         ir_node_t* ir_node = nullptr;
         int node_idx = get_ir_node_index_from_name(graph, tf_node->name.c_str());
         if (node_idx < 0)
@@ -1851,42 +1891,56 @@ int tensorflow_serializer::generate_graph(ir_graph_t* graph)
         {
             ir_node = get_ir_graph_node(graph, node_idx);
         }
+
         for (int in = 0; in < tf_node->inputs.size(); in++)
         {
             TFNode* node = tf_node->inputs[in];
+            std::string t_name = tf_node->name;
             int tensor_idx = get_ir_tensor_index_from_name(graph, node->name.c_str());
+
             ir_tensor_t* tensor = nullptr;
             if (node->name == "Placeholder")
             {
                 continue;
             }
+
             if (tensor_idx < 0)
-                tensor = create_ir_tensor(graph, tf_node->name.c_str(), TENGINE_DT_FP32);
+            {
+                tensor = create_ir_tensor(graph, t_name.c_str(), TENGINE_DT_FP32);
+            }
             else
+            {
                 tensor = get_ir_graph_tensor(graph, tensor_idx);
+            }
+            int idx = get_ir_tensor_index_from_name(graph, tensor->name);
             set_ir_node_input_tensor(ir_node, in, tensor);
             input_tensors.push_back(node->name.c_str());
         }
         for (int out = 0; out < tf_node->outputs.size(); out++)
         {
-            TFNode* node = tf_node->outputs[out];
-
-            int tensor_idx = get_ir_tensor_index_from_name(graph, node->name.c_str());
+            TFNode* node = tf_node->outputs[out]; 
             ir_tensor_t* tensor = nullptr;
+            std::string t_name = tf_node->name;
+            int tensor_idx = get_ir_tensor_index_from_name(graph, node->name.c_str());
             if (tensor_idx < 0)
-                tensor = create_ir_tensor(graph, tf_node->name.c_str(), TENGINE_DT_FP32);
+            {
+                tensor = create_ir_tensor(graph, t_name.c_str(), TENGINE_DT_FP32);
+            }
             else
+            {
                 tensor = get_ir_graph_tensor(graph, tensor_idx);
+            }
             set_ir_node_output_tensor(ir_node, out, tensor);
             output_tensors.push_back(node->name.c_str());
+            int tdx = get_ir_tensor_index_from_name(graph, tensor->name);
         }
-        // printf("node op : %s \n", tf_node->op.c_str());
         op_load_t loader = op_load_map[tf_node->op].second;
         if (loader(tf_node, tf_graph, graph, ir_node) < 0)
         {
             fprintf(stderr, "load op %s func failed in node %s .\n", tf_node->op.c_str(), tf_node->name.c_str());
             return -1;
         }
+       
     }
 
     if (i < node_number)
@@ -1933,6 +1987,59 @@ int tensorflow_serializer::set_graph_output(ir_graph_t* graph)
     }
     set_ir_graph_output_node(graph, node_idx.data(), output_nodes.size());
     return 0;
+}
+
+bool AllInputCheck(TFNode* node, std::vector<int> &visited)
+{
+    for(int i = 0; i < node->inputs.size(); i++)
+    {
+        TFNode* o_node = node->inputs[i];
+        if(visited[o_node->idx] != 1)
+        {
+            if(o_node->op == "Const")
+                continue;
+            return false;
+        }
+    }
+    return true;
+}
+
+int tensorflow_serializer::DFSGraph(ir_graph_t* graph)
+{
+    std::stack<TFNode* > visit_stack;
+    std::vector<int> visited(65535, 0);
+    std::vector<TFNode* > starts;
+    int node_number = tf_graph.seq_nodes.size();
+    /* Find start node */
+    for(int i = 0; i < node_number; i++)
+    {
+        TFNode* node = tf_graph.seq_nodes[i];
+        if(node->op == "Placeholder" || node->op == "Const")
+            continue;
+        if(node->inputs[0]->op == "Placeholder")
+        {
+            starts.push_back(node);
+        }
+    }
+    for(int i = 0; i < starts.size(); i++)
+    {
+        visit_stack.push(starts[i]);
+    }
+
+    while(!visit_stack.empty())
+    {
+        TFNode* node = visit_stack.top();
+        visited[node->idx] = 1;
+        visit_stack.pop();
+        for(int out = 0; out < node->outputs.size(); out++)
+        {
+            TFNode* out_node = node->outputs[out];
+            visited[out_node->idx] = 1;
+            if(AllInputCheck(out_node, visited))
+                visit_stack.push(out_node);
+        }
+        out_graph.push_back(node);
+    }
     return 0;
 }
 
@@ -1944,16 +2051,21 @@ int tensorflow_serializer::load_graph(ir_graph_t* graph)
         return false;
     if (optimize_graph() < 0)
         return -1;
+    if(fused_node_count > FUSE_NODE)
+    {
+        if (DFSGraph(graph) < 0)
+            return -1;
+    }
     if (set_graph_input(graph) < 0)
         return -1;
     fprintf(stderr, "Process 2: Finish set graph input \n");
     if (generate_graph(graph) < 0)
         return -1;
     fprintf(stderr, "Process 3: Finish load graph node \n");
-
     if (set_graph_output(graph) < 0)
         return -1;
     fprintf(stderr, "Process 4: Finish set graph output \n");
+
 
     return 0;
 }
@@ -2000,6 +2112,7 @@ int load_pool(TFNode* tf_node, TFGraph& tf_graph, ir_graph_t* graph, ir_node_t* 
     struct pool_param* param = (struct pool_param*)node->op.param_mem;
     const tensorflow::NodeDef* node_def = tf_node->pb_defs[0];
     tensorflow::AttrValue value;
+
 
     if (GetAttrValue(node_def, "ksize", value))
     {
@@ -2236,7 +2349,6 @@ int load_softmax(TFNode* tf_node, TFGraph& tf_graph, ir_graph_t* graph, ir_node_
     }
     else
         param->axis = 1;
-
     return 0;
 }
 int load_relu(TFNode* tf_node, TFGraph& tf_graph, ir_graph_t* graph, ir_node_t* node)
@@ -2382,6 +2494,79 @@ int load_pad(TFNode* tf_node, TFGraph& tf_graph, ir_graph_t* graph, ir_node_t* n
     param->pad_3_w = paddings[7];
     return 0;
 }
+int load_concat(TFNode* tf_node, TFGraph& tf_graph, ir_graph_t* graph, ir_node_t* node)
+{
+    struct concat_param* param = (struct concat_param*)node->op.param_mem;
+    TFNode* input;
+
+    const tensorflow::NodeDef* node_def = tf_node->pb_defs[1];
+    tensorflow::AttrValue value;
+
+    if(GetAttrValue(node_def, "value", value))
+    {
+        const tensorflow::TensorProto& tf_tensor = value.tensor();
+
+        int axis = tf_tensor.int_val(0);
+        param->axis = NCHW_axis_swap[axis];
+    }
+    else
+    {
+        param->axis = 3;
+    }
+
+    return true;
+}
+int load_gemm(TFNode* tf_node, TFGraph& tf_graph, ir_graph_t* graph, ir_node_t* node)
+{
+
+    TFNode* input1 = tf_node->inputs[1];
+    struct gemm_param* param = (struct gemm_param*)node->op.param_mem;
+
+    const tensorflow::NodeDef* node_def = tf_node->pb_defs[0];
+    tensorflow::AttrValue value;
+    if(GetAttrValue(node_def, "transpose_a", value))
+    {
+        param->transA = value.b();
+    }
+    if(GetAttrValue(node_def, "transpose_b", value))
+    {
+        param->transB = value.b();
+    }
+    param->alpha = 1;
+    param->beta = 1;
+    ir_tensor_t* weight_tensor = input1->ir_tensor;
+    if(!param->transB)
+    {
+        // swap shape
+        int k = weight_tensor->dims[0];
+        int n = weight_tensor->dims[1];
+
+        weight_tensor->dims[0] = n;
+        weight_tensor->dims[1] = k;
+
+        float* tmp = ( float* )malloc(k * n * sizeof(float));
+        float* data = ( float* )weight_tensor->data;
+
+        for(int i = 0; i < n; i++)
+            for(int j = 0; j < k; j++)
+            {
+                tmp[i * k + j] = data[j * n + i];
+            }
+
+        memcpy(data, tmp, n * k * sizeof(float));
+
+        free(tmp);
+    }
+
+    struct fc_param* fcparam = (struct fc_param*)node->op.param_mem;
+    fcparam->num_output = weight_tensor->dims[0];
+    return 0;
+}
+int load_biasadd(TFNode* tf_node, TFGraph& tf_graph, ir_graph_t* graph, ir_node_t* node)
+{
+
+    return 0;
+}
 void tensorflow_serializer::register_op_load()
 {
     op_load_map["AvgPool"] = std::pair<int, op_load_t>(OP_POOL, load_pool);
@@ -2405,4 +2590,7 @@ void tensorflow_serializer::register_op_load()
     op_load_map["AddN"] = std::pair<int, op_load_t>(OP_ELTWISE, load_eltwise);
     op_load_map["Mean"] = std::pair<int, op_load_t>(OP_REDUCTION, load_reduction);
     op_load_map["Pad"] = std::pair<int, op_load_t>(OP_PAD, load_pad);
+    op_load_map["ConcatV2"] = std::pair<int, op_load_t>(OP_CONCAT, load_concat);
+    op_load_map["MatMul"] = std::pair<int, op_load_t>(OP_FC, load_gemm);
+    // op_load_map["BiasAdd"] = std::pair<int, op_load_t>(OP_BIAS, load_biasadd);
 }
