@@ -49,7 +49,7 @@ int delete_node(ir_graph_t* graph, int16_t pre_node_id, int16_t del_node_id);
 int add_node_above(ir_graph_t* graph, int16_t down_node_id, int add_node_type, const char* name);
 
 /*!
- * @brief add a node below specified node.
+ * @brief add a const node above specified node.
  *
  * @param [in]  graph: specific graph.
  * @param [in]  down_node_id: specific node index.
@@ -57,6 +57,17 @@ int add_node_above(ir_graph_t* graph, int16_t down_node_id, int add_node_type, c
  * @param [in]  name: to be added node name.
  *
  * @return  added node index.
+ */
+int add_const_node_above(ir_graph_t* graph, int16_t down_node_id, const char* name);
+
+/*!
+ * @brief add a node below specified node.
+ *
+ * @param [in]  graph: specific graph.
+ * @param [in]  down_node_id: specific node index.
+ * @param [in]  name: to be added node name.
+ *
+ * @return  added const node index.
  */
 int add_node_below(ir_graph_t* graph, int16_t up_node_id, int add_node_type, const char* name);
 

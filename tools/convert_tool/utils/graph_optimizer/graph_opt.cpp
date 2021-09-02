@@ -366,6 +366,37 @@ int add_node_above(ir_graph_t* graph, int16_t down_node_id, int add_node_type, c
     return add_node->index;
 }
 
+int add_const_node_above(ir_graph_t* graph, int16_t down_node_id, const char* name)
+{
+    /* get all up nodes */
+    ir_node_t* down_node = get_ir_graph_node(graph, down_node_id);
+
+    /* create const node and its own tensor */
+    ir_node_t* add_node = create_ir_node(graph, name, OP_CONST, 1);
+    if (add_node == nullptr)
+        return -1;
+    ir_tensor_t* add_tensor = create_ir_tensor(graph, name, TENGINE_DT_FP32);
+    if (add_tensor == nullptr)
+        return -1;
+    add_tensor->tensor_type = TENSOR_TYPE_CONST;
+    set_ir_node_output_tensor(add_node, 0, add_tensor);
+
+    down_node->input_num++;
+    down_node->input_tensors[down_node->input_num - 1] = add_tensor->index;
+    add_tensor->consumer[0] = down_node_id;
+    add_tensor->consumer_num = 1;
+
+    /* insert node id */
+    if (insert_node_id(graph, add_node->index, down_node_id) < 0)
+        return -1;
+
+    /* insert tensor id */
+    if (insert_tensor_id(graph, add_tensor->index, down_node->output_tensors[0]) < 0)
+        return -1;
+
+    return add_node->index;
+}
+
 static int weight_bn(ir_graph_t* graph, ir_node_t* conv_node, float* mean, float* var, float* gamma, float* beta, float eps,
                      float rescale_factor, ir_tensor_t* bias_tensor)
 {
