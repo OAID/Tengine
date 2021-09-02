@@ -349,7 +349,7 @@ int tensorflow_serializer::construct_graph()
         TFNode* cur_node = node_map[name];
         for (int j = 0; j < node_param.input_size(); j++)
         {
-            const std::string& input_name = node_param.input(j) ;
+            const std::string& input_name = node_param.input(j);
             std::string::size_type pos = input_name.find(":");
             std::string cleanup_name;
 
@@ -646,14 +646,14 @@ int tensorflow_serializer::MergeChildNode(TFNode* base_node, TFNode* child_node)
 {
     auto output_ir = base_node->outputs.begin();
 
-    while(output_ir != base_node->outputs.end())
+    while (output_ir != base_node->outputs.end())
     {
-        if(*output_ir == child_node)
+        if (*output_ir == child_node)
             break;
         output_ir++;
     }
 
-    if(child_node->outputs.size() == 1)
+    if (child_node->outputs.size() == 1)
     {
         *output_ir = child_node->outputs[0];
     }
@@ -663,11 +663,11 @@ int tensorflow_serializer::MergeChildNode(TFNode* base_node, TFNode* child_node)
         base_node->outputs.insert(base_node->outputs.end(), child_node->outputs.begin(), child_node->outputs.end());
     }
 
-    for(auto node : child_node->outputs)
+    for (auto node : child_node->outputs)
     {
-        for(unsigned int i = 0; i < node->inputs.size(); i++)
+        for (unsigned int i = 0; i < node->inputs.size(); i++)
         {
-            if(node->inputs[i] == child_node)
+            if (node->inputs[i] == child_node)
             {
                 node->inputs[i] = base_node;
                 break;
@@ -675,21 +675,19 @@ int tensorflow_serializer::MergeChildNode(TFNode* base_node, TFNode* child_node)
         }
     }
 
-
-
     auto ir = child_node->inputs.begin();
 
-    while(ir != child_node->inputs.end())
+    while (ir != child_node->inputs.end())
     {
         TFNode* node = *ir;
 
-        if(node != base_node)
+        if (node != base_node)
         {
             base_node->inputs.push_back(node);
 
-            for(unsigned int i = 0; i < node->outputs.size(); i++)
+            for (unsigned int i = 0; i < node->outputs.size(); i++)
             {
-                if(node->outputs[i] == child_node)
+                if (node->outputs[i] == child_node)
                 {
                     node->outputs[i] = base_node;
                     break;
@@ -995,7 +993,7 @@ int tensorflow_serializer::optimize_graph()
 
         ir++;
     }
-    
+
     /* merge composed BatchNormal */
 
     ir = tf_graph.seq_nodes.begin();
@@ -1857,11 +1855,10 @@ int tensorflow_serializer::generate_graph(ir_graph_t* graph)
             load_const_tensor(tf_node, graph);
             continue;
         }
-
     }
- 
+
     int count = 0;
-    if(fused_node_count > FUSE_NODE)
+    if (fused_node_count > FUSE_NODE)
     {
         count = (int)out_graph.size();
     }
@@ -1872,7 +1869,7 @@ int tensorflow_serializer::generate_graph(ir_graph_t* graph)
     for (int i = 0; i < count; i++)
     {
         TFNode* tf_node = nullptr;
-        if(fused_node_count > FUSE_NODE)
+        if (fused_node_count > FUSE_NODE)
             tf_node = out_graph[i];
         else
             tf_node = tf_graph.seq_nodes[i];
@@ -1880,7 +1877,6 @@ int tensorflow_serializer::generate_graph(ir_graph_t* graph)
         if (tf_node->op == "Placeholder" || tf_node->op == "Const")
             continue;
 
-    
         ir_node_t* ir_node = nullptr;
         int node_idx = get_ir_node_index_from_name(graph, tf_node->name.c_str());
         if (node_idx < 0)
@@ -1918,7 +1914,7 @@ int tensorflow_serializer::generate_graph(ir_graph_t* graph)
         }
         for (int out = 0; out < tf_node->outputs.size(); out++)
         {
-            TFNode* node = tf_node->outputs[out]; 
+            TFNode* node = tf_node->outputs[out];
             ir_tensor_t* tensor = nullptr;
             std::string t_name = tf_node->name;
             int tensor_idx = get_ir_tensor_index_from_name(graph, node->name.c_str());
@@ -1940,7 +1936,6 @@ int tensorflow_serializer::generate_graph(ir_graph_t* graph)
             fprintf(stderr, "load op %s func failed in node %s .\n", tf_node->op.c_str(), tf_node->name.c_str());
             return -1;
         }
-       
     }
 
     if (i < node_number)
@@ -1989,14 +1984,14 @@ int tensorflow_serializer::set_graph_output(ir_graph_t* graph)
     return 0;
 }
 
-bool AllInputCheck(TFNode* node, std::vector<int> &visited)
+bool AllInputCheck(TFNode* node, std::vector<int>& visited)
 {
-    for(int i = 0; i < node->inputs.size(); i++)
+    for (int i = 0; i < node->inputs.size(); i++)
     {
         TFNode* o_node = node->inputs[i];
-        if(visited[o_node->idx] != 1)
+        if (visited[o_node->idx] != 1)
         {
-            if(o_node->op == "Const")
+            if (o_node->op == "Const")
                 continue;
             return false;
         }
@@ -2006,36 +2001,36 @@ bool AllInputCheck(TFNode* node, std::vector<int> &visited)
 
 int tensorflow_serializer::DFSGraph(ir_graph_t* graph)
 {
-    std::stack<TFNode* > visit_stack;
+    std::stack<TFNode*> visit_stack;
     std::vector<int> visited(65535, 0);
-    std::vector<TFNode* > starts;
+    std::vector<TFNode*> starts;
     int node_number = tf_graph.seq_nodes.size();
     /* Find start node */
-    for(int i = 0; i < node_number; i++)
+    for (int i = 0; i < node_number; i++)
     {
         TFNode* node = tf_graph.seq_nodes[i];
-        if(node->op == "Placeholder" || node->op == "Const")
+        if (node->op == "Placeholder" || node->op == "Const")
             continue;
-        if(node->inputs[0]->op == "Placeholder")
+        if (node->inputs[0]->op == "Placeholder")
         {
             starts.push_back(node);
         }
     }
-    for(int i = 0; i < starts.size(); i++)
+    for (int i = 0; i < starts.size(); i++)
     {
         visit_stack.push(starts[i]);
     }
 
-    while(!visit_stack.empty())
+    while (!visit_stack.empty())
     {
         TFNode* node = visit_stack.top();
         visited[node->idx] = 1;
         visit_stack.pop();
-        for(int out = 0; out < node->outputs.size(); out++)
+        for (int out = 0; out < node->outputs.size(); out++)
         {
             TFNode* out_node = node->outputs[out];
             visited[out_node->idx] = 1;
-            if(AllInputCheck(out_node, visited))
+            if (AllInputCheck(out_node, visited))
                 visit_stack.push(out_node);
         }
         out_graph.push_back(node);
@@ -2051,7 +2046,7 @@ int tensorflow_serializer::load_graph(ir_graph_t* graph)
         return false;
     if (optimize_graph() < 0)
         return -1;
-    if(fused_node_count > FUSE_NODE)
+    if (fused_node_count > FUSE_NODE)
     {
         if (DFSGraph(graph) < 0)
             return -1;
@@ -2065,7 +2060,6 @@ int tensorflow_serializer::load_graph(ir_graph_t* graph)
     if (set_graph_output(graph) < 0)
         return -1;
     fprintf(stderr, "Process 4: Finish set graph output \n");
-
 
     return 0;
 }
@@ -2112,7 +2106,6 @@ int load_pool(TFNode* tf_node, TFGraph& tf_graph, ir_graph_t* graph, ir_node_t* 
     struct pool_param* param = (struct pool_param*)node->op.param_mem;
     const tensorflow::NodeDef* node_def = tf_node->pb_defs[0];
     tensorflow::AttrValue value;
-
 
     if (GetAttrValue(node_def, "ksize", value))
     {
@@ -2502,7 +2495,7 @@ int load_concat(TFNode* tf_node, TFGraph& tf_graph, ir_graph_t* graph, ir_node_t
     const tensorflow::NodeDef* node_def = tf_node->pb_defs[1];
     tensorflow::AttrValue value;
 
-    if(GetAttrValue(node_def, "value", value))
+    if (GetAttrValue(node_def, "value", value))
     {
         const tensorflow::TensorProto& tf_tensor = value.tensor();
 
@@ -2518,24 +2511,23 @@ int load_concat(TFNode* tf_node, TFGraph& tf_graph, ir_graph_t* graph, ir_node_t
 }
 int load_gemm(TFNode* tf_node, TFGraph& tf_graph, ir_graph_t* graph, ir_node_t* node)
 {
-
     TFNode* input1 = tf_node->inputs[1];
     struct gemm_param* param = (struct gemm_param*)node->op.param_mem;
 
     const tensorflow::NodeDef* node_def = tf_node->pb_defs[0];
     tensorflow::AttrValue value;
-    if(GetAttrValue(node_def, "transpose_a", value))
+    if (GetAttrValue(node_def, "transpose_a", value))
     {
         param->transA = value.b();
     }
-    if(GetAttrValue(node_def, "transpose_b", value))
+    if (GetAttrValue(node_def, "transpose_b", value))
     {
         param->transB = value.b();
     }
     param->alpha = 1;
     param->beta = 1;
     ir_tensor_t* weight_tensor = input1->ir_tensor;
-    if(!param->transB)
+    if (!param->transB)
     {
         // swap shape
         int k = weight_tensor->dims[0];
@@ -2544,11 +2536,11 @@ int load_gemm(TFNode* tf_node, TFGraph& tf_graph, ir_graph_t* graph, ir_node_t* 
         weight_tensor->dims[0] = n;
         weight_tensor->dims[1] = k;
 
-        float* tmp = ( float* )malloc(k * n * sizeof(float));
-        float* data = ( float* )weight_tensor->data;
+        float* tmp = (float*)malloc(k * n * sizeof(float));
+        float* data = (float*)weight_tensor->data;
 
-        for(int i = 0; i < n; i++)
-            for(int j = 0; j < k; j++)
+        for (int i = 0; i < n; i++)
+            for (int j = 0; j < k; j++)
             {
                 tmp[i * k + j] = data[j * n + i];
             }
@@ -2564,7 +2556,6 @@ int load_gemm(TFNode* tf_node, TFGraph& tf_graph, ir_graph_t* graph, ir_node_t* 
 }
 int load_biasadd(TFNode* tf_node, TFGraph& tf_graph, ir_graph_t* graph, ir_node_t* node)
 {
-
     return 0;
 }
 void tensorflow_serializer::register_op_load()
