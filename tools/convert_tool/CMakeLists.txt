@@ -76,21 +76,6 @@ include_directories(${TF_PROTO_OUT_PATH})
 
 list(APPEND TF_SERIALIZER_SRCS ${TF_PROTO_SRC})
 
-# the generated pb.cc
-protobuf_generate_cpp(TF_PROTO_SRCS TF_PROTO_HDRS 
-    tensorflow/graph.proto 
-    tensorflow/function.proto 
-    tensorflow/node_def.proto 
-    tensorflow/op_def.proto 
-    tensorflow/attr_value.proto
-    tensorflow/tensor.proto
-    tensorflow/tensor_shape.proto
-    tensorflow/types.proto
-    tensorflow/versions.proto
-    tensorflow/resource_handle.proto
-)
-list(APPEND TF_SERIALIZER_SRCS ${TF_PROTO_HDRS} ${TF_PROTO_SRCS})
-
 # MXNET
 file(GLOB_RECURSE MXNET_SERIALIZER_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/mxnet/*.cpp")
 
