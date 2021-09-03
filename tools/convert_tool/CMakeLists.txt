@@ -40,6 +40,7 @@ file(GLOB_RECURSE TF_SERIALIZER_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/tensorflow/*.c
 
 list(APPEND TENGINE_LIB_SRCS ${serializer_src})
 
+
 # the generated pb.cc
 set(TF_PROTO_SRC            ${CMAKE_CURRENT_BINARY_DIR}/tensorflow/graph.pb.cc
                             ${CMAKE_CURRENT_BINARY_DIR}/tensorflow/function.pb.cc
