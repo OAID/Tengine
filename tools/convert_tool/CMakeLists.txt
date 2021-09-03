@@ -40,6 +40,7 @@ file(GLOB_RECURSE TF_SERIALIZER_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/tensorflow/*.c
 
 list(APPEND TENGINE_LIB_SRCS ${serializer_src})
 
+
 # the generated pb.cc
 set(TF_PROTO_SRC            ${CMAKE_CURRENT_BINARY_DIR}/tensorflow/graph.pb.cc
                             ${CMAKE_CURRENT_BINARY_DIR}/tensorflow/function.pb.cc
@@ -75,21 +76,6 @@ ADD_CUSTOM_TARGET(TF_SERIALIZER_TARGET DEPENDS ${TF_PROTO_OUT_PATH})
 include_directories(${TF_PROTO_OUT_PATH})
 
 list(APPEND TF_SERIALIZER_SRCS ${TF_PROTO_SRC})
-
-# the generated pb.cc
-protobuf_generate_cpp(TF_PROTO_SRCS TF_PROTO_HDRS 
-    tensorflow/graph.proto 
-    tensorflow/function.proto 
-    tensorflow/node_def.proto 
-    tensorflow/op_def.proto 
-    tensorflow/attr_value.proto
-    tensorflow/tensor.proto
-    tensorflow/tensor_shape.proto
-    tensorflow/types.proto
-    tensorflow/versions.proto
-    tensorflow/resource_handle.proto
-)
-list(APPEND TF_SERIALIZER_SRCS ${TF_PROTO_HDRS} ${TF_PROTO_SRCS})
 
 # MXNET
 file(GLOB_RECURSE MXNET_SERIALIZER_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/mxnet/*.cpp")
