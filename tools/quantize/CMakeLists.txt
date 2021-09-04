@@ -63,6 +63,7 @@ IF (${TENGINE_TARGET_PROCESSOR} MATCHES "X86")
 
     TENGINE_QUANT_TOOL(quant_tool_int8      quant_tool_int8.cpp)
     TENGINE_QUANT_TOOL(quant_tool_uint8     quant_tool_uint8.cpp)
+    TENGINE_QUANT_TOOL(quant_tool_uint8_2in     quant_tool_uint8_2in.cpp)
     TENGINE_QUANT_TOOL(quant_tool_uint8_perchannel     quant_tool_uint8_perchannel.cpp)
 ELSE()
     MESSAGE (FATAL_ERROR "quantization tool can only be built on x86")

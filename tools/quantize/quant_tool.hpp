@@ -207,3 +207,39 @@ private: // temp variable
     struct conv_param* conv_param_fp32;
     struct conv_param* conv_param_fake_quant;
 };
+
+class QuantTool2in
+{
+public:
+    QuantTool2in();
+    ~QuantTool2in();
+
+    int activation_quant_tool_2in();
+
+public:
+    struct options opt;
+
+    std::string model_file;  // path to input float32 tmfile
+    std::string scale_file;  // path to calibration scale file
+    std::string output_file; // path to output int8/uint8 tmfile
+    std::string image1_dir;   // path to calibration images1 folder
+    std::string image2_dir;   // path to calibration images2 folder
+
+    int num_thread;
+
+    int img1_c;
+    int img1_h;
+    int img1_w;
+    int img2_c;
+    int img2_h;
+    int img2_w;
+    float mean[3];   // value of mean (mean value, default is 104.0,117.0,123.0)
+    float scale[3];  // value of normalize (scale value, default is 1.0,1.0,1.0)
+    int center_crop; // flag which indicates that center crop process image is necessary(0:OFF, 1:ON, default is 0)
+    int letterbox_rows;
+    int letterbox_cols;
+    int sw_RGB;         // flag which indicates that swap first and last channels in 3-channel image is necessary(0:OFF, 1:ON, default is 1)
+    int focus;          // flag which indicates that focus process image is necessary(maybe using for YOLOv5, 0:OFF, 1:ON, default is 0)
+    int inplace;        // process the inplace quant scale of activation in some types of op, such as max pooling, ReLU, Flatten, Reshape, Clip
+    int algorithm_type; // the type of quant algorithm(0:min-max, 1:kl, default is 0)
+};
