@@ -86,7 +86,7 @@ The Convolution operator displays weight and bias dimension information by defau
 
 Each node contains an Operator.
 
-Operators have type type, name name, ATTRIBUTES, INPUTS and OUTPUTS.
+Operators have type, name, ATTRIBUTES, INPUTS and OUTPUTS.
 
 | ![img](https://raw.githubusercontent.com/OAID/Tengine/tengine-lite/doc/docs_zh/images/clip_image006.jpg) |
 | ------------------------------------------------------------ |
