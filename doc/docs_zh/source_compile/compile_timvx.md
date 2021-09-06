@@ -369,7 +369,7 @@ Repeat 10 times, thread 1, avg time 2.95 ms, max_time 3.42 ms, min_time 2.76 ms
 
 ## 4.  uint8 量化模型
 The TIM-VX NPU backend needs the uint8 tmfile as it's input model file, you can **quantize** the tmfile from **float32** to **uint8** from here. 
-- [Tengine Post Training Quantization Tools](../tools/quantize/README.md)
+- [Tengine Post Training Quantization Tools](../../../tools/quantize/README.md)
 - [Download the uint8 quant tool](https://github.com/OAID/Tengine/releases/download/lite-v1.3/quant_tool_uint8)
 
 
