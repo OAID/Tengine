@@ -162,7 +162,7 @@ int onnx_serializer::load_model_file(std::string model_file, onnx::ModelProto& m
     }
     if (op_set != -1)
     {
-        fprintf(stderr, "Model op set is :%d\n", op_set);
+        fprintf(stderr, "Model op set is: %d\n", op_set);
     }
 
     return 0;
@@ -200,7 +200,6 @@ int onnx_serializer::load_constant_tensor(ir_graph_t* graph, const onnx::GraphPr
             const onnx::TensorProto& onnx_tensor = node_tensor[node.input(1)];
             std::pair<std::string, bool> t(node.input(1), 0);
             tensor_check.insert(t);
-            fprintf(stderr, "node:%s, tensor:%s\n", node.name().c_str(), onnx_tensor.name().c_str());
             int tensor_data_type = get_onnx_tensor_data_type(onnx_tensor);
             if (tensor_data_type < 0)
             {
@@ -721,12 +720,17 @@ static int reduce2avgpool(ir_graph_t* graph)
 
 int onnx_serializer::optimize_graph(ir_graph_t* graph)
 {
+    set_log_level(LOG_EMERG);
     if (infer_ir_graph_shape(graph) < 0)
-        return -1;
+    {
+        fprintf(stderr, "Skip internal optimize in onnx serializer.\n");
+        return 0;
+    }
     if (deal_old_softmax(graph) < 0)
         return -1;
     if (reduce2avgpool(graph) < 0)
         return -1;
+    fprintf(stderr, "Internal optimize in onnx serializer done.\n");
 
     return 0;
 }

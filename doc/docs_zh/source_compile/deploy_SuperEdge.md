@@ -8,7 +8,7 @@
 
 ​		[SuperEdge](https://github.com/superedge/superedge "SuperEdge") 是基于原生 Kubernetes 的**边缘容器**管理系统。该系统把云原生能力扩展到**边缘侧**，很好的实现了云端对边缘端的**管理**和控制，极大**简化**了应用从云端部署到边缘端的过程。SuperEdge 为应用实现**边缘原生化**提供了**强有力**的支持。
 
-<img src="http://tengine2.openailab.com:9527/openailab/structure.png" alt="topo" style="zoom:100%;" />
+![img](../images/oal_structure.png)
 
 ## 硬件环境准备
 
@@ -188,6 +188,6 @@ yolo-76d95967bb-zxggk   1/1     Running   3          79m
 
 打开Khadas VIM设备的显示器，观察到如下效果
 
-<img src="http://tengine2.openailab.com:9527/openailab/demo.jpg" style="zoom:67%;" />
+![img](../images/oal_demo.jpg)
 
 

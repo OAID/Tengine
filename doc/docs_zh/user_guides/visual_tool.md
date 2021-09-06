@@ -26,7 +26,7 @@ Tengine 模型为后缀 ”.tmfile”文件，由 Tengine: Covert Tool 通过其
 
 进入Netron界面后，点左上角图标或点击灰色节点（如 图1 中红色标记所示），弹出右侧边栏：Model Properties。
 
-| ![img](https://raw.githubusercontent.com/BUG1989/tengine-docs/main/images/clip_image002.jpg) |
+| ![img](https://raw.githubusercontent.com/OAID/Tengine/tengine-lite/doc/docs_zh/images/clip_image002.jpg) |
 | ------------------------------------------------------------ |
 | 图1  模型信息 Model Properties                               |
 
@@ -56,7 +56,7 @@ Tengine 中，模型通过 tensor 连接。
 节点 Node 连线形成网络，并根据不同算子类型显示不同颜色。如 ”layer” 类型节点显示为蓝色，”Activation” 相关节点显示为深红色，”Normalize” 相关节点显示为深绿色。
 Convolution 算子默认显示 weight 和 bias 维度信息。
 
-| ![img](https://raw.githubusercontent.com/BUG1989/tengine-docs/main/images/clip_image004.jpg) |
+| ![img](https://raw.githubusercontent.com/OAID/Tengine/tengine-lite/doc/docs_zh/images/clip_image004.jpg) |
 | ------------------------------------------------------------ |
 | 图2  模型绘图                                                |
 
@@ -66,7 +66,7 @@ Convolution 算子默认显示 weight 和 bias 维度信息。
 
 算子具有类型type、名称name、属性ATTRIBUTES及输入INPUTS、输出OUTPUTS。
 
-| ![img](https://raw.githubusercontent.com/BUG1989/tengine-docs/main/images/clip_image006.jpg) |
+| ![img](https://raw.githubusercontent.com/OAID/Tengine/tengine-lite/doc/docs_zh/images/clip_image006.jpg) |
 | ------------------------------------------------------------ |
 | 图2  模型绘图                                                |
 

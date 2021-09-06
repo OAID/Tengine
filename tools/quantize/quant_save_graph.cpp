@@ -505,6 +505,11 @@ int save_graph_i8_perchannel(const char* model_file, const char* scale_file, con
             if (internal)
             {
                 // TODO
+                for (int ch = 0; ch < channel_num; ch++)
+                {
+                    weight_scale_list[ch] = weight_tensor->scale_list[ch];
+                    weight_zp_list[ch] = 0;
+                }
             }
             else
             {

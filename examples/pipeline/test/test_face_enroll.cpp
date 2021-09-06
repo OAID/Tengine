@@ -30,6 +30,33 @@
 #include <opencv2/opencv.hpp>
 using namespace pipeline;
 
+namespace pipeline {
+
+class SaveFeature : public Node<Param<Feature>, Param<void> >
+{
+public:
+    SaveFeature()
+    {
+    }
+
+    void exec() override
+    {
+        size_t idx = 0;
+        Feature feat;
+        auto suc = input<0>()->pop(feat);
+        if (not suc)
+        {
+            return;
+        }
+
+        char filename[64] = {0};
+        sprintf(filename, "feature%ld.bin", idx++);
+        feat.serialize(std::string(filename));
+    }
+};
+
+} // namespace pipeline
+
 int main(int argc, char* argv[])
 {
     if (argc < 2)
@@ -43,10 +70,12 @@ int main(int argc, char* argv[])
     auto detect_face = g.add_node<FaceDetection, std::string>("rfb-320.tmfile");
     auto landmark_face = g.add_node<FaceLandmark, std::string>("landmark.tmfile");
     auto feature_face = g.add_node<FaceFeature, std::string>("mobilefacenet.tmfile");
+    auto save = g.add_node<SaveFeature>();
 
     auto image_det = g.add_edge<InstantEdge<cv::Mat> >(100);
     auto det_lmk = g.add_edge<InstantEdge<std::tuple<cv::Mat, std::vector<cv::Rect> > > >(100);
     auto lmk_feature = g.add_edge<InstantEdge<std::tuple<cv::Mat, std::vector<Feature> > > >(100);
+    auto feature_save = g.add_edge<InstantEdge<Feature> >(100);
 
     images->set_output<0>(image_det);
     detect_face->set_input<0>(image_det);
@@ -54,8 +83,9 @@ int main(int argc, char* argv[])
     landmark_face->set_input<0>(det_lmk);
     landmark_face->set_output<0>(lmk_feature);
     feature_face->set_input<0>(lmk_feature);
+    feature_face->set_output<0>(feature_save);
+    save->set_input<0>(feature_save);
 
     g.start();
-    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
-    g.finish();
+    std::this_thread::sleep_for(std::chrono::milliseconds(50000));
 }

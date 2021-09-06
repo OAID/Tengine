@@ -43,7 +43,7 @@ namespace pipeline {
 #define HARD_NMS     (1)
 #define BLENDING_NMS (2) /* mix nms was been proposaled in paper blaze face, aims to minimize the temporal jitter*/
 
-class FaceFeature : public Node<Param<std::tuple<cv::Mat, std::vector<Feature> > >, Param<void> >
+class FaceFeature : public Node<Param<std::tuple<cv::Mat, std::vector<Feature> > >, Param<Feature> >
 {
 public:
     using preproc_func = typename std::function<void(const cv::Mat&, cv::Mat&)>;
@@ -149,6 +149,8 @@ public:
     {
         cv::Mat mat;
         std::vector<Feature> features;
+
+        std::vector<Feature> out;
         std::tuple<cv::Mat, std::vector<Feature> > inp;
         auto suc = input<0>()->pop(inp);
         if (not suc)
@@ -217,6 +219,10 @@ public:
             const int data_size = get_tensor_buffer_size(output_tensor) / sizeof(float);
 
             fprintf(stdout, "write feature %f, len %d\n ", data[0], data_size);
+
+            Feature f;
+            f.data = {data, data + data_size};
+            output<0>()->try_push(std::move(f));
         }
         return;
     }
