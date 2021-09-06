@@ -57,7 +57,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
     struct softmax_param* softmax_param = (struct softmax_param*)ir_node->op.param_mem;
 
-    // Check: axis must be in the range: [-input_tensor->dim_num, input_tensor->dim_num)
+    // Check: axis must be in the range: [-input_tensor->dim_num, input_tensor->dim_num]
     // Note: Here we always assume 0 <= input_tensor->dim_num
     int axis = softmax_param->axis;
     if (axis < -input_tensor->dim_num || input_tensor->dim_num <= axis)
