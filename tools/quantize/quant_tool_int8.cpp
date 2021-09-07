@@ -66,6 +66,7 @@ QuantTool::QuantTool()
     this->focus = 0;
     this->inplace = true;
     this->algorithm_type = ALGORITHM_MIN_MAX;
+    this->evaluate = false;
 }
 
 QuantTool::~QuantTool()
@@ -163,6 +164,7 @@ int QuantTool::activation_quant_tool()
     /* init minmax */
     std::unordered_map<int, float> max_activation;
     std::unordered_map<int, float> min_activation;
+    std::unordered_map<int, int> act_map;
     uint32_t act_tensor_num = 0;
     for (int i = 0; i < ir_graph->tensor_num; i++)
     {
@@ -172,6 +174,7 @@ int QuantTool::activation_quant_tool()
             act_tensor_num++;
             max_activation[i] = -FLT_MAX;
             min_activation[i] = FLT_MAX;
+            act_map[act_tensor_num - 1] = i;
         }
     }
 
@@ -213,10 +216,134 @@ int QuantTool::activation_quant_tool()
             }
         }
     }
+    fprintf(stderr, "\n");
     if (this->algorithm_type == ALGORITHM_KL)
     {
-        /* todo support */
-        fprintf(stderr, "\r\n[****WARNING****]:Step 2 find original calibration kl threshold table NOT support temporarily!\n");
+        /* kl process divergence */
+        fprintf(stderr, "[Quant Tools Info]: Step 2, find calibration table.\n");
+        std::unordered_map<uint32_t, uint32_t> tensor_hist;
+        std::unordered_map<uint32_t, uint32_t> hist_tensor;
+        std::vector<std::vector<float> > hist_edge;
+        std::vector<std::vector<uint32_t> > hist_gram;
+
+        /* second loop, create histgram */
+        for (int nums = imgs_list.size() - 1; nums >= 0; nums--)
+        {
+            fprintf(stderr, "\r[Quant Tools Info]: Step 2, images %.5d / %.5d", nums + 1, img_num);
+
+            get_input_data_cv(imgs_list[nums].c_str(), input_data.data(), img_c, img_h, img_w, mean, scale, sw_RGB, center_crop, letterbox_rows, letterbox_cols, focus);
+
+            /* run graph */
+            if (run_graph(ir_graph, 1) < 0)
+            {
+                fprintf(stderr, "Run graph failed\n");
+                return -1;
+            }
+
+            /* calculate hist */
+            uint32_t inum = 0;
+            for (int i = 0; i < ir_graph->tensor_num; i++)
+            {
+                struct tensor* ir_tensor = ir_graph->tensor_list[i];
+                if (ir_tensor->tensor_type == TENSOR_TYPE_VAR || ir_tensor->tensor_type == TENSOR_TYPE_INPUT)
+                {
+                    float step_max = std::abs(max_activation[i]);
+                    if (std::abs(min_activation[i]) > step_max)
+                        step_max = std::abs(min_activation[i]);
+                    float step_bin = step_max / 2048.0f;
+
+                    std::vector<float> every_edge;
+                    if (nums == imgs_list.size() - 1)
+                    {
+                        for (int j = 0; j < 2048; j++)
+                        {
+                            float edge_float = (step_bin * (j + 0.5f));
+                            every_edge.push_back(edge_float);
+                        }
+                        hist_edge.push_back(every_edge);
+                        hist_gram.push_back(histCount((float*)ir_tensor->data, ir_tensor->elem_num, step_max));
+                    }
+                    else
+                    {
+                        std::vector<uint32_t> hist_tmp;
+                        hist_tmp = histCount((float*)ir_tensor->data, ir_tensor->elem_num, step_max);
+                        for (int j = 0; j < 2048; j++)
+                        {
+                            hist_gram[inum][j] += hist_tmp[j];
+                        }
+                    }
+
+                    tensor_hist[i] = inum;
+                    hist_tensor[inum] = i;
+                    inum++;
+                }
+            }
+        }
+
+        fprintf(stderr, "\n");
+
+        /* save the calibration file with min-max algorithm with kl divergence */
+        int fake_quant_set = 127;
+        FILE* fp_kl = fopen("table_kl.scale", "wb");
+        for (int i = 0; i < act_tensor_num; i++)
+        {
+            struct tensor* t = ir_graph->tensor_list[act_map[i]];
+            int threshold_bin = threshold_distribution(hist_gram[i], fake_quant_set + 1);
+            fprintf(stderr, " threshold_bin %d \n", threshold_bin);
+
+            float act_scale = hist_edge[i][threshold_bin] / fake_quant_set;
+            int act_zero_point = 0;
+
+            /* the scale of softmax always is scale = 1 / 127.f */
+            for (int j = 0; j < ir_graph->node_num; j++)
+            {
+                struct node* noden = ir_graph->node_list[j];
+                struct tensor* tensor_tmp = get_ir_graph_tensor(ir_graph, noden->output_tensors[0]);
+
+                if (!(tensor_tmp->tensor_type == TENSOR_TYPE_INPUT || tensor_tmp->tensor_type == TENSOR_TYPE_VAR))
+                    continue;
+
+                std::string tmp_op_name = get_op_name_from_type(noden->op.type);
+                std::string cur_name = t->name;
+                std::string tmp_name = tensor_tmp->name;
+
+                if ((cur_name == tmp_name) && tmp_op_name == "Softmax")
+                {
+                    act_scale = 1 / 127.f;
+                    act_zero_point = 0;
+                    break;
+                }
+            }
+
+            /* the scale of eltwise */
+            for (int j = 0; j < ir_graph->node_num; j++)
+            {
+                struct node* noden = ir_graph->node_list[j];
+                std::string tmp_op_name = get_op_name_from_type(noden->op.type);
+                if (tmp_op_name == "Eltwise")
+                {
+                    struct tensor* tensor_in0 = get_ir_graph_tensor(ir_graph, noden->input_tensors[0]);
+                    struct tensor* tensor_in1 = get_ir_graph_tensor(ir_graph, noden->input_tensors[1]);
+                    struct tensor* tensor_out = get_ir_graph_tensor(ir_graph, noden->output_tensors[0]);
+
+                    std::string cur_name = t->name;
+                    std::string tmp_name0 = tensor_in0->name;
+                    std::string tmp_name1 = tensor_in1->name;
+
+                    if ((cur_name == tmp_name0 || cur_name == tmp_name1))
+                    {
+                        act_scale = tensor_out->scale;
+                        break;
+                    }
+                }
+            }
+
+            t->scale = act_scale;
+            t->zero_point = 0;
+            fprintf(fp_kl, "%s %f %d\n", t->name, act_scale, act_zero_point);
+        }
+        fclose(fp_kl);
+        fprintf(stderr, "[Quant Tools Info]: Step 2, find calibration table done, output ./table_kl.scale\n");
     }
     else if (this->algorithm_type == ALGORITHM_ACIQ)
     {
@@ -304,7 +431,7 @@ int QuantTool::activation_quant_tool()
         fprintf(stderr, "\r\n[Quant Tools Info]: Step 2, find original calibration minmax threshold table done, output ./table_minmax.scale\n");
     }
 
-    fprintf(stderr, "[Quant Tools Info]: Thread %d, image nums %d, total time %.2f ms, avg time %.2f ms\n", num_thread, img_num, total_time, total_time / img_num);
+    //    fprintf(stderr, "[Quant Tools Info]: Thread %d, image nums %d, total time %.2f ms, avg time %.2f ms\n", num_thread, img_num, total_time, total_time / img_num);
 
     /* release tengine */
     postrun_graph(ir_graph);
@@ -343,7 +470,7 @@ int main(int argc, char* argv[])
     QuantTool quant_tool;
 
     int res;
-    while ((res = getopt(argc, argv, "m:a:f:o:i:g:s:w:b:c:y:k:t:h")) != -1)
+    while ((res = getopt(argc, argv, "m:a:f:o:i:g:s:w:b:c:y:k:z:t:h")) != -1)
     {
         switch (res)
         {
@@ -389,6 +516,9 @@ int main(int argc, char* argv[])
             break;
         case 'k':
             quant_tool.focus = atoi(optarg);
+            break;
+        case 'z':
+            quant_tool.evaluate = atoi(optarg);
             break;
         case 't':
             quant_tool.num_thread = atoi(optarg);
@@ -444,35 +574,100 @@ int main(int argc, char* argv[])
     fprintf(stderr, "YOLOv5 focus: %s\n", quant_tool.focus ? "ON" : "OFF");
     fprintf(stderr, "Thread num  : %d\n\n", quant_tool.num_thread);
 
-    /* using 3rd calibration table file */
-    if (quant_tool.scale_file.empty())
+    switch (quant_tool.algorithm_type)
     {
-        /* select algorithm */
-        if (quant_tool.algorithm_type == ALGORITHM_MIN_MAX)
+    case ALGORITHM_MIN_MAX:
+    {
+        if (quant_tool.scale_file.empty())
         {
             quant_tool.scale_file = "table_minmax.scale";
+            quant_tool.activation_quant_tool();
         }
-        else if (quant_tool.algorithm_type == ALGORITHM_KL)
+        save_graph_i8_perchannel(quant_tool.model_file.c_str(), quant_tool.scale_file.c_str(), quant_tool.output_file, quant_tool.inplace, false);
+        /* Evaluate quantitative losses */
+        if (quant_tool.evaluate)
+        {
+            fprintf(stderr, "[Quant Tools Info]: Step Evaluate, evaluate quantitative losses\n");
+            quant_tool.assess_quant_loss(0);
+        }
+        break;
+    }
+    case ALGORITHM_KL:
+    {
+        if (quant_tool.scale_file.empty())
         {
             quant_tool.scale_file = "table_kl.scale";
+            quant_tool.activation_quant_tool();
         }
-        else if (quant_tool.algorithm_type == ALGORITHM_ACIQ)
+        save_graph_i8_perchannel(quant_tool.model_file.c_str(), quant_tool.scale_file.c_str(), quant_tool.output_file, quant_tool.inplace, false);
+        /* Evaluate quantitative losses */
+        if (quant_tool.evaluate)
+        {
+            fprintf(stderr, "[Quant Tools Info]: Step Evaluate, evaluate quantitative losses\n");
+            quant_tool.assess_quant_loss(0);
+        }
+        break;
+    }
+    case ALGORITHM_ACIQ:
+    {
+        if (quant_tool.scale_file.empty())
         {
             quant_tool.scale_file = "table_aciq.scale";
+            quant_tool.activation_quant_tool();
         }
-        else
+        save_graph_i8_perchannel(quant_tool.model_file.c_str(), quant_tool.scale_file.c_str(), quant_tool.output_file, quant_tool.inplace, false);
+        /* Evaluate quantitative losses */
+        if (quant_tool.evaluate)
         {
-            fprintf(stderr, "[Quant Tools Info]: algorithm not specified, using default type MIN MAX\n");
-            quant_tool.scale_file = "table_minmax.scale";
+            fprintf(stderr, "[Quant Tools Info]: Step Evaluate, evaluate quantitative losses\n");
+            quant_tool.assess_quant_loss(0);
         }
-
-        /* quantize activation */
-        quant_tool.activation_quant_tool();
+        break;
     }
-
-    /* quantize weight/bias and save into int8 tmfile */
-    fprintf(stderr, "[Quant Tools Info]: Calibration file is using %s\n", quant_tool.scale_file.c_str());
-    save_graph_i8_perchannel(quant_tool.model_file.c_str(), quant_tool.scale_file.c_str(), quant_tool.output_file, quant_tool.inplace, false);
+    case ALGORITHM_DFQ:
+    {
+        quant_tool.data_free_quant();
+        quant_tool.model_file = "test_dfq_fp32.tmfile";
+        if (quant_tool.scale_file.empty())
+        {
+            quant_tool.scale_file = "table_minmax.scale";
+            quant_tool.activation_quant_tool();
+        }
+        save_graph_i8_perchannel(quant_tool.model_file.c_str(), quant_tool.scale_file.c_str(), quant_tool.output_file, quant_tool.inplace, false);
+        /* Evaluate quantitative losses */
+        if (quant_tool.evaluate)
+        {
+            fprintf(stderr, "[Quant Tools Info]: Step Evaluate, evaluate quantitative losses\n");
+            quant_tool.assess_quant_loss(0);
+        }
+        break;
+    }
+    case ALGORITHM_MM_EQ:
+    {
+        if (quant_tool.scale_file.empty())
+        {
+            quant_tool.scale_file = "table_minmax.scale";
+            quant_tool.activation_quant_tool();
+        }
+        /* Evaluate quantitative losses */
+        if (quant_tool.evaluate)
+        {
+            fprintf(stderr, "[Quant Tools Info]: Step Evaluate, evaluate quantitative losses\n");
+            quant_tool.assess_quant_loss(0);
+        }
+        /* Enable EQ search */
+        fprintf(stderr, "[Quant Tools Info]: Step Search, enable EQ search\n");
+        quant_tool.quant_search();
+        quant_tool.model_file = "save_i8_eq.tmfile";
+        save_graph_i8_perchannel(quant_tool.model_file.c_str(), quant_tool.scale_file.c_str(), quant_tool.output_file, quant_tool.inplace, true);
+        break;
+    }
+    default:
+    {
+        fprintf(stderr, "Unsupported quantization type ... \n");
+        break;
+    }
+    }
 
     fprintf(stderr, "\n---- Tengine Int8 tmfile create success, best wish for your INT8 inference has a low accuracy loss...\\(^0^)/ ----\n");
 

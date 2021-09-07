@@ -253,7 +253,7 @@ $ tar zxvf aarch64_S905D3_D312513_A294074_R311680_T312233_O312045.tgz
 $ mv aarch64_S905D3_D312513_A294074_R311680_T312233_O312045 prebuild-sdk-s905d3
 $ cd <tengine-lite-root-dir>
 $ mkdir -p ./3rdparty/tim-vx/include
-$ mkdir -p ./3rdparty/tim-vx/lib/aarch64
+$ mkdir -p ./3rdparty/tim-vx/lib/aarch32
 $ cp -rf ../prebuild-sdk-s905d3/include/*   ./3rdparty/tim-vx/include/
 $ cp -rf <rk_sdk_npu_lib>/*                 ./3rdparty/tim-vx/lib/aarch32/
 ```

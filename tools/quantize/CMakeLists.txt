@@ -30,6 +30,8 @@ IF (${TENGINE_TARGET_PROCESSOR} MATCHES "X86")
         ADD_EXECUTABLE(
             ${name}
             ./quant_save_graph.cpp
+            ./algorithm/quant_dfq.cpp
+            ./algorithm/quant_eq.cpp
             ./quant_utils.cpp
             ../save_graph/save_graph.cpp
             ../save_graph/tm2_op_save.cpp
