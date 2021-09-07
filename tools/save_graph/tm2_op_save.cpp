@@ -473,18 +473,18 @@ tm_uoffset_t SaveTmRPNOp(void* const start_ptr, tm_uoffset_t* cur_pos, ir_node_t
     tm_param.offset_vf_anchor_scales = WriteTmObject(start_ptr, cur_pos, v_scales, vector_size);
     free(v_scales);
 
-    vector_size = sizeof(tm_size_t) + sizeof(float) * p->anchors_->elem_num * 4;
-    TM2_Vector_anchors* v_anchors = (TM2_Vector_anchors*)malloc(vector_size);
-    v_anchors->v_num = p->anchors_->elem_num;
-    for (unsigned int i = 0; i < p->anchors_->elem_num; i++)
-    {
-        v_anchors->data[i][0] = ((Anchor_t*)get_vector_data(p->anchors_, i))->x0;
-        v_anchors->data[i][1] = ((Anchor_t*)get_vector_data(p->anchors_, i))->y0;
-        v_anchors->data[i][2] = ((Anchor_t*)get_vector_data(p->anchors_, i))->x1;
-        v_anchors->data[i][3] = ((Anchor_t*)get_vector_data(p->anchors_, i))->y1;
-    }
-    tm_param.offset_va_anchors = WriteTmObject(start_ptr, cur_pos, v_anchors, vector_size);
-    free(v_anchors);
+    // vector_size = sizeof(tm_size_t) + sizeof(float) * p->anchors_->elem_num * 4;
+    // TM2_Vector_anchors* v_anchors = (TM2_Vector_anchors*)malloc(vector_size);
+    // v_anchors->v_num = p->anchors_->elem_num;
+    // for (unsigned int i = 0; i < p->anchors_->elem_num; i++)
+    // {
+    //     v_anchors->data[i][0] = ((Anchor_t*)get_vector_data(p->anchors_, i))->x0;
+    //     v_anchors->data[i][1] = ((Anchor_t*)get_vector_data(p->anchors_, i))->y0;
+    //     v_anchors->data[i][2] = ((Anchor_t*)get_vector_data(p->anchors_, i))->x1;
+    //     v_anchors->data[i][3] = ((Anchor_t*)get_vector_data(p->anchors_, i))->y1;
+    // }
+    // tm_param.offset_va_anchors = WriteTmObject(start_ptr, cur_pos, v_anchors, vector_size);
+    // free(v_anchors);
 
     tm_param.feat_stride = p->feat_stride;
     tm_param.basesize = p->basesize;

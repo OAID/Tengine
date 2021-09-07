@@ -378,7 +378,7 @@ int caffe_serializer::load_graph_node(ir_graph_t* graph, const te_caffe::NetPara
         {
             continue;
         }
-        ir_node_t* ir_node = create_ir_node(graph, caffe_op_name.c_str(), op_load_map[caffe_op_name].first, OP_VERSION);
+        ir_node_t* ir_node = create_ir_node(graph, layer_param.name().c_str(), op_load_map[caffe_op_name].first, OP_VERSION);
         for (int i = 0; i < layer_param.bottom_size(); i++)
         {
             const std::string& orig_name = layer_param.bottom(i);
@@ -454,7 +454,14 @@ int caffe_serializer::load_graph_node(ir_graph_t* graph, const te_caffe::NetPara
         {
             const std::string& orig_name = layer_param.top(i);
             std::string tensor_name;
-            tensor_name = layer_param.name() + "/" + tensor_name;
+            if (tensor_name_map.count(orig_name))
+            {
+                char *ir_node_name = ir_node->name;
+                std::string node_name = ir_node_name;
+                tensor_name = node_name + "/" + std::to_string(i);
+            }
+            else
+                tensor_name = orig_name;
             ir_tensor_t* tensor = create_ir_tensor(graph, tensor_name.c_str(), TENGINE_DT_FP32);
             set_ir_node_output_tensor(ir_node, i, tensor);
             tensor_name_map[orig_name] = tensor_name;
@@ -875,11 +882,26 @@ int load_slice(ir_graph_t* graph, ir_node_t* node, const te_caffe::LayerParamete
     else
         param->axis = 1;
 
-    param->iscaffe = true;
-    // param->slice_point_.clear();
+    param->begin = 0;
+    param->end = 0;
+    param->begin_ = nullptr;
+    param->size_ = nullptr;
 
-    // std::copy(slice_param.slice_point().begin(), slice_param.slice_point().end(),
-    //           std::back_inserter(param.slice_point_));
+    int size = slice_param.slice_point().size();
+    int32_t* data = (int32_t *)malloc(size * sizeof(int32_t));
+    for (int i = 0; i < size; i++)
+    {
+        data[i] = slice_param.slice_point()[i];
+    }
+
+    param->slice_point_ = create_vector(sizeof(float), NULL);
+    param->slice_point_->elem_num = size;
+    param->slice_point_->elem_size = sizeof(int32_t);
+    set_vector_data(param->slice_point_, 0, data);
+
+    param->iscaffe = 1;
+    param->ismxnet = 0;
+    param->isonnx = 0;
     return 0;
 }
 int load_concat(ir_graph_t* graph, ir_node_t* node, const te_caffe::LayerParameter& layer_param)
