@@ -437,7 +437,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         struct tensor* out_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
         out_data_ptrs[0] = (int8_t*)out_tensor->data;
 
-        if (input_tensor->dims[0] == output_tensor->dims[0] && input_tensor->dims[1] == output_tensor->dims[1] && input_tensor->dims[2] == output_tensor->dims[2] && input_tensor->dims[3] == output_tensor->dims[3])
+        if (input_tensor->dims[0] == out_tensor->dims[0] && input_tensor->dims[1] == out_tensor->dims[1] && input_tensor->dims[2] == out_tensor->dims[2] && input_tensor->dims[3] == out_tensor->dims[3])
         {
             memcpy((void*)(out_data_ptrs[0]), (void*)input, mem_size * input_tensor->elem_num);
             sys_free(out_data_ptrs);
