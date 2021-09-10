@@ -454,7 +454,7 @@ int caffe_serializer::load_graph_node(ir_graph_t* graph, const te_caffe::NetPara
             std::string tensor_name;
             if (tensor_name_map.count(orig_name))
             {
-                char *ir_node_name = ir_node->name;
+                char* ir_node_name = ir_node->name;
                 std::string node_name = ir_node_name;
                 tensor_name = node_name + "/" + std::to_string(i);
             }
@@ -887,7 +887,7 @@ int load_slice(ir_graph_t* graph, ir_node_t* node, const te_caffe::LayerParamete
     param->size_ = nullptr;
 
     int size = slice_param.slice_point().size();
-    int32_t* data = (int32_t *)malloc(size * sizeof(int32_t));
+    int32_t* data = (int32_t*)malloc(size * sizeof(int32_t));
     for (int i = 0; i < size; i++)
     {
         data[i] = slice_param.slice_point()[i];
