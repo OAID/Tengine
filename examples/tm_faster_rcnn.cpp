@@ -52,35 +52,36 @@ typedef struct abox
 } abox;
 
 template<typename T>
-void tengine_resize(T* input, float* output, int img_w, int img_h, int c, int h, int w){
-    if(sizeof(T) == sizeof(float))
-    	tengine_resize_f32((float*)input, output, img_w, img_h, c, h, w);
+void tengine_resize(T* input, float* output, int img_w, int img_h, int c, int h, int w)
+{
+    if (sizeof(T) == sizeof(float))
+        tengine_resize_f32((float*)input, output, img_w, img_h, c, h, w);
     // if(sizeof(T) == sizeof(uint8_t))
-	//     tengine_resize_uint8((uint8_t*)input, output, img_w, img_h, c, h, w);
+    //     tengine_resize_uint8((uint8_t*)input, output, img_w, img_h, c, h, w);
 }
 
 image rgb2bgr_premute(image src)
 {
-    float* GRB = ( float* )malloc(sizeof(float) * src.c * src.h * src.w);
-    for(int c = 0; c < src.c; c++)
+    float* GRB = (float*)malloc(sizeof(float) * src.c * src.h * src.w);
+    for (int c = 0; c < src.c; c++)
     {
-        for(int h = 0; h < src.h; h++)
+        for (int h = 0; h < src.h; h++)
         {
-            for(int w = 0; w < src.w; w++)
+            for (int w = 0; w < src.w; w++)
             {
-                int newIndex = ( c )*src.h * src.w + h * src.w + w;
+                int newIndex = (c)*src.h * src.w + h * src.w + w;
                 int grbIndex = (2 - c) * src.h * src.w + h * src.w + w;
                 GRB[grbIndex] = src.data[newIndex];
             }
         }
     }
-    for(int c = 0; c < src.c; c++)
+    for (int c = 0; c < src.c; c++)
     {
-        for(int h = 0; h < src.h; h++)
+        for (int h = 0; h < src.h; h++)
         {
-            for(int w = 0; w < src.w; w++)
+            for (int w = 0; w < src.w; w++)
             {
-                int newIndex = ( c )*src.h * src.w + h * src.w + w;
+                int newIndex = (c)*src.h * src.w + h * src.w + w;
                 src.data[newIndex] = GRB[newIndex];
             }
         }
@@ -89,61 +90,65 @@ image rgb2bgr_premute(image src)
     return src;
 }
 
-image imread_faster(const char* filename, int img_w, int img_h, float* means, float* scale, FUNCSTYLE func){
-
+image imread_faster(const char* filename, int img_w, int img_h, float* means, float* scale, FUNCSTYLE func)
+{
     image out = imread(filename);
     //image resImg = resize_image(out, img_w, img_h);
     image resImg = make_image(img_w, img_h, out.c);
 
-
     int choice = 0;
-    if(out.c == 1){
+    if (out.c == 1)
+    {
         choice = 0;
-    } else {
+    }
+    else
+    {
         choice = 2;
     }
-    switch(choice){
-        case 0:
-            out = gray2bgr(out);
-            break;
-        case 1:
-            out = rgb2gray(out);
-            break;
-        case 2:
-            if(func != 2)
-                out = rgb2bgr_premute(out);
-            break;
-        default:
-            break;
+    switch (choice)
+    {
+    case 0:
+        out = gray2bgr(out);
+        break;
+    case 1:
+        out = rgb2gray(out);
+        break;
+    case 2:
+        if (func != 2)
+            out = rgb2bgr_premute(out);
+        break;
+    default:
+        break;
     }
 
-    switch(func){
-        case 0:
-            tengine_resize(out.data, resImg.data, out.w, out.h, out.c, out.h, out.w);
-            free_image(out);
-            return resImg;
-            break;
-        case 1:
-            tengine_resize(out.data, resImg.data, img_w, img_h, out.c, out.h, out.w);
-            resImg = imread2caffe(resImg, img_w, img_h,   means,  scale);
-            break;
-        // case 2: 
-        //     tengine_resize(out.data, resImg.data, img_w, img_h, out.c, out.h, out.w);
-        //     #ifdef CONFIG_LITE_TEST
-        //     resImg = imread2caffe(resImg, img_w, img_h,   means,  scale);
-        //     #else
-        //     resImg = imread2tf(resImg,   img_w,   img_h,  means, scale);
-        //     #endif
-        //     break;
-        // case 3:
-        //     tengine_resize(out.data, resImg.data, img_w, img_h, out.c, out.h, out.w);
-        //     resImg = imread2mxnet( resImg,  img_w,  img_h,  means,  scale);
-        //     break;
-        // case 4:
-        //     tengine_resize(out.data, resImg.data, img_w, img_h, out.c, out.h, out.w);
-        //     resImg = imread2tflite( resImg,  img_w,  img_h,  means,  scale);
-        default:
-            break;
+    switch (func)
+    {
+    case 0:
+        tengine_resize(out.data, resImg.data, out.w, out.h, out.c, out.h, out.w);
+        free_image(out);
+        return resImg;
+        break;
+    case 1:
+        tengine_resize(out.data, resImg.data, img_w, img_h, out.c, out.h, out.w);
+        resImg = imread2caffe(resImg, img_w, img_h, means, scale);
+        break;
+    // case 2:
+    //     tengine_resize(out.data, resImg.data, img_w, img_h, out.c, out.h, out.w);
+    //     #ifdef CONFIG_LITE_TEST
+    //     resImg = imread2caffe(resImg, img_w, img_h,   means,  scale);
+    //     #else
+    //     resImg = imread2tf(resImg,   img_w,   img_h,  means, scale);
+    //     #endif
+    //     break;
+    // case 3:
+    //     tengine_resize(out.data, resImg.data, img_w, img_h, out.c, out.h, out.w);
+    //     resImg = imread2mxnet( resImg,  img_w,  img_h,  means,  scale);
+    //     break;
+    // case 4:
+    //     tengine_resize(out.data, resImg.data, img_w, img_h, out.c, out.h, out.w);
+    //     resImg = imread2tflite( resImg,  img_w,  img_h,  means,  scale);
+    default:
+        break;
     }
     free_image(out);
     return resImg;
@@ -151,7 +156,7 @@ image imread_faster(const char* filename, int img_w, int img_h, float* means, fl
 
 void bbox_tranform_inv(float* local_anchors, float** boxs_delta, int num_roi, int imgw, int imgh)
 {
-    for(int i = 0; i < num_roi; i++)
+    for (int i = 0; i < num_roi; i++)
     {
         double pred_ctr_x, pred_ctr_y, src_ctr_x, src_ctr_y;
         double dst_ctr_x, dst_ctr_y, dst_scl_x, dst_scl_y;
@@ -172,27 +177,27 @@ void bbox_tranform_inv(float* local_anchors, float** boxs_delta, int num_roi, in
         pred_h = exp(dst_scl_y) * src_h;
 
         boxs_delta[i][0] = pred_ctr_x - 0.5 * pred_w;
-        if(boxs_delta[i][0] < 0)
+        if (boxs_delta[i][0] < 0)
             boxs_delta[i][0] = 0;
-        if(boxs_delta[i][0] > imgw)
+        if (boxs_delta[i][0] > imgw)
             boxs_delta[i][0] = imgw;
 
         boxs_delta[i][1] = pred_ctr_y - 0.5 * pred_h;
-        if(boxs_delta[i][1] < 0)
+        if (boxs_delta[i][1] < 0)
             boxs_delta[i][1] = 0;
-        if(boxs_delta[i][1] > imgh)
+        if (boxs_delta[i][1] > imgh)
             boxs_delta[i][1] = imgh;
 
         boxs_delta[i][2] = pred_ctr_x + 0.5 * pred_w;
-        if(boxs_delta[i][2] < 0)
+        if (boxs_delta[i][2] < 0)
             boxs_delta[i][2] = 0;
-        if(boxs_delta[i][2] > imgw)
+        if (boxs_delta[i][2] > imgw)
             boxs_delta[i][2] = imgw;
 
         boxs_delta[i][3] = pred_ctr_y + 0.5 * pred_h;
-        if(boxs_delta[i][3] < 0)
+        if (boxs_delta[i][3] < 0)
             boxs_delta[i][3] = 0;
-        if(boxs_delta[i][3] > imgh)
+        if (boxs_delta[i][3] > imgh)
             boxs_delta[i][3] = imgh;
     }
 }
@@ -200,14 +205,13 @@ void bbox_tranform_inv(float* local_anchors, float** boxs_delta, int num_roi, in
 void nms(std::vector<abox>& input_boxes, float nms_thresh)
 {
     std::vector<float> vArea(input_boxes.size());
-    for(int i = 0; i < ( int )input_boxes.size(); ++i)
+    for (int i = 0; i < (int)input_boxes.size(); ++i)
     {
-        vArea[i] =
-            (input_boxes.at(i).x2 - input_boxes.at(i).x1 + 1) * (input_boxes.at(i).y2 - input_boxes.at(i).y1 + 1);
+        vArea[i] = (input_boxes.at(i).x2 - input_boxes.at(i).x1 + 1) * (input_boxes.at(i).y2 - input_boxes.at(i).y1 + 1);
     }
-    for(int i = 0; i < ( int )input_boxes.size(); ++i)
+    for (int i = 0; i < (int)input_boxes.size(); ++i)
     {
-        for(int j = i + 1; j < ( int )input_boxes.size();)
+        for (int j = i + 1; j < (int)input_boxes.size();)
         {
             float xx1 = std::max(input_boxes[i].x1, input_boxes[j].x1);
             float yy1 = std::max(input_boxes[i].y1, input_boxes[j].y1);
@@ -217,7 +221,7 @@ void nms(std::vector<abox>& input_boxes, float nms_thresh)
             float h = std::max(float(0), yy2 - yy1 + 1);
             float inter = w * h;
             float ovr = inter / (vArea[i] + vArea[j] - inter);
-            if(ovr >= nms_thresh)
+            if (ovr >= nms_thresh)
             {
                 input_boxes.erase(input_boxes.begin() + j);
                 vArea.erase(vArea.begin() + j);
@@ -232,13 +236,13 @@ void nms(std::vector<abox>& input_boxes, float nms_thresh)
 
 void draw_detections(const char* image_file, const char* save_name, std::vector<abox>& boxes)
 {
-    const char* class_names[] = {"background", "aeroplane", "bicycle",   "bird",   "boat",        "bottle",
-                                 "bus",        "car",       "cat",       "chair",  "cow",         "diningtable",
-                                 "dog",        "horse",     "motorbike", "person", "pottedplant", "sheep",
-                                 "sofa",       "train",     "tvmonitor"};
+    const char* class_names[] = {"background", "aeroplane", "bicycle", "bird", "boat", "bottle",
+                                 "bus", "car", "cat", "chair", "cow", "diningtable",
+                                 "dog", "horse", "motorbike", "person", "pottedplant", "sheep",
+                                 "sofa", "train", "tvmonitor"};
     image im = imread(image_file);
 
-    for(int b = 0; b < ( int )boxes.size(); b++)
+    for (int b = 0; b < (int)boxes.size(); b++)
     {
         abox box = boxes[b];
 
@@ -270,18 +274,18 @@ int main(int argc, char* argv[])
     const char* save_name = "faster_rcnn.jpg";
 
     int res;
-    while((res = getopt(argc, argv, "p:m:i:")) != -1)
+    while ((res = getopt(argc, argv, "p:m:i:")) != -1)
     {
-        switch(res)
+        switch (res)
         {
-            case 'm':
-                model_file = optarg;
-                break;
-            case 'i':
-                image_file = optarg;
-                break;
-            default:
-                break;
+        case 'm':
+            model_file = optarg;
+            break;
+        case 'i':
+            image_file = optarg;
+            break;
+        default:
+            break;
         }
     }
 
@@ -301,7 +305,7 @@ int main(int argc, char* argv[])
         return -1;
 
     // init tengine
-    if(init_tengine() < 0)
+    if (init_tengine() < 0)
     {
         std::cout << " init tengine failed\n";
         return 1;
@@ -309,7 +313,7 @@ int main(int argc, char* argv[])
     set_log_level(LOG_INFO);
     // load model & create graph
     graph_t graph = create_graph(nullptr, "tengine", model_file);
-    if(graph == nullptr)
+    if (graph == nullptr)
     {
         std::cout << "Create graph failed\n";
         std::cout << "errno: " << get_tengine_errno() << "\n";
@@ -320,7 +324,7 @@ int main(int argc, char* argv[])
     set_graph_attr(graph, "low_mem_mode", &val, sizeof(val));
 
     image im = imread(image_file);
-    if(im.data == 0)
+    if (im.data == 0)
         std::cerr << "Open pic Error: " << image_file << "\n";
 
     // preprocess img
@@ -346,16 +350,15 @@ int main(int argc, char* argv[])
     //
     int hw = height * width;
     int img_size = hw * 3;
-    float* input_data = ( float* )malloc(sizeof(float) * img_size);
+    float* input_data = (float*)malloc(sizeof(float) * img_size);
     int img_w = width;
     int img_h = height;
     float mean[3] = {102.9801, 115.9465, 122.7717};
 
-
     float scales[3] = {1, 1, 1};
     free_image(im);
-    image img = imread_faster(image_file, img_w, img_h, mean, scales, CAFFE);    
-    memcpy(input_data, img.data, sizeof(float)*3*img_w*img_h); 
+    image img = imread_faster(image_file, img_w, img_h, mean, scales, CAFFE);
+    memcpy(input_data, img.data, sizeof(float) * 3 * img_w * img_h);
     free_image(img);
     // std::cout<<"height width scale"<<height<<","<<width<<","<<img_scale<<"\n";
     // set input and output node
@@ -382,16 +385,19 @@ int main(int argc, char* argv[])
         opt.cluster = atoi(std::getenv("NumClusterLite"));
     if (std::getenv("DataPrecision"))
         opt.precision = atoi(std::getenv("DataPrecision"));
-    std::cout << "Number Thread  : [" << opt.num_thread << "]\n" << std::endl;
-    std::cout << "Number Cluster : [" << opt.cluster << "]\n" << std::endl;
-    std::cout << "Data Precision : [" << opt.precision << "]\n" << std::endl;
-    if(prerun_graph_multithread(graph, opt) < 0)
+    std::cout << "Number Thread  : [" << opt.num_thread << "]\n"
+              << std::endl;
+    std::cout << "Number Cluster : [" << opt.cluster << "]\n"
+              << std::endl;
+    std::cout << "Data Precision : [" << opt.precision << "]\n"
+              << std::endl;
+    if (prerun_graph_multithread(graph, opt) < 0)
     {
         std::cerr << "Prerun graph failed\n";
         return false;
     }
 #else
-    if(prerun_graph(graph) < 0)
+    if (prerun_graph(graph) < 0)
     {
         std::cout << "Prerun graph failed, errno: " << get_tengine_errno() << "\n";
         return 0;
@@ -400,48 +406,48 @@ int main(int argc, char* argv[])
     // dump_graph(graph);
     int repeat_count = 1;
     const char* repeat = std::getenv("REPEAT_COUNT");
-    if(repeat)
+    if (repeat)
         repeat_count = std::strtoul(repeat, NULL, 10);
 
     struct timeval t0, t1;
     float total_time = 0.f;
     float min_time = __DBL_MAX__;
     float max_time = -__DBL_MAX__;
-    for(int i = 0; i < repeat_count; i++)
+    for (int i = 0; i < repeat_count; i++)
     {
         gettimeofday(&t0, NULL);
         ret = run_graph(graph, 1);
-        if(ret != 0)
+        if (ret != 0)
         {
             std::cout << "Run graph failed, errno: " << get_tengine_errno() << "\n";
             return 1;
         }
         gettimeofday(&t1, NULL);
 
-        float mytime = ( float )((t1.tv_sec * 1000000 + t1.tv_usec) - (t0.tv_sec * 1000000 + t0.tv_usec)) / 1000;
+        float mytime = (float)((t1.tv_sec * 1000000 + t1.tv_usec) - (t0.tv_sec * 1000000 + t0.tv_usec)) / 1000;
         total_time += mytime;
         min_time = std::min(min_time, mytime);
         max_time = std::max(max_time, mytime);
     }
     std::cout << "--------------------------------------\n";
-    std::cout << "\nRepeat " << repeat_count << " times, avg time per run is " << total_time / repeat_count << " ms\n" << "max time is " << max_time << " ms, min time is " << min_time << " ms\n";
+    std::cout << "\nRepeat " << repeat_count << " times, avg time per run is " << total_time / repeat_count << " ms\n"
+              << "max time is " << max_time << " ms, min time is " << min_time << " ms\n";
 
+    tensor_t tensor = get_graph_tensor(graph, "rois"); //[1,num_roi,4,1]
+    float* rois_data = (float*)get_tensor_buffer(tensor);
 
-    tensor_t tensor = get_graph_tensor(graph, "rois");    //[1,num_roi,4,1]
-    float* rois_data = ( float* )get_tensor_buffer(tensor);
-    
     int roi_shape[4];
     get_tensor_shape(tensor, roi_shape, 4);
     int num_roi = roi_shape[1];
-    for(int i = 0; i < 4 * num_roi; i++)
+    for (int i = 0; i < 4 * num_roi; i++)
     {
         rois_data[i] /= img_scale;
     }
 
-    tensor = get_graph_tensor(graph, "bbox_pred");    //[num_roi,21*4,1,1]
-    float* bbox_delt_data = ( float* )get_tensor_buffer(tensor);
-    tensor = get_graph_tensor(graph, "cls_prob");    //[num_roi,21,1,1]
-    float* score = ( float* )get_tensor_buffer(tensor);
+    tensor = get_graph_tensor(graph, "bbox_pred"); //[num_roi,21*4,1,1]
+    float* bbox_delt_data = (float*)get_tensor_buffer(tensor);
+    tensor = get_graph_tensor(graph, "cls_prob"); //[num_roi,21,1,1]
+    float* score = (float*)get_tensor_buffer(tensor);
 
     int cls_shape[4];
     get_tensor_shape(tensor, cls_shape, 4);
@@ -450,21 +456,21 @@ int main(int argc, char* argv[])
     std::vector<abox> all_boxes;
     float CONF_THRESH = 0.75;
     float NMS_THRESH = 0.3;
-    float** bbox_delt = ( float** )calloc(num_roi, sizeof(float*));
-    for(int k = 0; k < num_roi; k++)
-        bbox_delt[k] = ( float* )calloc(4, sizeof(float*));
-    for(int i = 1; i < num_class; i++)
+    float** bbox_delt = (float**)calloc(num_roi, sizeof(float*));
+    for (int k = 0; k < num_roi; k++)
+        bbox_delt[k] = (float*)calloc(4, sizeof(float*));
+    for (int i = 1; i < num_class; i++)
     {
-        for(int j = 0; j < num_roi; j++)
+        for (int j = 0; j < num_roi; j++)
         {
             bbox_delt[j][0] = bbox_delt_data[j * chw + i * 4];
             bbox_delt[j][1] = bbox_delt_data[j * chw + i * 4 + 1];
             bbox_delt[j][2] = bbox_delt_data[j * chw + i * 4 + 2];
             bbox_delt[j][3] = bbox_delt_data[j * chw + i * 4 + 3];
         }
-        bbox_tranform_inv(rois_data, bbox_delt, num_roi,im.w - 1, im.w - 1);
+        bbox_tranform_inv(rois_data, bbox_delt, num_roi, im.w - 1, im.w - 1);
         std::vector<abox> aboxes;
-        for(int j = 0; j < num_roi; j++)
+        for (int j = 0; j < num_roi; j++)
         {
             abox tmp;
             tmp.x1 = bbox_delt[j][0];
@@ -477,23 +483,23 @@ int main(int argc, char* argv[])
 
         std::sort(aboxes.rbegin(), aboxes.rend());
         nms(aboxes, NMS_THRESH);
-        for(int k = 0; k < ( int )aboxes.size();)
+        for (int k = 0; k < (int)aboxes.size();)
         {
-            if(aboxes[k].score < CONF_THRESH)
+            if (aboxes[k].score < CONF_THRESH)
                 aboxes.erase(aboxes.begin() + k);
             else
                 k++;
         }
-        if(aboxes.size() > 0)
+        if (aboxes.size() > 0)
         {
-            for(int b = 0; b < ( int )aboxes.size(); b++)
+            for (int b = 0; b < (int)aboxes.size(); b++)
             {
                 aboxes[b].class_idx = i;
                 all_boxes.push_back(aboxes[b]);
             }
         }
     }
-    for(int k = 0; k < num_roi; k++)
+    for (int k = 0; k < num_roi; k++)
         free(bbox_delt[k]);
     free(bbox_delt);
     free(input_data);
@@ -502,7 +508,7 @@ int main(int argc, char* argv[])
     release_graph_tensor(tensor);
     draw_detections(image_file, save_name, all_boxes);
     ret = postrun_graph(graph);
-    if(ret != 0)
+    if (ret != 0)
     {
         std::cout << "Postrun graph failed, errno: " << get_tengine_errno() << "\n";
         return 1;
