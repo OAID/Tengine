@@ -69,6 +69,7 @@ TENGINE_EXAMPLE (tm_mobilefacenet_uint8      tm_mobilefacenet_uint8.cpp)
 TENGINE_EXAMPLE (tm_yolov5                   tm_yolov5.cpp)
 TENGINE_EXAMPLE (tm_yolofastest              tm_yolofastest.cpp)
 TENGINE_EXAMPLE (tm_ultraface                tm_ultraface.cpp)
+TENGINE_EXAMPLE (tm_faster_rcnn              tm_faster_rcnn.cpp)
 
 
 
