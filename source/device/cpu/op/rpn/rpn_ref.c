@@ -279,7 +279,7 @@ int ref_rpn_fp32(const float* score, float* featmap, float* anchors, float* outp
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     exec_node->inplace_map[0] = 0;
-    exec_node->inplace_map[1] = 0;
+    exec_node->inplace_map[1] = 1;
     exec_node->inplace_map_num = 1;
 
     return 0;
