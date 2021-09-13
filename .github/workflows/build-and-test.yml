@@ -73,9 +73,9 @@ jobs:
     - name: models
       run: |
         cd build
-        wget -c ftp://219.139.34.182/tengine/ci_test/images/* -P images
-        wget -c ftp://219.139.34.182/tengine/ci_test/data_arm32/* -P data
-        wget -c ftp://219.139.34.182/tengine/ci_test/model_test/* -P models
+        wget -c http://8.136.149.78/download/ci_data/images.zip && unzip images.zip && rm images.zip
+        wget -c http://8.136.149.78/download/ci_data/data_arm32.zip && unzip data_arm32.zip && rm data_arm32.zip && mv data_arm32 data
+        wget -c http://8.136.149.78/download/ci_data/model_test.zip && unzip model_test.zip && rm model_test.zip && mv model_test model
     - name: test
       run: |
         export PATH=$GITHUB_WORKSPACE/qemu-install/bin:$PATH
@@ -122,9 +122,9 @@ jobs:
     - name: models
       run: |
         cd build
-        wget -c ftp://219.139.34.182/tengine/ci_test/images/* -P images
-        wget -c ftp://219.139.34.182/tengine/ci_test/data_arm64/* -P data
-        wget -c ftp://219.139.34.182/tengine/ci_test/model_test/* -P models
+        wget -c http://8.136.149.78/download/ci_data/images.zip && unzip images.zip && rm images.zip
+        wget -c http://8.136.149.78/download/ci_data/data_arm64.zip && unzip data_arm64.zip && rm data_arm64.zip && mv data_arm64 data
+        wget -c http://8.136.149.78/download/ci_data/model_test.zip && unzip model_test.zip && rm model_test.zip && mv model_test model
 
     - name: test
       run: |
@@ -311,9 +311,9 @@ jobs:
     - name: test-data
       run: |
         cd build
-        wget -c ftp://219.139.34.182/tengine/ci_test/images/* -P images
-        wget -c ftp://219.139.34.182/tengine/ci_test/data_x86/* -P data
-        wget -c ftp://219.139.34.182/tengine/ci_test/model_test/* -P models
+        wget -c http://8.136.149.78/download/ci_data/images.zip && unzip images.zip && rm images.zip
+        wget -c http://8.136.149.78/download/ci_data/data_x86.zip && unzip data_x86.zip && rm data_x86.zip && mv data_x86 data
+        wget -c http://8.136.149.78/download/ci_data/model_test.zip && unzip model_test.zip && rm model_test.zip && mv model_test model
         git clone https://github.com/BUG1989/onnx_op_test_data.git
         mv onnx_op_test_data onnx_node            
     - name: test-models
@@ -345,9 +345,9 @@ jobs:
     - name: test-data
       run: |
         cd build
-        wget -c ftp://219.139.34.182/tengine/ci_test/images/* -P images
-        wget -c ftp://219.139.34.182/tengine/ci_test/data_x86/* -P data
-        wget -c ftp://219.139.34.182/tengine/ci_test/model_test/* -P models
+        wget -c http://8.136.149.78/download/ci_data/images.zip && unzip images.zip && rm images.zip
+        wget -c http://8.136.149.78/download/ci_data/data_x86.zip && unzip data_x86.zip && rm data_x86.zip && mv data_x86 data
+        wget -c http://8.136.149.78/download/ci_data/model_test.zip && unzip model_test.zip && rm model_test.zip && mv model_test model
         git clone https://github.com/BUG1989/onnx_op_test_data.git
         mv onnx_op_test_data onnx_node          
     - name: test-models
@@ -385,9 +385,9 @@ jobs:
     - name: Download and unzip test data
       run: |
         cd build
-        wget -c ftp://219.139.34.182/tengine/ci_test/model_test_convert/onnx_models.zip
+        wget -c http://8.136.149.78/download/ci_data/model_test_convert/onnx_models.zip
         unzip onnx_models.zip
-        wget -c ftp://219.139.34.182/tengine/ci_test/model_test_convert/onnx_models_output.zip
+        wget -c http://8.136.149.78/download/ci_data/model_test_convert/onnx_models_output.zip
         unzip onnx_models_output.zip
     - name: Run tests
       run: |
@@ -426,7 +426,7 @@ jobs:
         git clone https://github.com/BUG1989/tengine_test_data.git
         cp ./tengine_test_data/mobilenet.tmfile ./
         cp -rf ./tengine_test_data/dataset ./
-        wget -c ftp://219.139.34.182/tengine/ci_test/images/* -P images
+        wget -c http://8.136.149.78/download/ci_data/images.zip && unzip images.zip && rm images.zip
     - name: quant-tools-test
       run: |
         ./quant_tool_uint8-x86_64.AppImage -m mobilenet.tmfile -o mobilenet_uint8.tmfile -i ./dataset -g 3,224,224 -s 0.017,0.017,0.017 -c 1

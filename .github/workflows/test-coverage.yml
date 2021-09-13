@@ -33,9 +33,9 @@ jobs:
     - name: test-data
       run: |
         cd build
-        wget ftp://219.139.34.182/tengine/ci_test/images/* -P images
-        wget ftp://219.139.34.182/tengine/ci_test/data_x86/* -P data
-        wget ftp://219.139.34.182/tengine/ci_test/model_test/* -P models
+        wget -c http://8.136.149.78/download/ci_data/images.zip && unzip images.zip && rm images.zip
+        wget -c http://8.136.149.78/download/ci_data/data_x86.zip && unzip data_x86.zip && rm data_x86.zip && mv data_x86 data
+        wget -c http://8.136.149.78/download/ci_data/model_test.zip && unzip model_test.zip && rm model_test.zip && mv model_test model
         git clone https://github.com/BUG1989/onnx_op_test_data.git
         mv onnx_op_test_data onnx_node    
     - name: test-models
@@ -81,7 +81,7 @@ jobs:
     - name: test-data
       run: |
         cd build
-        wget ftp://219.139.34.182/tengine/ci_test/images/* -P images
+        wget -c http://8.136.149.78/download/ci_data/images.zip && unzip images.zip && rm images.zip
         git clone https://github.com/BUG1989/tengine_test_data.git
         cp ./tengine_test_data/mobilenet.tmfile ./
         cp -rf ./tengine_test_data/dataset ./
@@ -134,7 +134,7 @@ jobs:
     - name: models
       run: |
         cd build
-        wget ftp://219.139.34.182/tengine/ci_test/images/* -P images
+        wget -c http://8.136.149.78/download/ci_data/images.zip && unzip images.zip && rm images.zip
         git clone https://github.com/BUG1989/tengine_test_data.git
         git clone https://github.com/BUG1989/onnx_op_test_data.git
         mv onnx_op_test_data onnx_node        
