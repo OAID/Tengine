@@ -15,7 +15,7 @@ align tool是一个用来对齐onnx和tengine每一层输出结果的工具。
 
 - 安装pytengine
 
-  首先参照[源码编译（Linux） — Tengine 文档 (tengine-docs.readthedocs.io)](https://tengine-docs.readthedocs.io/zh_CN/latest/source_compile/compile_linux.html)编译，生成libtengine-lite.so.
+  首先参照[源码编译（Linux） — Tengine 文档 (tengine-docs.readthedocs.io)](https://tengine-docs.readthedocs.io/zh_CN/latest/source_compile/compile_linux.html) 编译，生成libtengine-lite.so.
 
   然后执行下列命令：
 
