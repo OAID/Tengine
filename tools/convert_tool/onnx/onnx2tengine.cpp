@@ -2059,7 +2059,8 @@ static int load_selu(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& 
 static int load_hard_sigmoid(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct hard_sigmoid_param* hard_sigmoid_param = (struct hard_sigmoid_param*)node->op.param_mem;
-
+    hard_sigmoid_param->alpha = 1 / 6.f;
+    hard_sigmoid_param->beta = 0.5f;
     for (int k = 0; k < onnx_node.attribute_size(); k++)
     {
         const onnx::AttributeProto& attr = onnx_node.attribute(k);
