@@ -438,24 +438,24 @@ jobs:
   #       name: quant_tool_AppImage
   #       path: quant_tool_uint8-x86_64.AppImage
 
-  publish-releases:
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/tengine-lite'
-    needs: [linux-x64-cpu-tools-convert, linux-x64-cpu-tools-quant]
-    steps:
-    - uses: actions/checkout@v2.3.4
-    - uses: actions/download-artifact@v2
-      with:
-        path: artifacts
-    - name: Display structure of downloaded files
-      run: ls -R
-      working-directory: artifacts
-    - uses: "marvinpinto/action-automatic-releases@latest"
-      with:
-        repo_token: "${{ secrets.GITHUB_TOKEN }}"
-        automatic_release_tag: "latest"
-        prerelease: true
-        title: "Development Build"
-        files: |
-          artifacts/**/*.AppImage
+  # publish-releases:
+  #   runs-on: ubuntu-latest
+  #   if: github.ref == 'refs/heads/tengine-lite'
+  #   needs: [linux-x64-cpu-tools-convert, linux-x64-cpu-tools-quant]
+  #   steps:
+  #   - uses: actions/checkout@v2.3.4
+  #   - uses: actions/download-artifact@v2
+  #     with:
+  #       path: artifacts
+  #   - name: Display structure of downloaded files
+  #     run: ls -R
+  #     working-directory: artifacts
+  #   - uses: "marvinpinto/action-automatic-releases@latest"
+  #     with:
+  #       repo_token: "${{ secrets.GITHUB_TOKEN }}"
+  #       automatic_release_tag: "latest"
+  #       prerelease: true
+  #       title: "Development Build"
+  #       files: |
+  #         artifacts/**/*.AppImage
 
