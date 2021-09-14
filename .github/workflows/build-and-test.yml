@@ -298,7 +298,7 @@ jobs:
     - name: depends
       run: sudo apt-get install libprotobuf-dev protobuf-compiler libopencv-dev
     - name: configure
-      run: mkdir build && cd build && cmake -DTENGINE_BUILD_TESTS=ON ..
+      run: mkdir build && cd build && /usr/local/cmake-3.19.8-Linux-x86_64/bin/cmake -DTENGINE_BUILD_TESTS=ON ..
     - name: build
       run: cmake --build build -j 8
     - name: optest
@@ -338,7 +338,7 @@ jobs:
       env:
         CC: clang
         CXX: clang++    
-      run: mkdir build && cd build && cmake -DTENGINE_BUILD_TESTS=ON -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX  ..
+      run: mkdir build && cd build && /usr/local/cmake-3.19.8-Linux-x86_64/bin/cmake -DTENGINE_BUILD_TESTS=ON -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX  ..
     - name: build
       run: cmake --build build -j 2
     - name: test-data
@@ -378,7 +378,7 @@ jobs:
         sudo apt-get update
         sudo apt-get install libopencv-dev
     - name: Configure
-      run: mkdir build && cd build && cmake -DTENGINE_BUILD_TESTS=ON ..
+      run: mkdir build && cd build && /usr/local/cmake-3.19.8-Linux-x86_64/bin/cmake -DTENGINE_BUILD_TESTS=ON ..
     - name: Build test
       run: cmake --build build -j 2          
     - name: Download and unzip test data
@@ -418,7 +418,7 @@ jobs:
     - name: opencv
       run: sudo apt-get install libopencv-dev
     - name: configure
-      run: mkdir build && cd build && cmake -DTENGINE_BUILD_EXAMPLES=ON ..
+      run: mkdir build && cd build && /usr/local/cmake-3.19.8-Linux-x86_64/bin/cmake -DTENGINE_BUILD_EXAMPLES=ON ..
     - name: build
       run: cmake --build build -j 2
     - name: depends
