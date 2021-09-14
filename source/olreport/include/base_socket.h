@@ -69,7 +69,7 @@ int net_recv(NET_CONTEXT* context, char* buf, int len);
 int net_recv_timeout(NET_CONTEXT* context, char* buf, int len, uint32_t timeout);
 int net_poll(NET_CONTEXT* context, uint32_t rw, uint32_t timeout);
 
-int get_loacl_ip_and_mac(char* ip, char* mac);
+int get_local_ip_and_mac(char* ip, char* mac);
 
 #ifdef __cplusplus
 }
