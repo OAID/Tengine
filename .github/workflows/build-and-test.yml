@@ -301,20 +301,20 @@ jobs:
       run: mkdir build && cd build && cmake -DTENGINE_BUILD_TESTS=ON ..
     - name: build
       run: cmake --build build -j 8
-      - name: optest
-        run: |
-          cd build
-          actions=/home/dongdong
-          ln -s ${actions}/ci_test/onnx_op_test_data/ onnx_node
-          export TG_DEBUG_REF=1
-          ctest --output-on-failure
-      - name: test-data
-        run: |
-          cd build
-          actions=/home/dongdong
-          ln -s ${actions}/ci_test/model_test/  models
-          ln -s ${actions}/ci_test/images/      images
-          ln -s ${actions}/ci_test/data_x86/    data         
+    - name: optest
+      run: |
+        cd build
+        actions=/home/dongdong
+        ln -s ${actions}/ci_test/onnx_op_test_data/ onnx_node
+        export TG_DEBUG_REF=1
+        ctest --output-on-failure
+    - name: test-data
+      run: |
+        cd build
+        actions=/home/dongdong
+        ln -s ${actions}/ci_test/model_test/  models
+        ln -s ${actions}/ci_test/images/      images
+        ln -s ${actions}/ci_test/data_x86/    data         
     - name: test-models
       run: |
         chmod +x ./tests/test.sh
