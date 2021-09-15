@@ -382,7 +382,7 @@ jobs:
       run: /home/dongdong/actions-runners-x86/build_and_test/help/cmake-3.21.2-linux-x86_64/bin/cmake --build build -j 2          
     - name: Download and unzip test data
       run: |
-        cd build
+        cd build 
         actions=/home/dongdong
         ln -s ${actions}/ci_test/model_test_convert/onnx_models.zip onnx_models.zip
         unzip onnx_models.zip
