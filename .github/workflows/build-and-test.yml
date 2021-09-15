@@ -364,40 +364,69 @@ jobs:
     runs-on: x86-server-build-test
     steps:
     - uses: actions/checkout@v2.3.4
-      with:
-        repository: protocolbuffers/protobuf
-        ref: v3.17.3
-        path: protobuf
-        submodules: recursive
-    - name: Build AppImage
-      run: |
-        docker run --network=host --env PROTOBUF_REPO_DIR=$PWD/protobuf -v $PWD:$PWD -w $PWD --privileged --ipc=host centos:7 $PWD/.github/workflows/build-package-and-test-convert-tools.sh
-    - name: Install dependencies for test
+    - name: update
       run: |
         sudo apt-get update
         sudo apt-get install libopencv-dev
-    - name: Configure
-      run: mkdir build && cd build && /home/dongdong/actions-runners-x86/build_and_test/help/cmake-3.21.2-linux-x86_64/bin/cmake -DTENGINE_BUILD_TESTS=ON ..
-    - name: Build test
-      run: /home/dongdong/actions-runners-x86/build_and_test/help/cmake-3.21.2-linux-x86_64/bin/cmake --build build -j 2          
+    - name: configure
+      run: mkdir build && cd build && /usr/local/cmake-3.19.8-Linux-x86_64/bin/cmake -DTENGINE_BUILD_CONVERT_TOOL=ON -DTENGINE_BUILD_TESTS=ON ..
+    - name: build
+      run: /usr/local/cmake-3.19.8-Linux-x86_64/bin/cmake --build build -j 8     
     - name: Download and unzip test data
       run: |
         cd build 
         actions=/home/dongdong
-        ln -s ${actions}/ci_test/model_test_convert/onnx_models.zip onnx_models.zip
-        unzip onnx_models.zip
-        ln -s ${actions}/ci_test/model_test_convert/onnx_models_output.zip onnx_models_output.zip
-        unzip onnx_models_output.zip
+        ln -s ${actions}/ci_test/model_test_convert/onnx_models             onnx_models
+        ln -s ${actions}/ci_test/model_test_convert/onnx_models_output      onnx_models_output
     - name: Run tests
       run: |
         chmod +x ./tests/test_onnx_model.sh 
         cd build
-        ../tests/test_onnx_model.sh ../convert_tool-x86_64.AppImage
-    - name: Upload AppImage
-      uses: actions/upload-artifact@v2
-      with:
-        name: convert_tool_AppImage
-        path: convert_tool-x86_64.AppImage
+        ../tests/test_onnx_model.sh
+    - name: test-op
+      run: |
+        cd build
+        export TG_DEBUG_REF=1
+        ctest --output-on-failure    
+
+  # linux-x64-cpu-tools-convert:
+  #   runs-on: x86-server-build-test
+  #   steps:
+  #   - uses: actions/checkout@v2.3.4
+  #     with:
+  #       repository: protocolbuffers/protobuf
+  #       ref: v3.17.3
+  #       path: protobuf
+  #       submodules: recursive
+  #   - name: Build AppImage
+  #     run: |
+  #       docker run --network=host --env PROTOBUF_REPO_DIR=$PWD/protobuf -v $PWD:$PWD -w $PWD --privileged --ipc=host centos:7 $PWD/.github/workflows/build-package-and-test-convert-tools.sh
+  #   - name: Install dependencies for test
+  #     run: |
+  #       sudo apt-get update
+  #       sudo apt-get install libopencv-dev
+  #   - name: Configure
+  #     run: mkdir build && cd build && /home/dongdong/actions-runners-x86/build_and_test/help/cmake-3.21.2-linux-x86_64/bin/cmake -DTENGINE_BUILD_TESTS=ON ..
+  #   - name: Build test
+  #     run: /home/dongdong/actions-runners-x86/build_and_test/help/cmake-3.21.2-linux-x86_64/bin/cmake --build build -j 2          
+  #   - name: Download and unzip test data
+  #     run: |
+  #       cd build 
+  #       actions=/home/dongdong
+  #       ln -s ${actions}/ci_test/model_test_convert/onnx_models.zip onnx_models.zip
+  #       unzip onnx_models.zip
+  #       ln -s ${actions}/ci_test/model_test_convert/onnx_models_output.zip onnx_models_output.zip
+  #       unzip onnx_models_output.zip
+  #   - name: Run tests
+  #     run: |
+  #       chmod +x ./tests/test_onnx_model.sh 
+  #       cd build
+  #       ../tests/test_onnx_model.sh ../convert_tool-x86_64.AppImage
+  #   - name: Upload AppImage
+  #     uses: actions/upload-artifact@v2
+  #     with:
+  #       name: convert_tool_AppImage
+  #       path: convert_tool-x86_64.AppImage
 
   linux-x64-cpu-tools-quant:
     runs-on: x86-server-build-test
