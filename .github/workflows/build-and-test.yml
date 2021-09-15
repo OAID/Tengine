@@ -406,7 +406,7 @@ jobs:
       with:
         repository: opencv/opencv
         ref: 4.5.3
-        path: opencv 
+        path: opencv
         submodules: recursive
     - name: Build AppImage
       run: |
