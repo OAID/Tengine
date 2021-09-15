@@ -376,8 +376,8 @@ jobs:
       run: |
         cd build 
         actions=/home/dongdong
-        ln -s ${actions}/ci_test/model_test_convert/onnx_models             onnx_models
-        ln -s ${actions}/ci_test/model_test_convert/onnx_models_output      onnx_models_output
+        ln -s ${actions}/ci_test/model_test_convert/models       models
+        ln -s ${actions}/ci_test/model_test_convert/outputs      outputs
     - name: Run tests
       run: |
         chmod +x ./tests/test_onnx_model.sh 
