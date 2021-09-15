@@ -377,9 +377,9 @@ jobs:
         sudo apt-get update
         sudo apt-get install libopencv-dev
     - name: Configure
-      run: mkdir build && cd build && cmake -DTENGINE_BUILD_TESTS=ON ..
+      run: mkdir build && cd build && ./help/cmake-3.21.2-linux-x86_64/bin/cmake -DTENGINE_BUILD_TESTS=ON ..
     - name: Build test
-      run: cmake --build build -j 2          
+      run: ./help/cmake-3.21.2-linux-x86_64/bin/cmake --build build -j 2          
     - name: Download and unzip test data
       run: |
         cd build
@@ -416,9 +416,9 @@ jobs:
     - name: opencv
       run: sudo apt-get install libopencv-dev
     - name: configure
-      run: mkdir build && cd build && cmake -DTENGINE_BUILD_EXAMPLES=ON ..
+      run: mkdir build && cd build && ./help/cmake-3.21.2-linux-x86_64/bin/cmake -DTENGINE_BUILD_EXAMPLES=ON ..
     - name: build
-      run: cmake --build build -j 2
+      run: ./help/cmake-3.21.2-linux-x86_64/bin/cmake --build build -j 2
     - name: depends
       run: |
         actions=/home/dongdong

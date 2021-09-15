@@ -4,8 +4,8 @@ set -ex
 
 yum install -y centos-release-scl
 yum install -y devtoolset-7 python3 python3-pip ImageMagick file fuse-libs
-pip3 install -U --user pip
-python3 -m pip install cmake
+# pip3 install -U --user pip
+# python3 -m pip install cmake
 
 source /opt/rh/devtoolset-7/enable
 
