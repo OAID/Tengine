@@ -264,106 +264,105 @@ jobs:
         cmake -T v142,host=x64 -A Win32 -DTENGINE_BUILD_EXAMPLES=OFF ..
         cmake --build . --config Release -j 2
 
-  linux-x64-cpu-timvx-gcc:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2.3.4
-    - name: update
-      run: sudo apt-get update
-    - name: protobuf
-      run: sudo apt-get install libopencv-dev
-    - name: tim-vx
-      run: |
-        git clone https://github.com/VeriSilicon/TIM-VX.git
-        export LD_LIBRARY_PATH=${PWD}/3rdparty/tim-vx/lib/x86_64
-        mkdir -p ./3rdparty/tim-vx/include
-        mkdir -p ./3rdparty/tim-vx/lib/x86_64
-        cp -rvf ./TIM-VX/prebuilt-sdk/x86_64_linux/include/*  ./3rdparty/tim-vx/include/
-        cp -rvf ./TIM-VX/prebuilt-sdk/x86_64_linux/lib/*      ./3rdparty/tim-vx/lib/x86_64/
-        cp -rvf ./TIM-VX/include  ./source/device/tim-vx/
-        cp -rvf ./TIM-VX/src      ./source/device/tim-vx/
-        rm ./source/device/tim-vx/src/tim/vx/*_test.cc
-        rm ./source/device/tim-vx/src/tim/vx/ops/*_test.cc
-    - name: configure
-      run: mkdir build && cd build && cmake -DTENGINE_ENABLE_TIM_VX=ON ..
-    - name: build
-      run: cmake --build build -j 2
+  # linux-x64-cpu-timvx-gcc:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - uses: actions/checkout@v2.3.4
+  #   - name: update
+  #     run: sudo apt-get update
+  #   - name: protobuf
+  #     run: sudo apt-get install libopencv-dev
+  #   - name: tim-vx
+  #     run: |
+  #       git clone https://github.com/VeriSilicon/TIM-VX.git
+  #       export LD_LIBRARY_PATH=${PWD}/3rdparty/tim-vx/lib/x86_64
+  #       mkdir -p ./3rdparty/tim-vx/include
+  #       mkdir -p ./3rdparty/tim-vx/lib/x86_64
+  #       cp -rvf ./TIM-VX/prebuilt-sdk/x86_64_linux/include/*  ./3rdparty/tim-vx/include/
+  #       cp -rvf ./TIM-VX/prebuilt-sdk/x86_64_linux/lib/*      ./3rdparty/tim-vx/lib/x86_64/
+  #       cp -rvf ./TIM-VX/include  ./source/device/tim-vx/
+  #       cp -rvf ./TIM-VX/src      ./source/device/tim-vx/
+  #       rm ./source/device/tim-vx/src/tim/vx/*_test.cc
+  #       rm ./source/device/tim-vx/src/tim/vx/ops/*_test.cc
+  #   - name: configure
+  #     run: mkdir build && cd build && cmake -DTENGINE_ENABLE_TIM_VX=ON ..
+  #   - name: build
+  #     run: cmake --build build -j 2
 
-  linux-x64-cpu-gcc:
-    runs-on: x86-server-build-test
-    steps:
-    - uses: actions/checkout@v2.3.4
-    - name: update
-      run: sudo apt-get update
-    - name: depends
-      run: sudo apt-get install libprotobuf-dev protobuf-compiler libopencv-dev
-    - name: configure
-      run: mkdir build && cd build && /usr/local/cmake-3.19.8-Linux-x86_64/bin/cmake -DTENGINE_BUILD_TESTS=ON ..
-    - name: build
-      run: /usr/local/cmake-3.19.8-Linux-x86_64/bin/cmake --build build -j 8
-    - name: optest
-      run: |
-        cd build
-        actions=/home/dongdong
-        ln -s ${actions}/ci_test/onnx_op_test_data/ onnx_node
-        export TG_DEBUG_REF=1
-        ctest --output-on-failure
-    - name: test-data
-      run: |
-        cd build
-        actions=/home/dongdong
-        ln -s ${actions}/ci_test/model_test/  models
-        ln -s ${actions}/ci_test/images/      images
-        ln -s ${actions}/ci_test/data_x86/    data         
-    - name: test-models
-      run: |
-        chmod +x ./tests/test.sh
-        cd build
-        ../tests/test.sh
-    - name: test-op
-      run: |
-        cd build
-        export TG_DEBUG_REF=1
-        ctest --output-on-failure       
+  # linux-x64-cpu-gcc:
+  #   runs-on: x86-server-build-test
+  #   steps:
+  #   - uses: actions/checkout@v2.3.4
+  #   - name: update
+  #     run: sudo apt-get update
+  #   - name: depends
+  #     run: sudo apt-get install libprotobuf-dev protobuf-compiler libopencv-dev
+  #   - name: configure
+  #     run: mkdir build && cd build && /usr/local/cmake-3.19.8-Linux-x86_64/bin/cmake -DTENGINE_BUILD_TESTS=ON ..
+  #   - name: build
+  #     run: /usr/local/cmake-3.19.8-Linux-x86_64/bin/cmake --build build -j 8
+  #   - name: optest
+  #     run: |
+  #       cd build
+  #       actions=/home/dongdong
+  #       ln -s ${actions}/ci_test/onnx_op_test_data/ onnx_node
+  #       export TG_DEBUG_REF=1
+  #       ctest --output-on-failure
+  #   - name: test-data
+  #     run: |
+  #       cd build
+  #       actions=/home/dongdong
+  #       ln -s ${actions}/ci_test/model_test/  models
+  #       ln -s ${actions}/ci_test/images/      images
+  #       ln -s ${actions}/ci_test/data_x86/    data         
+  #   - name: test-models
+  #     run: |
+  #       chmod +x ./tests/test.sh
+  #       cd build
+  #       ../tests/test.sh
+  #   - name: test-op
+  #     run: |
+  #       cd build
+  #       export TG_DEBUG_REF=1
+  #       ctest --output-on-failure       
 
-  linux-x64-cpu-clang:
-    runs-on: x86-server-build-test
-    steps:
-    - uses: actions/checkout@v2.3.4
-    - name: update
-      run: sudo apt-get update
-    - name: depends
-      run: sudo apt-get install libprotobuf-dev protobuf-compiler libopencv-dev
-    - name: configure
-      env:
-        CC: clang
-        CXX: clang++    
-      run: mkdir build && cd build && /usr/local/cmake-3.19.8-Linux-x86_64/bin/cmake -DTENGINE_BUILD_TESTS=ON -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX  ..
-    - name: build
-      run: /usr/local/cmake-3.19.8-Linux-x86_64/bin/cmake --build build -j 2
-    - name: test-data
-      run: |
-        cd build
-        actions=/home/dongdong
-        ln -s ${actions}/ci_test/onnx_op_test_data/ onnx_node
-        ln -s ${actions}/ci_test/model_test/        models
-        ln -s ${actions}/ci_test/images/            images
-        ln -s ${actions}/ci_test/data_x86/          data           
-    - name: test-models
-      run: |
-        chmod +x ./tests/test.sh
-        cd build
-        ../tests/test.sh
-    - name: test-op
-      run: |
-        cd build
-        export TG_DEBUG_REF=1
-        ctest --output-on-failure        
+  # linux-x64-cpu-clang:
+  #   runs-on: x86-server-build-test
+  #   steps:
+  #   - uses: actions/checkout@v2.3.4
+  #   - name: update
+  #     run: sudo apt-get update
+  #   - name: depends
+  #     run: sudo apt-get install libprotobuf-dev protobuf-compiler libopencv-dev
+  #   - name: configure
+  #     env:
+  #       CC: clang
+  #       CXX: clang++    
+  #     run: mkdir build && cd build && /usr/local/cmake-3.19.8-Linux-x86_64/bin/cmake -DTENGINE_BUILD_TESTS=ON -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX  ..
+  #   - name: build
+  #     run: /usr/local/cmake-3.19.8-Linux-x86_64/bin/cmake --build build -j 2
+  #   - name: test-data
+  #     run: |
+  #       cd build
+  #       actions=/home/dongdong
+  #       ln -s ${actions}/ci_test/onnx_op_test_data/ onnx_node
+  #       ln -s ${actions}/ci_test/model_test/        models
+  #       ln -s ${actions}/ci_test/images/            images
+  #       ln -s ${actions}/ci_test/data_x86/          data           
+  #   - name: test-models
+  #     run: |
+  #       chmod +x ./tests/test.sh
+  #       cd build
+  #       ../tests/test.sh
+  #   - name: test-op
+  #     run: |
+  #       cd build
+  #       export TG_DEBUG_REF=1
+  #       ctest --output-on-failure        
         
   linux-x64-cpu-tools-convert:
     runs-on: x86-server-build-test
     steps:
-    - uses: actions/checkout@v2.3.4
     - uses: actions/checkout@v2.3.4
       with:
         repository: protocolbuffers/protobuf
@@ -403,7 +402,6 @@ jobs:
   linux-x64-cpu-tools-quant:
     runs-on: x86-server-build-test
     steps:
-    - uses: actions/checkout@v2.3.4
     - uses: actions/checkout@v2.3.4
       with:
         repository: opencv/opencv
