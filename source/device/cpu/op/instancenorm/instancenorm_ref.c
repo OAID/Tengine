@@ -200,7 +200,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
     if (w == 0)
     {
-      w = 1;
+        w = 1;
     }
 
     int size = w * h;
