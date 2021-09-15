@@ -16,156 +16,156 @@ on:
     - 'README_EN.md'
 
 jobs:
-  linux-x64-cpu-gcc:
-    runs-on: test-coverage
-    steps:
-    - uses: actions/checkout@v2.3.4
-    # - name: update
-    #   run: sudo apt-get update
-    # - name: depends
-    #   run: sudo apt-get install libprotobuf-dev protobuf-compiler libopencv-dev
-    # - name: lcov
-    #   run: sudo apt-get install lcov
-    - name: configure
-      run: mkdir build && cd build && /usr/local/cmake-3.19.8-Linux-x86_64/bin/cmake -DCMAKE_BUILD_TYPE=debug -DTENGINE_BUILD_EXAMPLES=OFF -DTENGINE_BUILD_TESTS=ON -DTENGINE_COVERAGE=ON ..
-    - name: build
-      run: /usr/local/cmake-3.19.8-Linux-x86_64/bin/cmake --build build -j 2
-    - name: test-data
-      run: |
-        cd build
-        actions=/home/dongdong
-        ln -s ${actions}/ci_test/onnx_op_test_data/ onnx_node
-        ln -s ${actions}/ci_test/model_test/        models
-        ln -s ${actions}/ci_test/images/            images
-        ln -s ${actions}/ci_test/data_x86/          data 
-    - name: test-models
-      run: |
-        chmod +x ./tests/test.sh
-        cd build
-        ../tests/test.sh
-    - name: test-op
-      run: |
-        cd build
-        export TG_DEBUG_REF=1
-        ctest --output-on-failure
-    - name: lcov-collect
-      run: |
-        cd build
-        lcov -d ./source -c -o lcov.info
-        lcov -r lcov.info '/usr/*' -o lcov.info
-        lcov -r lcov.info '*fp16*' -o lcov.info
-        lcov -r lcov.info '*int8*' -o lcov.info
-        lcov -r lcov.info '*uint8*' -o lcov.info
-        lcov --list lcov.info
-    - name: codecov
-      uses: codecov/codecov-action@v2.0.3
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        file: build/lcov.info
-
-
-  # linux-x64-cpu-tools-quant:
-  #   runs-on: ubuntu-latest
+  # linux-x64-cpu-gcc:
+  #   runs-on: test-coverage
   #   steps:
   #   - uses: actions/checkout@v2.3.4
   #   - name: update
   #     run: sudo apt-get update
   #   - name: depends
-  #     run: sudo apt-get install libopencv-dev
+  #     run: sudo apt-get install libprotobuf-dev protobuf-compiler libopencv-dev
   #   - name: lcov
   #     run: sudo apt-get install lcov
   #   - name: configure
-  #     run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=debug -DTENGINE_BUILD_EXAMPLES=ON -DTENGINE_COVERAGE=ON -DTENGINE_BUILD_QUANT_TOOL=ON ..
+  #     run: mkdir build && cd build && /usr/local/cmake-3.19.8-Linux-x86_64/bin/cmake -DCMAKE_BUILD_TYPE=debug -DTENGINE_BUILD_EXAMPLES=OFF -DTENGINE_BUILD_TESTS=ON -DTENGINE_COVERAGE=ON ..
   #   - name: build
-  #     run: cmake --build build -j 2
+  #     run: /usr/local/cmake-3.19.8-Linux-x86_64/bin/cmake --build build -j 2
   #   - name: test-data
   #     run: |
   #       cd build
-  #       wget -c http://8.136.149.78/download/ci_data/images.zip && unzip images.zip && rm images.zip
-  #       git clone https://github.com/BUG1989/tengine_test_data.git
-  #       cp ./tengine_test_data/mobilenet.tmfile ./
-  #       cp -rf ./tengine_test_data/dataset ./
-  #   - name: test-tools-quant
+  #       actions=/home/dongdong
+  #       ln -s ${actions}/ci_test/onnx_op_test_data/ onnx_node
+  #       ln -s ${actions}/ci_test/model_test/        models
+  #       ln -s ${actions}/ci_test/images/            images
+  #       ln -s ${actions}/ci_test/data_x86/          data 
+  #   - name: test-models
   #     run: |
+  #       chmod +x ./tests/test.sh
   #       cd build
-  #       ./tools/quantize/quant_tool_uint8 -m mobilenet.tmfile -o mobilenet_uint8.tmfile -i ./dataset -g 3,224,224 -s 0.017,0.017,0.017 -c 1 -a 1
-  #       ./tools/quantize/quant_tool_int8  -m mobilenet.tmfile -o mobilenet_int8.tmfile  -i ./dataset -g 3,224,224 -s 0.017,0.017,0.017 -c 1 -a 0
-  #       ./examples/tm_classification_uint8 -m mobilenet_uint8.tmfile -i images/cat.jpg -g 224,224 -s 0.017,0.017,0.017
-  #       ./examples/tm_classification_int8  -m mobilenet_uint8.tmfile -i images/cat.jpg -g 224,224 -s 0.017,0.017,0.017
-  #   - name: lcov-collect
-  #     run: |
-  #       cd build
-  #       lcov -d ./tools -c -o lcov.info
-  #       lcov -r lcov.info '/usr/*' -o lcov.info
-  #       lcov --list lcov.info
-  #   - name: codecov
-  #     uses: codecov/codecov-action@v2.0.3
-  #     with:
-  #       token: ${{ secrets.CODECOV_TOKEN }}
-  #       file: build/lcov.info        
-
-
-  # linux-gcc-x86-timvx-simulator:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - uses: actions/checkout@v2.3.4
-  #   - name: update
-  #     run: sudo apt-get update
-  #   - name: depends
-  #     run: sudo apt-get install libopencv-dev
-  #   - name: lcov
-  #     run: sudo apt-get install lcov
-  #   - name: tim-vx
-  #     run: |
-  #       git clone https://github.com/VeriSilicon/TIM-VX.git
-  #       export LD_LIBRARY_PATH=${PWD}/3rdparty/tim-vx/lib/x86_64
-  #       mkdir -p ./3rdparty/tim-vx/include
-  #       mkdir -p ./3rdparty/tim-vx/lib/x86_64
-  #       cp -rvf ./TIM-VX/prebuilt-sdk/x86_64_linux/include/*  ./3rdparty/tim-vx/include/
-  #       cp -rvf ./TIM-VX/prebuilt-sdk/x86_64_linux/lib/*      ./3rdparty/tim-vx/lib/x86_64/
-  #       cp -rvf ./TIM-VX/include  ./source/device/tim-vx/
-  #       cp -rvf ./TIM-VX/src      ./source/device/tim-vx/
-  #       rm ./source/device/tim-vx/src/tim/vx/*_test.cc
-  #       rm ./source/device/tim-vx/src/tim/vx/ops/*_test.cc
-  #   - name: configure
-  #     run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=debug -DTENGINE_ENABLE_TIM_VX=ON -DTENGINE_ENABLE_TIM_VX_INTEGRATION=ON -DTENGINE_COVERAGE=ON -DTENGINE_BUILD_TESTS=ON ..
-  #   - name: build
-  #     run: cmake --build build -j 2
-  #   - name: models
-  #     run: |
-  #       cd build
-  #       wget -c http://8.136.149.78/download/ci_data/images.zip && unzip images.zip && rm images.zip
-  #       git clone https://github.com/BUG1989/tengine_test_data.git
-  #       git clone https://github.com/BUG1989/onnx_op_test_data.git
-  #       mv onnx_op_test_data onnx_node        
-  #   - name: test-timvx-simulator
-  #     run: |
-  #       cd build
-  #       export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../3rdparty/tim-vx/lib/x86_64/
-  #       cp -v ../3rdparty/tim-vx/include/CL/cl_viv_vx_ext.h ./tests/
-  #       cp -v ../3rdparty/tim-vx/include/CL/cl_viv_vx_ext.h ./
-  #       ./examples/tm_classification_timvx  -m ./tengine_test_data/mobilenet_uint8.tmfile   -i ./images/cat.jpg -g 224,224, -s 0.017,0.017,0.017
-  #       ./examples/tm_classification_timvx  -m ./tengine_test_data/squeezenet_uint8.tmfile  -i ./images/cat.jpg -g 227,227, -s 0.017,0.017,0.017
-  #       ./examples/tm_yolov5s_timvx         -m ./tengine_test_data/yolov5s_uint8.tmfile     -i ./images/ssd_dog.jpg
+  #       ../tests/test.sh
   #   - name: test-op
   #     run: |
   #       cd build
-  #       export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../../3rdparty/tim-vx/lib/x86_64/
+  #       export TG_DEBUG_REF=1
   #       ctest --output-on-failure
   #   - name: lcov-collect
   #     run: |
   #       cd build
   #       lcov -d ./source -c -o lcov.info
-  #       lcov -r lcov.info '*3rdparty*' -o lcov.info
-  #       lcov -r lcov.info '*/source/device/cpu/*' -o lcov.info
-  #       lcov -r lcov.info '*/source/device/tim-vx/src/*' -o lcov.info
   #       lcov -r lcov.info '/usr/*' -o lcov.info
-  #       lcov --list lcov.info        
+  #       lcov -r lcov.info '*fp16*' -o lcov.info
+  #       lcov -r lcov.info '*int8*' -o lcov.info
+  #       lcov -r lcov.info '*uint8*' -o lcov.info
+  #       lcov --list lcov.info
   #   - name: codecov
   #     uses: codecov/codecov-action@v2.0.3
   #     with:
   #       token: ${{ secrets.CODECOV_TOKEN }}
   #       file: build/lcov.info
+
+
+  linux-x64-cpu-tools-quant:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2.3.4
+    # - name: update
+    #   run: sudo apt-get update
+    # - name: depends
+    #   run: sudo apt-get install libopencv-dev
+    # - name: lcov
+    #   run: sudo apt-get install lcov
+    - name: configure
+      run: mkdir build && cd build && /usr/local/cmake-3.19.8-Linux-x86_64/bin/cmake -DCMAKE_BUILD_TYPE=debug -DTENGINE_BUILD_EXAMPLES=ON -DTENGINE_COVERAGE=ON -DTENGINE_BUILD_QUANT_TOOL=ON ..
+    - name: build
+      run: cmake --build build -j 8
+    - name: test-data
+      run: |
+        cd build
+        actions=/home/dongdong
+        ln -s ${actions}/ci_test/tengine_test_data/mobilenet.tmfile   mobilenet.tmfile
+        ln -s ${actions}/ci_test/tengine_test_data/dataset            dataset
+        ln -s ${actions}/ci_test/images/                              images
+    - name: test-tools-quant
+      run: |
+        cd build
+        ./tools/quantize/quant_tool_uint8 -m mobilenet.tmfile -o mobilenet_uint8.tmfile -i ./dataset -g 3,224,224 -s 0.017,0.017,0.017 -c 1 -a 1
+        ./tools/quantize/quant_tool_int8  -m mobilenet.tmfile -o mobilenet_int8.tmfile  -i ./dataset -g 3,224,224 -s 0.017,0.017,0.017 -c 1 -a 0
+        ./examples/tm_classification_uint8 -m mobilenet_uint8.tmfile -i images/cat.jpg -g 224,224 -s 0.017,0.017,0.017
+        ./examples/tm_classification_int8  -m mobilenet_uint8.tmfile -i images/cat.jpg -g 224,224 -s 0.017,0.017,0.017
+    - name: lcov-collect
+      run: |
+        cd build
+        lcov -d ./tools -c -o lcov.info
+        lcov -r lcov.info '/usr/*' -o lcov.info
+        lcov --list lcov.info
+    - name: codecov
+      uses: codecov/codecov-action@v2.0.3
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        file: build/lcov.info        
+
+
+  linux-gcc-x86-timvx-simulator:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2.3.4
+    - name: update
+      run: sudo apt-get update
+    - name: depends
+      run: sudo apt-get install libopencv-dev
+    - name: lcov
+      run: sudo apt-get install lcov
+    - name: tim-vx
+      run: |
+        git clone https://github.com/VeriSilicon/TIM-VX.git
+        export LD_LIBRARY_PATH=${PWD}/3rdparty/tim-vx/lib/x86_64
+        mkdir -p ./3rdparty/tim-vx/include
+        mkdir -p ./3rdparty/tim-vx/lib/x86_64
+        cp -rvf ./TIM-VX/prebuilt-sdk/x86_64_linux/include/*  ./3rdparty/tim-vx/include/
+        cp -rvf ./TIM-VX/prebuilt-sdk/x86_64_linux/lib/*      ./3rdparty/tim-vx/lib/x86_64/
+        cp -rvf ./TIM-VX/include  ./source/device/tim-vx/
+        cp -rvf ./TIM-VX/src      ./source/device/tim-vx/
+        rm ./source/device/tim-vx/src/tim/vx/*_test.cc
+        rm ./source/device/tim-vx/src/tim/vx/ops/*_test.cc
+    - name: configure
+      run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=debug -DTENGINE_ENABLE_TIM_VX=ON -DTENGINE_ENABLE_TIM_VX_INTEGRATION=ON -DTENGINE_COVERAGE=ON -DTENGINE_BUILD_TESTS=ON ..
+    - name: build
+      run: cmake --build build -j 2
+    - name: models
+      run: |
+        cd build
+        actions=/home/dongdong
+        ln -s ${actions}/ci_test/images/                      images
+        ln -s ${actions}/ci_test/tengine_test_data/           tengine_test_data
+        ln -s ${actions}/ci_test/onnx_op_test_data/           onnx_node       
+    - name: test-timvx-simulator
+      run: |
+        cd build
+        export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../3rdparty/tim-vx/lib/x86_64/
+        cp -v ../3rdparty/tim-vx/include/CL/cl_viv_vx_ext.h ./tests/
+        cp -v ../3rdparty/tim-vx/include/CL/cl_viv_vx_ext.h ./
+        ./examples/tm_classification_timvx  -m ./tengine_test_data/mobilenet_uint8.tmfile   -i ./images/cat.jpg -g 224,224, -s 0.017,0.017,0.017
+        ./examples/tm_classification_timvx  -m ./tengine_test_data/squeezenet_uint8.tmfile  -i ./images/cat.jpg -g 227,227, -s 0.017,0.017,0.017
+        ./examples/tm_yolov5s_timvx         -m ./tengine_test_data/yolov5s_uint8.tmfile     -i ./images/ssd_dog.jpg
+    - name: test-op
+      run: |
+        cd build
+        export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../../3rdparty/tim-vx/lib/x86_64/
+        ctest --output-on-failure
+    - name: lcov-collect
+      run: |
+        cd build
+        lcov -d ./source -c -o lcov.info
+        lcov -r lcov.info '*3rdparty*' -o lcov.info
+        lcov -r lcov.info '*/source/device/cpu/*' -o lcov.info
+        lcov -r lcov.info '*/source/device/tim-vx/src/*' -o lcov.info
+        lcov -r lcov.info '/usr/*' -o lcov.info
+        lcov --list lcov.info        
+    - name: codecov
+      uses: codecov/codecov-action@v2.0.3
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        file: build/lcov.info
   
   linux-gcc-arm64-timvx-khadas:
     runs-on: khadas-vim3
