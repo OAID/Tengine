@@ -390,7 +390,7 @@ jobs:
         unzip onnx_models_output.zip
     - name: Run tests
       run: |
-        chmod +x ./tests/test_onnx_model.sh
+        chmod +x ./tests/test_onnx_model.sh 
         cd build
         ../tests/test_onnx_model.sh ../convert_tool-x86_64.AppImage
     - name: Upload AppImage
