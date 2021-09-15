@@ -20,12 +20,12 @@ jobs:
     runs-on: test-coverage
     steps:
     - uses: actions/checkout@v2.3.4
-    - name: update
-      run: sudo apt-get update
-    - name: depends
-      run: sudo apt-get install libprotobuf-dev protobuf-compiler libopencv-dev
-    - name: lcov
-      run: sudo apt-get install lcov
+    # - name: update
+    #   run: sudo apt-get update
+    # - name: depends
+    #   run: sudo apt-get install libprotobuf-dev protobuf-compiler libopencv-dev
+    # - name: lcov
+    #   run: sudo apt-get install lcov
     - name: configure
       run: mkdir build && cd build && /usr/local/cmake-3.19.8-Linux-x86_64/bin/cmake -DCMAKE_BUILD_TYPE=debug -DTENGINE_BUILD_EXAMPLES=OFF -DTENGINE_BUILD_TESTS=ON -DTENGINE_COVERAGE=ON ..
     - name: build
