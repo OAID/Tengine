@@ -77,7 +77,7 @@ jobs:
     - name: configure
       run: mkdir build && cd build && /usr/local/cmake-3.19.8-Linux-x86_64/bin/cmake -DCMAKE_BUILD_TYPE=debug -DTENGINE_BUILD_EXAMPLES=ON -DTENGINE_COVERAGE=ON -DTENGINE_BUILD_QUANT_TOOL=ON ..
     - name: build
-      run: cmake --build build -j 8
+      run: /usr/local/cmake-3.19.8-Linux-x86_64/bin/cmake --build build -j 8
     - name: test-data
       run: |
         cd build
@@ -128,9 +128,9 @@ jobs:
         rm ./source/device/tim-vx/src/tim/vx/*_test.cc
         rm ./source/device/tim-vx/src/tim/vx/ops/*_test.cc
     - name: configure
-      run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=debug -DTENGINE_ENABLE_TIM_VX=ON -DTENGINE_ENABLE_TIM_VX_INTEGRATION=ON -DTENGINE_COVERAGE=ON -DTENGINE_BUILD_TESTS=ON ..
+      run: mkdir build && cd build && /usr/local/cmake-3.19.8-Linux-x86_64/bin/cmake -DCMAKE_BUILD_TYPE=debug -DTENGINE_ENABLE_TIM_VX=ON -DTENGINE_ENABLE_TIM_VX_INTEGRATION=ON -DTENGINE_COVERAGE=ON -DTENGINE_BUILD_TESTS=ON ..
     - name: build
-      run: cmake --build build -j 2
+      run: /usr/local/cmake-3.19.8-Linux-x86_64/bin/cmake --build build -j 8
     - name: models
       run: |
         cd build
