@@ -293,10 +293,10 @@ jobs:
     runs-on: x86-server-build-test
     steps:
     - uses: actions/checkout@v2.3.4
-    - name: update
-      run: sudo apt-get update
-    - name: depends
-      run: sudo apt-get install libprotobuf-dev protobuf-compiler libopencv-dev
+    # - name: update
+    #   run: sudo apt-get update
+    # - name: depends
+    #   run: sudo apt-get install libprotobuf-dev protobuf-compiler libopencv-dev
     - name: configure
       run: mkdir build && cd build && /usr/local/cmake-3.19.8-Linux-x86_64/bin/cmake -DTENGINE_BUILD_TESTS=ON ..
     - name: build
@@ -330,10 +330,10 @@ jobs:
     runs-on: x86-server-build-test
     steps:
     - uses: actions/checkout@v2.3.4
-    - name: update
-      run: sudo apt-get update
-    - name: depends
-      run: sudo apt-get install libprotobuf-dev protobuf-compiler libopencv-dev
+    # - name: update
+    #   run: sudo apt-get update
+    # - name: depends
+    #   run: sudo apt-get install libprotobuf-dev protobuf-compiler libopencv-dev
     - name: configure
       env:
         CC: clang
@@ -364,10 +364,10 @@ jobs:
     runs-on: x86-server-build-test
     steps:
     - uses: actions/checkout@v2.3.4
-    - name: update
-      run: |
-        sudo apt-get update
-        sudo apt-get install libopencv-dev
+    # - name: update
+    #   run: |
+    #     sudo apt-get update
+    #     sudo apt-get install libopencv-dev
     - name: configure
       run: mkdir build && cd build && /usr/local/cmake-3.19.8-Linux-x86_64/bin/cmake -DTENGINE_BUILD_CONVERT_TOOL=ON -DTENGINE_BUILD_TESTS=ON ..
     - name: build
@@ -427,10 +427,10 @@ jobs:
     runs-on: x86-server-build-test
     steps:
     - uses: actions/checkout@v2.3.4
-    - name: update
-      run: |
-        sudo apt-get update
-        sudo apt-get install libopencv-dev
+    # - name: update
+    #   run: |
+    #     sudo apt-get update
+    #     sudo apt-get install libopencv-dev
     - name: configure
       run: mkdir build && cd build && /usr/local/cmake-3.19.8-Linux-x86_64/bin/cmake -DTENGINE_BUILD_QUANT_TOOL=ON -DTENGINE_BUILD_EXAMPLES=ON ..
     - name: build
