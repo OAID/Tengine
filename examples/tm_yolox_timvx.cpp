@@ -312,6 +312,8 @@ void get_input_data_focus_uint8(const char* image_file, uint8_t* input_data, int
             {
                 int in_index = h * letterbox_cols * 3 + w * 3 + c;
                 int out_index = c * letterbox_rows * letterbox_cols + h * letterbox_cols + w;
+                //new release of yolox has deleted the preprocess,
+                //if you use the new version of yolox please use this code ==> input_temp[out_index] = img_data[in_index]
                 input_temp[out_index] = (img_data[in_index] - mean[c]) * scale[c];
             }
         }
