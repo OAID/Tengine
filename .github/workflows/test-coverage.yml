@@ -29,7 +29,7 @@ jobs:
     - name: configure
       run: mkdir build && cd build && /usr/local/cmake-3.19.8-Linux-x86_64/bin/cmake -DCMAKE_BUILD_TYPE=debug -DTENGINE_BUILD_EXAMPLES=OFF -DTENGINE_BUILD_TESTS=ON -DTENGINE_COVERAGE=ON ..
     - name: build
-      run: /usr/local/cmake-3.19.8-Linux-x86_64/bin/cmake --build build -j 2
+      run: /usr/local/cmake-3.19.8-Linux-x86_64/bin/cmake --build build -j 8
     - name: test-data
       run: |
         cd build
@@ -150,6 +150,7 @@ jobs:
     - name: test-op
       run: |
         cd build
+        export TG_DEBUG_REF=1
         export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../../3rdparty/tim-vx/lib/x86_64/
         ctest --output-on-failure
     - name: lcov-collect
