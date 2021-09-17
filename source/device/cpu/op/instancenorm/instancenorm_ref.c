@@ -198,6 +198,11 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     int h = input_tensor->dims[2];
     int w = input_tensor->dims[3];
 
+    if (w == 0)
+    {
+        w = 1;
+    }
+
     int size = w * h;
 
     void* in_data = input_tensor->data;

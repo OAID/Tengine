@@ -223,6 +223,16 @@ static int ref_eltwise_fp32(void* output, void* input0, void* input1, int type, 
                 *out_ptr++ = in0[i] / in1[i / input_hw];
             }
         }
+        else if (input_hw == input_hw_1)
+        {
+            for (int i = 0; i < input_chan; i++)
+            {
+                for (int j = 0; j < input_hw; j++)
+                {
+                    *out_ptr++ = in0[i * input_hw + j] / in1[j];
+                }
+            }
+        }
         else
         {
             break;
