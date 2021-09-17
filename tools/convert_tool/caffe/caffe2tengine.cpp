@@ -279,7 +279,7 @@ int caffe_serializer::set_graph_input(ir_graph_t* graph, const te_caffe::NetPara
         if (layer_param.type() != "Input")
             continue;
 
-        std::string val = layer_param.type();
+        std::string val = (layer_param.name() == "input" ? "data" : layer_param.name());
         ir_tensor_t* tensor = create_ir_tensor(graph, val.c_str(), TENGINE_DT_FP32);
         int has_shape = 1;
 
@@ -309,8 +309,6 @@ int caffe_serializer::set_graph_input(ir_graph_t* graph, const te_caffe::NetPara
 
         tensor->tensor_type = TENSOR_TYPE_INPUT;
         ir_node_t* node = create_ir_node(graph, val.c_str(), OP_INPUT, OP_VERSION);
-
-        int tensor_id = get_ir_tensor_index_from_name(graph, val.c_str());
 
         set_ir_node_output_tensor(node, 0, tensor);
         input_nodes.push_back(node->index);
@@ -378,7 +376,7 @@ int caffe_serializer::load_graph_node(ir_graph_t* graph, const te_caffe::NetPara
         {
             continue;
         }
-        ir_node_t* ir_node = create_ir_node(graph, caffe_op_name.c_str(), op_load_map[caffe_op_name].first, OP_VERSION);
+        ir_node_t* ir_node = create_ir_node(graph, layer_param.name().c_str(), op_load_map[caffe_op_name].first, OP_VERSION);
         for (int i = 0; i < layer_param.bottom_size(); i++)
         {
             const std::string& orig_name = layer_param.bottom(i);
@@ -388,7 +386,7 @@ int caffe_serializer::load_graph_node(ir_graph_t* graph, const te_caffe::NetPara
             ir_tensor_t* tensor = NULL;
             if (tensor_id < 0)
             {
-                tensor_id = get_ir_tensor_index_from_name(graph, "Input");
+                tensor_id = get_ir_tensor_index_from_name(graph, orig_name.c_str());
             }
 
             tensor = get_ir_graph_tensor(graph, tensor_id);
@@ -454,7 +452,15 @@ int caffe_serializer::load_graph_node(ir_graph_t* graph, const te_caffe::NetPara
         {
             const std::string& orig_name = layer_param.top(i);
             std::string tensor_name;
-            tensor_name = layer_param.name() + "/" + tensor_name;
+            if (tensor_name_map.count(orig_name))
+            {
+                char* ir_node_name = ir_node->name;
+                std::string node_name = ir_node_name;
+                tensor_name = node_name + "/" + std::to_string(i);
+            }
+            else
+                tensor_name = orig_name;
+
             ir_tensor_t* tensor = create_ir_tensor(graph, tensor_name.c_str(), TENGINE_DT_FP32);
             set_ir_node_output_tensor(ir_node, i, tensor);
             tensor_name_map[orig_name] = tensor_name;
@@ -875,11 +881,26 @@ int load_slice(ir_graph_t* graph, ir_node_t* node, const te_caffe::LayerParamete
     else
         param->axis = 1;
 
-    param->iscaffe = true;
-    // param->slice_point_.clear();
+    param->begin = 0;
+    param->end = 0;
+    param->begin_ = nullptr;
+    param->size_ = nullptr;
 
-    // std::copy(slice_param.slice_point().begin(), slice_param.slice_point().end(),
-    //           std::back_inserter(param.slice_point_));
+    int size = slice_param.slice_point().size();
+    int32_t* data = (int32_t*)malloc(size * sizeof(int32_t));
+    for (int i = 0; i < size; i++)
+    {
+        data[i] = slice_param.slice_point()[i];
+    }
+
+    param->slice_point_ = create_vector(sizeof(float), NULL);
+    param->slice_point_->elem_num = size;
+    param->slice_point_->elem_size = sizeof(int32_t);
+    set_vector_data(param->slice_point_, 0, data);
+
+    param->iscaffe = 1;
+    param->ismxnet = 0;
+    param->isonnx = 0;
     return 0;
 }
 int load_concat(ir_graph_t* graph, ir_node_t* node, const te_caffe::LayerParameter& layer_param)
@@ -988,10 +1009,12 @@ int load_priorbox(ir_graph_t* graph, ir_node_t* node, const te_caffe::LayerParam
     param->variance = (float*)sys_malloc(sizeof(float) * caffe_param.variance_size());
     param->aspect_ratio = (float*)sys_malloc(sizeof(float) * caffe_param.aspect_ratio_size());
 
+    param->min_size_num = caffe_param.min_size_size();
     for (int i = 0; i < caffe_param.min_size_size(); ++i)
     {
         param->min_size[i] = caffe_param.min_size(i);
     }
+    param->max_size_num = caffe_param.max_size_size();
     for (int i = 0; i < caffe_param.max_size_size(); ++i)
     {
         param->max_size[i] = caffe_param.max_size(i);
@@ -1007,6 +1030,7 @@ int load_priorbox(ir_graph_t* graph, ir_node_t* node, const te_caffe::LayerParam
     // flip
     param->flip = caffe_param.flip();
     // aspect_ratio
+    param->aspect_ratio_size = caffe_param.aspect_ratio_size();
     for (int i = 0; i < caffe_param.aspect_ratio_size(); ++i)
     {
         param->aspect_ratio[i] = caffe_param.aspect_ratio(i);
@@ -1045,21 +1069,23 @@ int load_rpn(ir_graph_t* graph, ir_node_t* node, const te_caffe::LayerParameter&
     param->post_nms_topn = caffe_param.post_nms_topn();
     param->nms_thresh = caffe_param.nms_thresh();
 
-    struct vector* anchor_tmp = create_vector(sizeof(float), NULL);
     struct vector* ratios_tmp = create_vector(sizeof(float), NULL);
+    struct vector* anchor_scales_tmp = create_vector(sizeof(float), NULL);
+    struct vector* anchor_tmp = create_vector(sizeof(float), NULL);
 
     for (int i = 0; i < caffe_param.scale_size(); ++i)
     {
         float tmp = caffe_param.scale(i);
-        push_vector_data(anchor_tmp, &tmp);
+        push_vector_data(anchor_scales_tmp, &tmp);
     }
-    param->anchor_scales = anchor_tmp;
+    param->anchor_scales = anchor_scales_tmp;
     for (int i = 0; i < caffe_param.ratio_size(); ++i)
     {
         float tmp = caffe_param.ratio(i);
         push_vector_data(ratios_tmp, &tmp);
     }
     param->ratios = ratios_tmp;
+    param->anchors_ = anchor_tmp;
     return 0;
 }
 int load_detectionoutput(ir_graph_t* graph, ir_node_t* node, const te_caffe::LayerParameter& layer_param)
@@ -1085,7 +1111,9 @@ int load_reshape(ir_graph_t* graph, ir_node_t* node, const te_caffe::LayerParame
     {
         param->re_shape[i] = caffe_param.shape().dim(i);
     }
-
+    param->dim_size = caffe_param.shape().dim_size();
+    param->is_onnx = 1; // ？？？ 此处保持与原 convert tools 一致
+    param->is_mxnet = 0;
     return 0;
 }
 int load_upsample(ir_graph_t* graph, ir_node_t* node, const te_caffe::LayerParameter& layer_param)
