@@ -516,7 +516,7 @@ int onnx_serializer::load_graph_node(ir_graph_t* graph, const onnx::GraphProto& 
             int tensor_id = get_ir_tensor_index_from_name(graph, input_name.c_str());
             ir_tensor_t* tensor = get_ir_graph_tensor(graph, tensor_id);
             tensor_check[tensor->name] = tensor_check[tensor->name] + 1;
-            set_ir_node_input_tensor(ir_node, j, tensor);
+            set_ir_node_input_tensor(ir_node, ir_node->input_num, tensor);
         }
 
         for (int j = 0; j < onnx_node.output_size(); j++)
