@@ -64,7 +64,7 @@ uint32_t get_arch()
 #endif
 }
 
-uint32_t get_totoal_memory()
+uint32_t get_total_memory()
 {
     uint32_t res = 0;
     FILE* fp = fopen("/proc/meminfo", "r");

@@ -272,7 +272,7 @@ int net_recv_timeout(NET_CONTEXT* context, char* buf, int len, unsigned int time
     return net_recv(context, buf, len);
 }
 
-int get_loacl_ip_and_mac(char* ip, char* mac)
+int get_local_ip_and_mac(char* ip, char* mac)
 {
     struct ifconf if_conf;
     struct ifreq* if_req;
@@ -320,7 +320,7 @@ int get_loacl_ip_and_mac(char* ip, char* mac)
     return 0;
 }
 
-/*int get_loacl_ip_and_mac(char* ip,char* mac)
+/*int get_local_ip_and_mac(char* ip,char* mac)
 {
 
     struct ifaddrs *if_addr_struct = NULL;
