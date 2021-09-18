@@ -492,7 +492,7 @@ int main(int argc, char* argv[])
     QuantTool quant_tool;
 
     int res;
-    while ((res = getopt(argc, argv, "m:a:f:o:i:g:s:w:b:c:y:k:t:h")) != -1)
+    while ((res = getopt(argc, argv, "m:a:f:o:i:g:s:w:b:c:y:k:z:t:h")) != -1)
     {
         switch (res)
         {
@@ -538,6 +538,9 @@ int main(int argc, char* argv[])
             break;
         case 'k':
             quant_tool.focus = atoi(optarg);
+            break;
+        case 'z':
+            quant_tool.evaluate = atoi(optarg);
             break;
         case 't':
             quant_tool.num_thread = atoi(optarg);
@@ -593,35 +596,81 @@ int main(int argc, char* argv[])
     fprintf(stderr, "YOLOv5 focus: %s\n", quant_tool.focus ? "ON" : "OFF");
     fprintf(stderr, "Thread num  : %d\n\n", quant_tool.num_thread);
 
-    /* using 3rd calibration table file */
-    if (quant_tool.scale_file.empty())
+    switch (quant_tool.algorithm_type)
     {
-        /* select algorithm */
-        if (quant_tool.algorithm_type == ALGORITHM_MIN_MAX)
+        case ALGORITHM_MIN_MAX:
         {
-            quant_tool.scale_file = "table_minmax.scale";
+            if (quant_tool.scale_file.empty())
+            {
+                quant_tool.scale_file = "table_minmax.scale";
+                quant_tool.activation_quant_tool();
+            }
+            save_graph_u8_perlayer(quant_tool.model_file.c_str(), quant_tool.scale_file.c_str(), quant_tool.output_file, quant_tool.inplace, false);
+            /* Evaluate quantitative losses */
+            if (quant_tool.evaluate)
+            {
+                fprintf(stderr, "[Quant Tools Info]: Step Evaluate, evaluate quantitative losses\n");
+                quant_tool.assess_quant_loss(0);
+            }
+            break;
         }
-        else if (quant_tool.algorithm_type == ALGORITHM_KL)
+        case ALGORITHM_KL:
         {
-            quant_tool.scale_file = "table_kl.scale";
+            if (quant_tool.scale_file.empty())
+            {
+                quant_tool.scale_file = "table_kl.scale";
+                quant_tool.activation_quant_tool();
+            }
+            save_graph_u8_perlayer(quant_tool.model_file.c_str(), quant_tool.scale_file.c_str(), quant_tool.output_file, quant_tool.inplace, false);
+            /* Evaluate quantitative losses */
+            if (quant_tool.evaluate)
+            {
+                fprintf(stderr, "[Quant Tools Info]: Step Evaluate, evaluate quantitative losses\n");
+                quant_tool.assess_quant_loss(0);
+            }
+            break;
         }
-        else if (quant_tool.algorithm_type == ALGORITHM_ACIQ)
+        case ALGORITHM_ACIQ:
         {
-            quant_tool.scale_file = "table_aciq.scale";
+            if (quant_tool.scale_file.empty())
+            {
+                quant_tool.scale_file = "table_aciq.scale";
+                quant_tool.activation_quant_tool();
+            }
+            save_graph_u8_perlayer(quant_tool.model_file.c_str(), quant_tool.scale_file.c_str(), quant_tool.output_file, quant_tool.inplace, false);
+            /* Evaluate quantitative losses */
+            if (quant_tool.evaluate)
+            {
+                fprintf(stderr, "[Quant Tools Info]: Step Evaluate, evaluate quantitative losses\n");
+                quant_tool.assess_quant_loss(0);
+            }
+            break;
         }
-        else
+        case ALGORITHM_DFQ:
         {
-            fprintf(stderr, "[Quant Tools Info]: algorithm not specified, using default type MIN MAX\n");
-            quant_tool.scale_file = "table_minmax.scale";
+            quant_tool.data_free_quant();
+            quant_tool.model_file = "test_dfq_fp32.tmfile";
+            if (quant_tool.scale_file.empty())
+            {
+                quant_tool.scale_file = "table_minmax.scale";
+                quant_tool.activation_quant_tool();
+            }
+            save_graph_u8_perlayer(quant_tool.model_file.c_str(), quant_tool.scale_file.c_str(), quant_tool.output_file, quant_tool.inplace, false);
+            /* Evaluate quantitative losses */
+            if (quant_tool.evaluate)
+            {
+                fprintf(stderr, "[Quant Tools Info]: Step Evaluate, evaluate quantitative losses\n");
+                quant_tool.assess_quant_loss(0);
+            }
+            break;
         }
 
-        /* quantize activation */
-        quant_tool.activation_quant_tool();
+        default:
+        {
+            fprintf(stderr, "Unsupported quantization type ... \n");
+            break;
+        }
     }
-
-    /* quantize weight/bias and save into uint8 tmfile */
-    fprintf(stderr, "[Quant Tools Info]: Calibration file is using %s\n", quant_tool.scale_file.c_str());
-    save_graph_u8_perlayer(quant_tool.model_file.c_str(), quant_tool.scale_file.c_str(), quant_tool.output_file, quant_tool.inplace, false);
 
     fprintf(stderr, "\n---- Tengine Int8 tmfile create success, best wish for your UInt8 inference has a low accuracy loss...\\(^0^)/ ----\n");
 

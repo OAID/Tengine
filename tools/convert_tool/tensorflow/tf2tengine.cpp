@@ -238,6 +238,7 @@ int tensorflow_serializer::set_graph_input(ir_graph_t* graph)
         if (tf_node->op == "Placeholder")
         {
             ir_tensor_t* ir_tensor = create_ir_tensor(graph, tf_node->name.c_str(), TENGINE_DT_FP32);
+            ir_tensor->tensor_type = TENSOR_TYPE_INPUT;
             tensorflow::AttrValue shape;
 
             int pb_defs_cnt = tf_node->pb_defs.size();

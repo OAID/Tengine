@@ -100,7 +100,7 @@ int QuantTool::data_free_quant()
         const char* layer_name = n->name; //layer name
         if (op_type != NULL)
         {
-            if (OP_CONV != op_type && OP_FC != op_type)
+            if (OP_CONV != op_type && OP_FC != op_type && OP_POOL != op_type)
             {
                 if (node_proto[i].input_node_list.size() == 1 && node_proto[i].output_node_list.size() == 1)
                 {
@@ -126,7 +126,7 @@ int QuantTool::data_free_quant()
     {
         struct node* n = graphn->node_list[i]; //ir node
         const uint16_t node_idx = n->index;    //node idx
-        auto op_name = n->op.type;
+        op_name = n->op.type;
         const char* layer_name = n->name; //layer name
 
         const uint16_t input_num = n->input_num;   //input num
@@ -138,7 +138,7 @@ int QuantTool::data_free_quant()
             {
                 // DW_Conv && Direct_Conv
                 struct conv_param* conv_param = (struct conv_param*)n->op.param_mem;
-                if (conv_param->group == conv_param->output_channel)
+                if (conv_param->group == conv_param->output_channel && conv_param->group != 1)
                 {
                     //                    printf("    #### DW Conv ####\n");
                     if (node_proto[i].input_node_list.size() == 1 && node_proto[i].output_node_list.size() == 1)
