@@ -386,7 +386,6 @@ void get_input_data(const char* image_file, float* input_data, int letterbox_row
     cv::copyMakeBorder(img, img_new, top, bot, left, right, cv::BORDER_CONSTANT, cv::Scalar(114.f, 114.f, 114.f));
 
     float* img_data = (float*)img_new.data;
-    std::vector<float> input_temp(3 * letterbox_cols * letterbox_rows);
 
     /* nhwc to nchw */
     for (int h = 0; h < letterbox_rows; h++)
@@ -413,7 +412,6 @@ int create_test_conv_node(graph_t graph, const char* input_name, const char* nod
     (void)outc;
 
     /* create the test node */
-    //struct node* test_node = (struct node*)create_graph_node(graph, node_name, "Convolution");
     struct node* test_node = (struct node*)create_graph_node(graph, node_name, "Convolution");
     tensor_t input_tensor = get_graph_tensor(graph, input_name);
 
@@ -534,15 +532,15 @@ static int ins_decode(float* kernel_pred, float* feature_pred,
             return -1;
         }
 
-        /* get output and dequant int8 to fp32 */
+        /* get output*/
         int output_size = output_tensor->elem_num;
-        float* output_int8 = (float*)output_tensor->data;
+        float* output_fp32 = (float*)output_tensor->data;
 
         for (int i = 0; i < output_tensor->dims[1]; i++)
         {
             std::vector<float> tmp;
             for (int j = 0; j < output_tensor->dims[2] * output_tensor->dims[3]; j++)
-                tmp.push_back(output_int8[i * output_tensor->dims[2] * output_tensor->dims[3] + j]);
+                tmp.push_back(output_fp32[i * output_tensor->dims[2] * output_tensor->dims[3] + j]);
             ins_pred.push_back(tmp);
         }
         // exit
