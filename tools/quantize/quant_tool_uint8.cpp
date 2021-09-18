@@ -598,78 +598,78 @@ int main(int argc, char* argv[])
 
     switch (quant_tool.algorithm_type)
     {
-        case ALGORITHM_MIN_MAX:
+    case ALGORITHM_MIN_MAX:
+    {
+        if (quant_tool.scale_file.empty())
         {
-            if (quant_tool.scale_file.empty())
-            {
-                quant_tool.scale_file = "table_minmax.scale";
-                quant_tool.activation_quant_tool();
-            }
-            save_graph_u8_perlayer(quant_tool.model_file.c_str(), quant_tool.scale_file.c_str(), quant_tool.output_file, quant_tool.inplace, false);
-            /* Evaluate quantitative losses */
-            if (quant_tool.evaluate)
-            {
-                fprintf(stderr, "[Quant Tools Info]: Step Evaluate, evaluate quantitative losses\n");
-                quant_tool.assess_quant_loss(0);
-            }
-            break;
+            quant_tool.scale_file = "table_minmax.scale";
+            quant_tool.activation_quant_tool();
         }
-        case ALGORITHM_KL:
+        save_graph_u8_perlayer(quant_tool.model_file.c_str(), quant_tool.scale_file.c_str(), quant_tool.output_file, quant_tool.inplace, false);
+        /* Evaluate quantitative losses */
+        if (quant_tool.evaluate)
         {
-            if (quant_tool.scale_file.empty())
-            {
-                quant_tool.scale_file = "table_kl.scale";
-                quant_tool.activation_quant_tool();
-            }
-            save_graph_u8_perlayer(quant_tool.model_file.c_str(), quant_tool.scale_file.c_str(), quant_tool.output_file, quant_tool.inplace, false);
-            /* Evaluate quantitative losses */
-            if (quant_tool.evaluate)
-            {
-                fprintf(stderr, "[Quant Tools Info]: Step Evaluate, evaluate quantitative losses\n");
-                quant_tool.assess_quant_loss(0);
-            }
-            break;
+            fprintf(stderr, "[Quant Tools Info]: Step Evaluate, evaluate quantitative losses\n");
+            quant_tool.assess_quant_loss(0);
         }
-        case ALGORITHM_ACIQ:
+        break;
+    }
+    case ALGORITHM_KL:
+    {
+        if (quant_tool.scale_file.empty())
         {
-            if (quant_tool.scale_file.empty())
-            {
-                quant_tool.scale_file = "table_aciq.scale";
-                quant_tool.activation_quant_tool();
-            }
-            save_graph_u8_perlayer(quant_tool.model_file.c_str(), quant_tool.scale_file.c_str(), quant_tool.output_file, quant_tool.inplace, false);
-            /* Evaluate quantitative losses */
-            if (quant_tool.evaluate)
-            {
-                fprintf(stderr, "[Quant Tools Info]: Step Evaluate, evaluate quantitative losses\n");
-                quant_tool.assess_quant_loss(0);
-            }
-            break;
+            quant_tool.scale_file = "table_kl.scale";
+            quant_tool.activation_quant_tool();
         }
-        case ALGORITHM_DFQ:
+        save_graph_u8_perlayer(quant_tool.model_file.c_str(), quant_tool.scale_file.c_str(), quant_tool.output_file, quant_tool.inplace, false);
+        /* Evaluate quantitative losses */
+        if (quant_tool.evaluate)
         {
-            quant_tool.data_free_quant();
-            quant_tool.model_file = "test_dfq_fp32.tmfile";
-            if (quant_tool.scale_file.empty())
-            {
-                quant_tool.scale_file = "table_minmax.scale";
-                quant_tool.activation_quant_tool();
-            }
-            save_graph_u8_perlayer(quant_tool.model_file.c_str(), quant_tool.scale_file.c_str(), quant_tool.output_file, quant_tool.inplace, false);
-            /* Evaluate quantitative losses */
-            if (quant_tool.evaluate)
-            {
-                fprintf(stderr, "[Quant Tools Info]: Step Evaluate, evaluate quantitative losses\n");
-                quant_tool.assess_quant_loss(0);
-            }
-            break;
+            fprintf(stderr, "[Quant Tools Info]: Step Evaluate, evaluate quantitative losses\n");
+            quant_tool.assess_quant_loss(0);
         }
+        break;
+    }
+    case ALGORITHM_ACIQ:
+    {
+        if (quant_tool.scale_file.empty())
+        {
+            quant_tool.scale_file = "table_aciq.scale";
+            quant_tool.activation_quant_tool();
+        }
+        save_graph_u8_perlayer(quant_tool.model_file.c_str(), quant_tool.scale_file.c_str(), quant_tool.output_file, quant_tool.inplace, false);
+        /* Evaluate quantitative losses */
+        if (quant_tool.evaluate)
+        {
+            fprintf(stderr, "[Quant Tools Info]: Step Evaluate, evaluate quantitative losses\n");
+            quant_tool.assess_quant_loss(0);
+        }
+        break;
+    }
+    case ALGORITHM_DFQ:
+    {
+        quant_tool.data_free_quant();
+        quant_tool.model_file = "test_dfq_fp32.tmfile";
+        if (quant_tool.scale_file.empty())
+        {
+            quant_tool.scale_file = "table_minmax.scale";
+            quant_tool.activation_quant_tool();
+        }
+        save_graph_u8_perlayer(quant_tool.model_file.c_str(), quant_tool.scale_file.c_str(), quant_tool.output_file, quant_tool.inplace, false);
+        /* Evaluate quantitative losses */
+        if (quant_tool.evaluate)
+        {
+            fprintf(stderr, "[Quant Tools Info]: Step Evaluate, evaluate quantitative losses\n");
+            quant_tool.assess_quant_loss(0);
+        }
+        break;
+    }
 
-        default:
-        {
-            fprintf(stderr, "Unsupported quantization type ... \n");
-            break;
-        }
+    default:
+    {
+        fprintf(stderr, "Unsupported quantization type ... \n");
+        break;
+    }
     }
 
     fprintf(stderr, "\n---- Tengine Int8 tmfile create success, best wish for your UInt8 inference has a low accuracy loss...\\(^0^)/ ----\n");
