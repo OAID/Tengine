@@ -124,7 +124,7 @@ int QuantTool::activation_quant_tool()
         return -1;
     }
 
-    /* initial malloc the output tesnors date buffer of nodes in the graph, to disable the mem pool, before prerun */
+    /* initial malloc the output tensors date buffer of nodes in the graph, to disable the mem pool, before prerun */
     for (int i = 0; i < ir_graph->tensor_num; i++)
     {
         struct tensor* var_tensor = ir_graph->tensor_list[i];
@@ -140,6 +140,9 @@ int QuantTool::activation_quant_tool()
         fprintf(stderr, "Prerun multithread graph failed.\n");
         return -1;
     }
+
+    set_log_level(LOG_INFO);
+    dump_graph(ir_graph);
 
     fprintf(stderr, "[Quant Tools Info]: Step 0, load calibration image files.\n");
 

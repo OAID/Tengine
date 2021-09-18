@@ -520,7 +520,7 @@ int save_graph_i8_perchannel(const char* model_file, const char* scale_file, con
                     float weight_max = *std::max_element(weight_data_ch_start, weight_data_ch_end);
                     float weight_min = *std::min_element(weight_data_ch_start, weight_data_ch_end);
 
-                    weight_scale_list[ch] = std::max(abs(weight_max), abs(weight_min)) / 127.f;
+                    weight_scale_list[ch] = std::max(std::abs(weight_max), std::abs(weight_min)) / 127.f;
                     weight_zp_list[ch] = 0;
                     fprintf(fp_weight, "%8.8f ", weight_scale_list[ch]);
                 }
@@ -823,7 +823,7 @@ int save_graph_u8_perchannel(const char* model_file, const char* scale_file, con
                     float weight_max = *std::max_element(weight_data_ch_start, weight_data_ch_end);
                     float weight_min = *std::min_element(weight_data_ch_start, weight_data_ch_end);
 
-                    weight_scale_list[ch] = std::max(abs(weight_max), abs(weight_min)) / 127.f;
+                    weight_scale_list[ch] = std::max(std::abs(weight_max), std::abs(weight_min)) / 127.f;
                     weight_zp_list[ch] = 0;
                     fprintf(fp_weight, "%8.8f ", weight_scale_list[ch]);
                 }
