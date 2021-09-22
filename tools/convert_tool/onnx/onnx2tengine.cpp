@@ -1716,7 +1716,7 @@ static int load_pad(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& o
             {
                 pad_param->mode = 0;
             }
-            else if (attr.s() == "reflect")
+            else if (attr.s() == "edge")
             {
                 pad_param->mode = 1;
             }
@@ -1741,23 +1741,7 @@ static int load_pad(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& o
             pad_param->value = attr.f();
         }
     }
-    if (onnx_node.input_size() > 1)
-    {
-        ir_tensor_t* shape_tensor = find_tensor(graph, onnx_node.input(1));
-        int size = shape_tensor->dims[0];
-        int64_t* data = (int64_t*)shape_tensor->data;
-        for (int i = 0; i < size; i++)
-        {
-            pad_param->pad_0_h = data[0];
-            pad_param->pad_0_w = data[4];
-            pad_param->pad_1_h = data[1];
-            pad_param->pad_1_w = data[5];
-            pad_param->pad_2_h = data[2];
-            pad_param->pad_2_w = data[6];
-            pad_param->pad_3_h = data[3];
-            pad_param->pad_3_w = data[7];
-        }
-    }
+
     return 0;
 }
 
