@@ -118,7 +118,7 @@ IF (OpenCV_FOUND)
         TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE "${PROJECT_SOURCE_DIR}/examples/common")
         TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE "${PROJECT_SOURCE_DIR}/source")
         TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../source")
-        
+
         TARGET_LINK_LIBRARIES (${name} ${CMAKE_PROJECT_NAME} ${OpenCV_LIBS})
         INSTALL (TARGETS ${name} DESTINATION bin)
 
@@ -153,6 +153,7 @@ IF (OpenCV_FOUND)
     TENGINE_EXAMPLE_CV (tm_segformer             tm_segformer.cpp)
     TENGINE_EXAMPLE_CV (tm_seghuman              tm_seghuman.cpp)
     TENGINE_EXAMPLE_CV (tm_solov2                tm_solov2.cpp)
+    TENGINE_EXAMPLE_CV (tm_apollo_smoke          tm_apollo_smoke.cpp)
     TENGINE_EXAMPLE_CV (tm_rvm                   tm_rvm.cpp)
     IF(TENGINE_ENABLE_TIM_VX)
         TENGINE_EXAMPLE_CV (tm_yolov3_timvx          tm_yolov3_timvx.cpp)
