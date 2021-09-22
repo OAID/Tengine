@@ -193,11 +193,11 @@ static void generate_grids_and_stride(const int target_w, const int target_h, st
         {
             for (int g0 = 0; g0 < num_grid_w; g0++)
             {
-				GridAndStride gs;
-				gs.grid0 = g0;
-				gs.grid1 = g1;
-				gs.stride = stride;
-				grid_strides.push_back(gs);
+                GridAndStride gs;
+                gs.grid0 = g0;
+                gs.grid1 = g1;
+                gs.stride = stride;
+                grid_strides.push_back(gs);
             }
         }
     }
@@ -495,7 +495,7 @@ int main(int argc, char* argv[])
 
     std::vector<int> strides = {8, 16, 32}; // might have stride=64
     std::vector<GridAndStride> grid_strides;
-    generate_grids_and_stride(letterbox_cols,letterbox_rows, strides, grid_strides);
+    generate_grids_and_stride(letterbox_cols, letterbox_rows, strides, grid_strides);
     generate_yolox_proposals(grid_strides, p8_data, prob_threshold, proposals);
     qsort_descent_inplace(proposals);
     std::vector<int> picked;
