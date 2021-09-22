@@ -47,14 +47,14 @@ static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, 
     return 0;
 }
 
-static void ref_pad_fp32(float* input, float* output, int in_h, int in_w, int out_h, int out_w, int top, int left, float v,int mode)
+static void ref_pad_fp32(float* input, float* output, int in_h, int in_w, int out_h, int out_w, int top, int left, float v, int mode)
 {
     float* ptr = input;
     float* outptr = output;
     int y = 0;
     // fill top
 
-    if(0 == mode)
+    if (0 == mode)
     {
         for (; y < top; y++)
         {
@@ -105,20 +105,19 @@ static void ref_pad_fp32(float* input, float* output, int in_h, int in_w, int ou
             outptr += out_w;
         }
     }
-    else if(1 == mode)
+    else if (1 == mode)
     {
-
         for (; y < top; y++)
         {
             int x = 0;
             // padding left
-            for(;x < left;x++)
+            for (; x < left; x++)
             {
                 outptr[x] = ptr[0];
             }
 
             // padding center
-            if(in_w < 12)
+            if (in_w < 12)
             {
                 for (; x < (left + in_w); x++)
                 {
@@ -127,7 +126,7 @@ static void ref_pad_fp32(float* input, float* output, int in_h, int in_w, int ou
             }
             else
             {
-                memcpy(outptr+left,ptr,sizeof(float)*in_w);
+                memcpy(outptr + left, ptr, sizeof(float) * in_w);
                 x = x + in_w;
             }
             //pading right
@@ -159,14 +158,14 @@ static void ref_pad_fp32(float* input, float* output, int in_h, int in_w, int ou
             }
             else
             {
-                memcpy(outptr+left,ptr,sizeof(float)*in_w);
+                memcpy(outptr + left, ptr, sizeof(float) * in_w);
                 x += in_w;
             }
 
             // paddding right
             for (; x < out_w; x++)
             {
-                outptr[x] = ptr[in_w-1];
+                outptr[x] = ptr[in_w - 1];
             }
             ptr += in_w;
             outptr += out_w;
@@ -176,13 +175,13 @@ static void ref_pad_fp32(float* input, float* output, int in_h, int in_w, int ou
         {
             int x = 0;
             // padding left
-            for(;x < left;x++)
+            for (; x < left; x++)
             {
                 outptr[x] = ptr[0];
             }
 
             // padding center
-            if(in_w < 12)
+            if (in_w < 12)
             {
                 for (; x < (left + in_w); x++)
                 {
@@ -191,7 +190,7 @@ static void ref_pad_fp32(float* input, float* output, int in_h, int in_w, int ou
             }
             else
             {
-                memcpy(outptr+left,ptr,sizeof(float)*in_w);
+                memcpy(outptr + left, ptr, sizeof(float) * in_w);
                 x = x + in_w;
             }
             //pading right
@@ -201,22 +200,21 @@ static void ref_pad_fp32(float* input, float* output, int in_h, int in_w, int ou
             }
             outptr += out_w;
         }
-
     }
-    else if(2 == mode)
+    else if (2 == mode)
     {
         ptr += top * in_w;
         for (; y < top; y++)
         {
             int x = 0;
             // padding left
-            for(;x < left;x++)
+            for (; x < left; x++)
             {
                 outptr[x] = ptr[left - x];
             }
 
             // padding center
-            if(in_w < 12)
+            if (in_w < 12)
             {
                 for (; x < (left + in_w); x++)
                 {
@@ -225,7 +223,7 @@ static void ref_pad_fp32(float* input, float* output, int in_h, int in_w, int ou
             }
             else
             {
-                memcpy(outptr+left,ptr,sizeof(float)*in_w);
+                memcpy(outptr + left, ptr, sizeof(float) * in_w);
                 x = x + in_w;
             }
 
@@ -243,13 +241,13 @@ static void ref_pad_fp32(float* input, float* output, int in_h, int in_w, int ou
         {
             int x = 0;
             // padding left
-            for(;x < left;x++)
+            for (; x < left; x++)
             {
                 outptr[x] = ptr[left - x];
             }
 
             // padding center
-            if(in_w < 12)
+            if (in_w < 12)
             {
                 for (; x < (left + in_w); x++)
                 {
@@ -258,7 +256,7 @@ static void ref_pad_fp32(float* input, float* output, int in_h, int in_w, int ou
             }
             else
             {
-                memcpy(outptr+left,ptr,sizeof(float)*in_w);
+                memcpy(outptr + left, ptr, sizeof(float) * in_w);
                 x = x + in_w;
             }
 
@@ -276,13 +274,13 @@ static void ref_pad_fp32(float* input, float* output, int in_h, int in_w, int ou
         {
             int x = 0;
             // padding left
-            for(;x < left;x++)
+            for (; x < left; x++)
             {
                 outptr[x] = ptr[left - x];
             }
 
             // padding center
-            if(in_w < 12)
+            if (in_w < 12)
             {
                 for (; x < (left + in_w); x++)
                 {
@@ -291,7 +289,7 @@ static void ref_pad_fp32(float* input, float* output, int in_h, int in_w, int ou
             }
             else
             {
-                memcpy(outptr+left,ptr,sizeof(float)*in_w);
+                memcpy(outptr + left, ptr, sizeof(float) * in_w);
                 x = x + in_w;
             }
 
@@ -304,11 +302,9 @@ static void ref_pad_fp32(float* input, float* output, int in_h, int in_w, int ou
             ptr -= in_w;
         }
     }
-
-
 }
 
-static void ref_pad_uint8(uint8_t* input, uint8_t* output, int in_h, int in_w, int out_h, int out_w, int top, int left, float v,int mode)
+static void ref_pad_uint8(uint8_t* input, uint8_t* output, int in_h, int in_w, int out_h, int out_w, int top, int left, float v, int mode)
 {
     uint8_t* ptr = input;
     uint8_t* outptr = output;
@@ -316,7 +312,7 @@ static void ref_pad_uint8(uint8_t* input, uint8_t* output, int in_h, int in_w, i
     int y = 0;
     // fill top
 
-    if(0 == mode)
+    if (0 == mode)
     {
         for (; y < top; y++)
         {
@@ -367,20 +363,19 @@ static void ref_pad_uint8(uint8_t* input, uint8_t* output, int in_h, int in_w, i
             outptr += out_w;
         }
     }
-    else if(1 == mode)
+    else if (1 == mode)
     {
-
         for (; y < top; y++)
         {
             int x = 0;
             // padding left
-            for(;x < left;x++)
+            for (; x < left; x++)
             {
                 outptr[x] = ptr[0];
             }
 
             // padding center
-            if(in_w < 12)
+            if (in_w < 12)
             {
                 for (; x < (left + in_w); x++)
                 {
@@ -389,7 +384,7 @@ static void ref_pad_uint8(uint8_t* input, uint8_t* output, int in_h, int in_w, i
             }
             else
             {
-                memcpy(outptr+left,ptr,sizeof(float)*in_w);
+                memcpy(outptr + left, ptr, sizeof(float) * in_w);
                 x = x + in_w;
             }
             //pading right
@@ -421,14 +416,14 @@ static void ref_pad_uint8(uint8_t* input, uint8_t* output, int in_h, int in_w, i
             }
             else
             {
-                memcpy(outptr+left,ptr,sizeof(float)*in_w);
+                memcpy(outptr + left, ptr, sizeof(float) * in_w);
                 x += in_w;
             }
 
             // paddding right
             for (; x < out_w; x++)
             {
-                outptr[x] = ptr[in_w-1];
+                outptr[x] = ptr[in_w - 1];
             }
             ptr += in_w;
             outptr += out_w;
@@ -438,13 +433,13 @@ static void ref_pad_uint8(uint8_t* input, uint8_t* output, int in_h, int in_w, i
         {
             int x = 0;
             // padding left
-            for(;x < left;x++)
+            for (; x < left; x++)
             {
                 outptr[x] = ptr[0];
             }
 
             // padding center
-            if(in_w < 12)
+            if (in_w < 12)
             {
                 for (; x < (left + in_w); x++)
                 {
@@ -453,7 +448,7 @@ static void ref_pad_uint8(uint8_t* input, uint8_t* output, int in_h, int in_w, i
             }
             else
             {
-                memcpy(outptr+left,ptr,sizeof(float)*in_w);
+                memcpy(outptr + left, ptr, sizeof(float) * in_w);
                 x = x + in_w;
             }
             //pading right
@@ -463,22 +458,21 @@ static void ref_pad_uint8(uint8_t* input, uint8_t* output, int in_h, int in_w, i
             }
             outptr += out_w;
         }
-
     }
-    else if(2 == mode)
+    else if (2 == mode)
     {
         ptr += top * in_w;
         for (; y < top; y++)
         {
             int x = 0;
             // padding left
-            for(;x < left;x++)
+            for (; x < left; x++)
             {
                 outptr[x] = ptr[left - x];
             }
 
             // padding center
-            if(in_w < 12)
+            if (in_w < 12)
             {
                 for (; x < (left + in_w); x++)
                 {
@@ -487,7 +481,7 @@ static void ref_pad_uint8(uint8_t* input, uint8_t* output, int in_h, int in_w, i
             }
             else
             {
-                memcpy(outptr+left,ptr,sizeof(float)*in_w);
+                memcpy(outptr + left, ptr, sizeof(float) * in_w);
                 x = x + in_w;
             }
 
@@ -505,13 +499,13 @@ static void ref_pad_uint8(uint8_t* input, uint8_t* output, int in_h, int in_w, i
         {
             int x = 0;
             // padding left
-            for(;x < left;x++)
+            for (; x < left; x++)
             {
                 outptr[x] = ptr[left - x];
             }
 
             // padding center
-            if(in_w < 12)
+            if (in_w < 12)
             {
                 for (; x < (left + in_w); x++)
                 {
@@ -520,7 +514,7 @@ static void ref_pad_uint8(uint8_t* input, uint8_t* output, int in_h, int in_w, i
             }
             else
             {
-                memcpy(outptr+left,ptr,sizeof(float)*in_w);
+                memcpy(outptr + left, ptr, sizeof(float) * in_w);
                 x = x + in_w;
             }
 
@@ -532,19 +526,19 @@ static void ref_pad_uint8(uint8_t* input, uint8_t* output, int in_h, int in_w, i
             outptr += out_w;
             ptr += in_w;
         }
-        ptr -= 2* in_w;
+        ptr -= 2 * in_w;
         // fill bottom
         for (; y < out_h; y++)
         {
             int x = 0;
             // padding left
-            for(;x < left;x++)
+            for (; x < left; x++)
             {
                 outptr[x] = ptr[left - x];
             }
 
             // padding center
-            if(in_w < 12)
+            if (in_w < 12)
             {
                 for (; x < (left + in_w); x++)
                 {
@@ -553,7 +547,7 @@ static void ref_pad_uint8(uint8_t* input, uint8_t* output, int in_h, int in_w, i
             }
             else
             {
-                memcpy(outptr+left,ptr,sizeof(float)*in_w);
+                memcpy(outptr + left, ptr, sizeof(float) * in_w);
                 x = x + in_w;
             }
 
@@ -598,99 +592,96 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     int pad_front = param->pad_1_h;
     int pad_back = param->pad_1_w;
 
-
-    if((param->mode != 0) && (param->mode != 1)&& (param->mode != 2))
+    if ((param->mode != 0) && (param->mode != 1) && (param->mode != 2))
     {
         TLOG_ERR("another mode dose not support, pad mode value %d\n", param->mode);
         return -1;
     }
 
-
-
-    for(int n = 0;n < batch;n++)
+    for (int n = 0; n < batch; n++)
     {
         // padding wh
-        for(int c = 0; c < in_c; c++)
+        for (int c = 0; c < in_c; c++)
         {
             if (input_tensor->data_type == TENGINE_DT_FP32)
             {
                 float* input_data = (float*)input_tensor->data + n * in_size + c * in_cstep;
                 float* output_data = (float*)output_tensor->data + n * out_size + (c + pad_front) * out_cstep;
-                ref_pad_fp32(input_data, output_data, in_h, in_w, out_h, out_w, pad_top, pad_left, param->value,param->mode);
+                ref_pad_fp32(input_data, output_data, in_h, in_w, out_h, out_w, pad_top, pad_left, param->value, param->mode);
             }
             else if (input_tensor->data_type == TENGINE_DT_UINT8)
             {
                 uint8_t* input_data = (uint8_t*)input_tensor->data + n * in_size + c * in_cstep;
                 uint8_t* output_data = (uint8_t*)output_tensor->data + n * out_size + (c + pad_front) * out_cstep;
-                ref_pad_uint8(input_data, output_data, in_h, in_w, out_h, out_w, pad_top, pad_left, param->value,param->mode);
+                ref_pad_uint8(input_data, output_data, in_h, in_w, out_h, out_w, pad_top, pad_left, param->value, param->mode);
             }
         }
 
         // padding channel : front
-        for(int c = 0; c < pad_front;c++)
+        for (int c = 0; c < pad_front; c++)
         {
-            if(0 == param->mode)
+            if (0 == param->mode)
             {
                 if (input_tensor->data_type == TENGINE_DT_FP32)
                 {
                     float* output_data = (float*)output_tensor->data + n * out_size + c * out_cstep;
-                    memset(output_data,param->value,sizeof(float)*out_cstep);
+                    memset(output_data, param->value, sizeof(float) * out_cstep);
                 }
-                else if(input_tensor->data_type == TENGINE_DT_UINT8)
+                else if (input_tensor->data_type == TENGINE_DT_UINT8)
                 {
                     uint8_t* output_data = (uint8_t*)output_tensor->data + n * out_size + c * out_cstep;
-                    memset(output_data,param->value,sizeof(uint8_t)*out_cstep);
+                    memset(output_data, param->value, sizeof(uint8_t) * out_cstep);
                 }
             }
-            else{
+            else
+            {
                 if (input_tensor->data_type == TENGINE_DT_FP32)
                 {
                     float* output_data = (float*)output_tensor->data + n * out_size + c * out_cstep;
                     float* copy_data = (float*)output_tensor->data + n * out_size + pad_front * out_cstep;
-                    memcpy(output_data,copy_data,sizeof(float)*out_cstep);
+                    memcpy(output_data, copy_data, sizeof(float) * out_cstep);
                 }
-                else if(input_tensor->data_type == TENGINE_DT_UINT8)
+                else if (input_tensor->data_type == TENGINE_DT_UINT8)
                 {
                     uint8_t* output_data = (uint8_t*)output_tensor->data + n * out_size + c * out_cstep;
                     uint8_t* copy_data = (uint8_t*)output_tensor->data + n * out_size + pad_front * out_cstep;
-                    memcpy(output_data,copy_data,sizeof(uint8_t)*out_cstep);
+                    memcpy(output_data, copy_data, sizeof(uint8_t) * out_cstep);
                 }
             }
         }
 
         // padding channel : back
-        for(int c = pad_front + in_c; c < out_c;c++)
+        for (int c = pad_front + in_c; c < out_c; c++)
         {
-            if(0 == param->mode)
+            if (0 == param->mode)
             {
                 if (input_tensor->data_type == TENGINE_DT_FP32)
                 {
                     float* output_data = (float*)output_tensor->data + n * out_size + c * out_cstep;
-                    memset(output_data,param->value,sizeof(float)*out_cstep);
+                    memset(output_data, param->value, sizeof(float) * out_cstep);
                 }
-                else if(input_tensor->data_type == TENGINE_DT_UINT8)
+                else if (input_tensor->data_type == TENGINE_DT_UINT8)
                 {
                     uint8_t* output_data = (uint8_t*)output_tensor->data + n * out_size + c * out_cstep;
-                    memset(output_data,param->value,sizeof(uint8_t)*out_cstep);
+                    memset(output_data, param->value, sizeof(uint8_t) * out_cstep);
                 }
             }
-            else{
-
+            else
+            {
                 if (input_tensor->data_type == TENGINE_DT_FP32)
                 {
                     float* output_data = (float*)output_tensor->data + n * out_size + c * out_cstep;
-                    float* copy_data = (float*)output_tensor->data + n * out_size + (pad_front+in_c) * out_cstep;
-                    memcpy(output_data,copy_data,sizeof(float)*out_cstep);
+                    float* copy_data = (float*)output_tensor->data + n * out_size + (pad_front + in_c) * out_cstep;
+                    memcpy(output_data, copy_data, sizeof(float) * out_cstep);
                 }
-                else if(input_tensor->data_type == TENGINE_DT_UINT8)
+                else if (input_tensor->data_type == TENGINE_DT_UINT8)
                 {
                     uint8_t* output_data = (uint8_t*)output_tensor->data + n * out_size + c * out_cstep;
-                    uint8_t* copy_data = (uint8_t*)output_tensor->data + n * out_size + (pad_front+in_c) * out_cstep;
-                    memcpy(output_data,copy_data,sizeof(uint8_t)*out_cstep);
+                    uint8_t* copy_data = (uint8_t*)output_tensor->data + n * out_size + (pad_front + in_c) * out_cstep;
+                    memcpy(output_data, copy_data, sizeof(uint8_t) * out_cstep);
                 }
             }
         }
-
     }
 
     return 0;

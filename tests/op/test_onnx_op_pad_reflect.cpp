@@ -83,10 +83,8 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-
     /* prepare process input data, set the data mem to input tensor */
     get_pb_data(feature_in.data(), input_0_pb);
-
 
     /* prerun graph, set work options(num_thread, cluster, precision) */
     if (prerun_graph_multithread(graph, opt) < 0)
@@ -94,8 +92,6 @@ int main(int argc, char* argv[])
         fprintf(stderr, "Prerun multithread graph failed.\n");
         return -1;
     }
-
-
 
     /* run graph */
     if (run_graph(graph, 1) < 0)
