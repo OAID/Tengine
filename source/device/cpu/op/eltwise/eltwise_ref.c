@@ -907,8 +907,16 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         }
         else if (input_tensor0->dim_num == 3)
         {
-            input_chan_0 = input_tensor0->dims[0];
-            input_hw_0 = input_tensor0->dims[1] * input_tensor0->dims[2];
+            if (input_tensor0->dims[0] == 1)
+            {
+                input_chan_0 = input_tensor0->dims[1];
+                input_hw_0 = input_tensor0->dims[2];
+            }
+            else
+            {
+                input_chan_0 = input_tensor0->dims[0];
+                input_hw_0 = input_tensor0->dims[1] * input_tensor0->dims[2];
+            }
         }
         else
         {
