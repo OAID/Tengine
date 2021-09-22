@@ -184,25 +184,24 @@ struct GridAndStride
     int stride;
 };
 
-static int generate_grids_and_stride(const int target_size, std::vector<int>& strides, std::vector<GridAndStride>& grid_strides)
+static void generate_grids_and_stride(const int target_w, const int target_h, std::vector<int>& strides, std::vector<GridAndStride>& grid_strides)
 {
     for (auto stride : strides)
     {
-        int num_grid = target_size / stride;
-        for (int g1 = 0; g1 < num_grid; g1++)
+        int num_grid_w = target_w / stride;
+        int num_grid_h = target_h / stride;
+        for (int g1 = 0; g1 < num_grid_h; g1++)
         {
-            for (int g0 = 0; g0 < num_grid; g0++)
+            for (int g0 = 0; g0 < num_grid_w; g0++)
             {
-                GridAndStride ss;
-                ss.grid0 = g0;
-                ss.grid1 = g1;
-                ss.stride = stride;
-                grid_strides.push_back(ss);
+                GridAndStride gs;
+                gs.grid0 = g0;
+                gs.grid1 = g1;
+                gs.stride = stride;
+                grid_strides.push_back(gs);
             }
         }
     }
-
-    return 0;
 }
 
 static void generate_yolox_proposals(std::vector<GridAndStride> grid_strides, float* feat_ptr, float prob_threshold, std::vector<Object>& objects)
@@ -291,7 +290,7 @@ void get_input_data_focus_uint8(const char* image_file, uint8_t* input_data, int
 
     img.convertTo(img, CV_32FC3);
     // Generate a gray image for letterbox using opencv
-    cv::Mat img_new(letterbox_cols, letterbox_rows, CV_32FC3, cv::Scalar(0, 0, 0) /*cv::Scalar(0.5/scale[0] + mean[0], 0.5/scale[1] + mean[1], 0.5/ scale[2] + mean[2])*/);
+    cv::Mat img_new(letterbox_rows, letterbox_cols, CV_32FC3, cv::Scalar(0, 0, 0) /*cv::Scalar(0.5/scale[0] + mean[0], 0.5/scale[1] + mean[1], 0.5/ scale[2] + mean[2])*/);
     int top = 0;
     int bot = letterbox_rows - resize_rows;
     int left = 0;
@@ -527,7 +526,7 @@ int main(int argc, char* argv[])
 
     std::vector<int> strides = {8, 16, 32}; // might have stride=64
     std::vector<GridAndStride> grid_strides;
-    generate_grids_and_stride(letterbox_rows, strides, grid_strides);
+    generate_grids_and_stride(letterbox_cols, letterbox_rows, strides, grid_strides);
     generate_yolox_proposals(grid_strides, p8_data.data(), prob_threshold, proposals);
     qsort_descent_inplace(proposals);
     std::vector<int> picked;
