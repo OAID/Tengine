@@ -2263,10 +2263,10 @@ static int load_gru(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& o
 {
     gru_param* param = (gru_param*)node->op.param_mem;
     int s_size;
-    for(int k = 0; k < onnx_node.attribute_size(); k++)
+    for (int k = 0; k < onnx_node.attribute_size(); k++)
     {
         const onnx::AttributeProto& attr = onnx_node.attribute(k);
-        if(attr.name() == "hidden_size")
+        if (attr.name() == "hidden_size")
             s_size = attr.i();
         // if(attr.name() == "linear_before_reset")
         //     param->linear_before_reset = attr.i();
