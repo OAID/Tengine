@@ -341,7 +341,8 @@ int add_node_above(ir_graph_t* graph, int16_t down_node_id, int add_node_type, c
         }
         set_ir_node_input_tensor(add_node, i, up_node_output_tensor);
     }
-    down_node->input_tensors[0] = add_tensor->index;
+    if (down_node->input_num != 0)
+        down_node->input_tensors[0] = add_tensor->index;
     add_tensor->consumer[0] = down_node_id;
     add_tensor->consumer_num = 1;
 

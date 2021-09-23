@@ -871,21 +871,16 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         input1 = input_tensor1->data;
         input1_count4 = input_tensor1->elem_num;
         int dim1_size = input_tensor1->dim_num;
-        switch (dim1_size)
+        if (dim1_size == 1)
         {
-        case 1:
             input_hw_1 = input_tensor1->dims[0];
-            break;
-        case 2:
-            input_hw_1 = input_tensor1->dims[0] * input_tensor1->dims[1];
-            break;
-        case 3:
-            input_hw_1 = input_tensor1->dims[1] * input_tensor1->dims[2];
-            break;
-        case 4:
-            input_hw_1 = input_tensor1->dims[2] * input_tensor1->dims[3];
-            break;
-        default:
+        }
+        else if (dim1_size > 1)
+        {
+            input_hw_1 = input_tensor1->dims[dim1_size - 2] * input_tensor1->dims[dim1_size - 1];
+        }
+        else
+        {
             return -1;
         }
     }
@@ -896,13 +891,9 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         int input_hw_0 = 0;
         int input0_count4 = input_tensor0->elem_num;
         int dim0_size = input_tensor0->dim_num;
-        if (input_tensor0->dim_num == 4)
+        if (input_tensor0->dim_num >= 4)
         {
-            input_chan_0 = input_tensor0->dims[dim0_size - 3];
-            if (input_tensor0->dims[dim0_size - 4])
-            {
-                input_chan_0 *= input_tensor0->dims[dim0_size - 4];
-            }
+            input_chan_0 = input_tensor0->dims[dim0_size - 3] * input_tensor0->dims[dim0_size - 4];
             input_hw_0 = input_tensor0->dims[dim0_size - 2] * input_tensor0->dims[dim0_size - 1];
         }
         else if (input_tensor0->dim_num == 3)

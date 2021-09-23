@@ -359,9 +359,10 @@ static int load_conv(ir_graph_t* graph, ir_node_t* node, std::vector<std::string
     {
         std::string mish_name = "mish_" + std::to_string(index);
         ir_node_t* mish_node = create_ir_node(graph, mish_name.c_str(), OP_MISH, OP_VERSION);
+        set_ir_node_input_tensor(mish_node, 0, out_tensor);
         std::string mish_tensor_name = mish_name + "_0";
         ir_tensor_t* mish_out_tensor = create_ir_tensor(graph, mish_tensor_name.c_str(), TENGINE_DT_FP32);
-        set_ir_tensor_shape(tensor, out_dims.data(), out_dims.size());
+        set_ir_tensor_shape(mish_out_tensor, out_dims.data(), out_dims.size());
         set_ir_node_output_tensor(mish_node, 0, mish_out_tensor);
 
         // update the tensor name map;
@@ -516,7 +517,8 @@ static int load_route(ir_graph_t* graph, ir_node_t* node, std::vector<std::strin
 
             int step = input_tensor->dims[1] / groups_arr[i];
             out_dims[1] = step;
-            ir_node_t* slice_node = create_ir_node(graph, slice_name.c_str(), OP_SLICE, OP_VERSION);
+            int slice_node_id = add_node_above(graph, node->index, OP_SLICE, slice_name.c_str());
+            ir_node_t* slice_node = get_ir_graph_node(graph, slice_node_id);
             slice_param* param = (slice_param*)slice_node->op.param_mem;
             param->axis = 1;
             param->iscaffe = 0;
@@ -524,12 +526,14 @@ static int load_route(ir_graph_t* graph, ir_node_t* node, std::vector<std::strin
             param->isonnx = 1;
             param->begin = step * group_id_arr[i];
             param->end = step * (group_id_arr[i] + 1);
+            param->slice_point_ = NULL;
+            param->begin_ = NULL;
+            param->size_ = NULL;
             set_ir_node_input_tensor(slice_node, 0, input_tensor);
 
             std::string slice_tensor_name = slice_name + "_" + std::to_string(0);
-            ir_tensor_t* slice_out_tensor = create_ir_tensor(graph, slice_tensor_name.c_str(), TENGINE_DT_FP32);
+            ir_tensor_t* slice_out_tensor = get_ir_graph_tensor(graph, slice_node->output_tensors[0]);
             set_ir_tensor_shape(slice_out_tensor, out_dims.data(), out_dims.size());
-            set_ir_node_output_tensor(slice_node, 0, slice_out_tensor);
             slice_node_arr.push_back(slice_node);
         }
     }

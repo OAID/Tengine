@@ -2259,6 +2259,31 @@ static int load_expand(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto
     return 0;
 }
 
+static int load_gru(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
+{
+    gru_param* param = (gru_param*)node->op.param_mem;
+    int s_size;
+    for (int k = 0; k < onnx_node.attribute_size(); k++)
+    {
+        const onnx::AttributeProto& attr = onnx_node.attribute(k);
+        if (attr.name() == "hidden_size")
+            s_size = attr.i();
+        // if(attr.name() == "linear_before_reset")
+        //     param->linear_before_reset = attr.i();
+    }
+    param->hidden_size = s_size;
+    param->clip = 0;
+    param->output_len = 1;
+    param->sequence_len = 1;
+    param->input_size = 1;
+    param->has_clip = 0;
+    param->has_gate_bias = 0;
+    param->has_candidate_bias = 0;
+    param->has_init_state = 0;
+
+    return 0;
+}
+
 /*
 *   OPERAOTR REGISTER FUNCTION DEFINE FOR ONNX SERIALIZER START
 */
@@ -2293,6 +2318,7 @@ void onnx_serializer::register_op_load()
     op_load_map["Gemm"] = std::pair<int, op_load_t>(OP_GEMM, load_gemm);
     op_load_map["Gather"] = std::pair<int, op_load_t>(OP_GATHER, load_gather);
     op_load_map["Greater"] = std::pair<int, op_load_t>(OP_COMPARISON, load_comparison);
+    op_load_map["GRU"] = std::pair<int, op_load_t>(OP_GRU, load_gru);
     op_load_map["GlobalAveragePool"] = std::pair<int, op_load_t>(OP_POOL, load_pool);
     op_load_map["HardSwish"] = std::pair<int, op_load_t>(OP_HARDSWISH, load_no_param);
     op_load_map["HardSigmoid"] = std::pair<int, op_load_t>(OP_HARDSIGMOID, load_hard_sigmoid);
