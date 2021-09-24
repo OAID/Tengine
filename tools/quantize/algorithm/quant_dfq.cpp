@@ -146,7 +146,7 @@ int QuantTool::data_free_quant()
                         uint16_t node_input_id = node_proto[i].input_node_list[0];
                         uint16_t node_output_id = node_proto[i].output_node_list[0];
                         auto op_name0 = graphn->node_list[node_input_id]->op.type;
-                        auto op_name2 = graphn->node_list[node_input_id]->op.type;
+                        auto op_name2 = graphn->node_list[node_output_id]->op.type;
 
                         if (node_proto[node_input_id].output_node_list.size() == 1 && node_proto[node_output_id].input_node_list.size() == 1 && OP_CONV == op_name0 && OP_CONV == op_name2)
                         {
@@ -353,132 +353,136 @@ int QuantTool::data_free_quant()
 
                                 if (node_proto[node_input_id].output_node_list.size() == 1 && op_name0 == OP_CONV)
                                 {
-                                    node_proto[i].pass = 1;             //layer1
-                                    node_proto[node_input_id].pass = 1; //layer0
-
-                                    // layer0 min/max range
-                                    struct node* nodeP = graphn->node_list[node_input_id];
-                                    struct tensor* input_tensor = get_ir_graph_tensor(graphn, nodeP->input_tensors[1]);
-                                    uint16_t dims0 = input_tensor->dims[0];
-                                    uint16_t dims123 = input_tensor->dims[1] * input_tensor->dims[2] * input_tensor->dims[3];
-
-                                    std::vector<float> layer0_max(dims0, 0.0f);
-                                    std::vector<float> layer0_min(dims0, 0.0f);
-                                    std::vector<float> layer0_range(dims0, 0.0f);
-
-                                    float* data_layer0 = (float*)input_tensor->data;
-                                    for (int d0 = 0; d0 < dims0; d0++)
+                                    struct conv_param* conv_param0 = (struct conv_param*)graphn->node_list[node_input_id]->op.param_mem;
+                                    if (conv_param0->group != conv_param0->output_channel || conv_param0->group == 1)
                                     {
-                                        for (int d1 = 0; d1 < dims123; d1++)
+                                        node_proto[i].pass = 1;             //layer1
+                                        node_proto[node_input_id].pass = 1; //layer0
+
+                                        // layer0 min/max range
+                                        struct node* nodeP = graphn->node_list[node_input_id];
+                                        struct tensor* input_tensor = get_ir_graph_tensor(graphn, nodeP->input_tensors[1]);
+                                        uint16_t dims0 = input_tensor->dims[0];
+                                        uint16_t dims123 = input_tensor->dims[1] * input_tensor->dims[2] * input_tensor->dims[3];
+
+                                        std::vector<float> layer0_max(dims0, 0.0f);
+                                        std::vector<float> layer0_min(dims0, 0.0f);
+                                        std::vector<float> layer0_range(dims0, 0.0f);
+
+                                        float* data_layer0 = (float*)input_tensor->data;
+                                        for (int d0 = 0; d0 < dims0; d0++)
                                         {
-                                            if (data_layer0[dims123 * d0 + d1] > layer0_max[d0])
-                                                layer0_max[d0] = data_layer0[dims123 * d0 + d1];
-                                            if (data_layer0[dims123 * d0 + d1] < layer0_max[d0])
-                                                layer0_min[d0] = data_layer0[dims123 * d0 + d1];
-                                        }
-                                    }
-                                    //                                    printf("### %d ###\n",dims0);
-                                    for (int d0 = 0; d0 < dims0; d0++)
-                                    {
-                                        layer0_range[d0] = layer0_max[d0] - layer0_min[d0];
-                                    }
-
-                                    // layer1 min/max range
-                                    nodeP = graphn->node_list[i];
-                                    input_tensor = get_ir_graph_tensor(graphn, nodeP->input_tensors[1]);
-                                    dims0 = input_tensor->dims[0];
-                                    uint16_t dims1 = input_tensor->dims[1];
-                                    uint16_t dims23 = input_tensor->dims[2] * input_tensor->dims[3];
-
-                                    std::vector<float> layer1_max(dims0, 0.0f);
-                                    std::vector<float> layer1_min(dims0, 0.0f);
-                                    std::vector<float> layer1_range(dims0, 0.0f);
-
-                                    float* data_layer1 = (float*)input_tensor->data;
-                                    for (int d0 = 0; d0 < dims0; d0++)
-                                    {
-                                        for (int d1 = 0; d1 < dims1; d1++)
-                                        {
-                                            for (int d2 = 0; d2 < dims23; d2++)
+                                            for (int d1 = 0; d1 < dims123; d1++)
                                             {
-                                                if (data_layer1[dims1 * dims23 * d0 + dims23 * d1 + d2] > layer1_max[d1])
+                                                if (data_layer0[dims123 * d0 + d1] >= layer0_max[d0])
+                                                    layer0_max[d0] = data_layer0[dims123 * d0 + d1];
+                                                if (data_layer0[dims123 * d0 + d1] < layer0_max[d0])
+                                                    layer0_min[d0] = data_layer0[dims123 * d0 + d1];
+                                            }
+                                        }
+                                        //                                    printf("### %d ###\n",dims0);
+                                        for (int d0 = 0; d0 < dims0; d0++)
+                                        {
+                                            layer0_range[d0] = layer0_max[d0] - layer0_min[d0];
+                                        }
+
+                                        // layer1 min/max range
+                                        nodeP = graphn->node_list[i];
+                                        input_tensor = get_ir_graph_tensor(graphn, nodeP->input_tensors[1]);
+                                        dims0 = input_tensor->dims[0];
+                                        uint16_t dims1 = input_tensor->dims[1];
+                                        uint16_t dims23 = input_tensor->dims[2] * input_tensor->dims[3];
+
+                                        std::vector<float> layer1_max(dims1, 0.0f);
+                                        std::vector<float> layer1_min(dims1, 0.0f);
+                                        std::vector<float> layer1_range(dims1, 0.0f);
+
+                                        float* data_layer1 = (float*)input_tensor->data;
+                                        for (int d0 = 0; d0 < dims0; d0++)
+                                        {
+                                            for (int d1 = 0; d1 < dims1; d1++)
+                                            {
+                                                for (int d2 = 0; d2 < dims23; d2++)
                                                 {
-                                                    layer1_max[d1] = data_layer1[dims1 * dims23 * d0 + dims23 * d1 + d2];
-                                                }
-                                                if (data_layer1[dims1 * dims23 * d0 + dims23 * d1 + d2] < layer1_min[d1])
-                                                {
-                                                    layer1_min[d1] = data_layer1[dims1 * dims23 * d0 + dims23 * d1 + d2];
+                                                    if (data_layer1[dims1 * dims23 * d0 + dims23 * d1 + d2] >= layer1_max[d1])
+                                                    {
+                                                        layer1_max[d1] = data_layer1[dims1 * dims23 * d0 + dims23 * d1 + d2];
+                                                    }
+                                                    if (data_layer1[dims1 * dims23 * d0 + dims23 * d1 + d2] < layer1_min[d1])
+                                                    {
+                                                        layer1_min[d1] = data_layer1[dims1 * dims23 * d0 + dims23 * d1 + d2];
+                                                    }
                                                 }
                                             }
                                         }
-                                    }
-                                    //                                    printf("### %d ###\n",dims1);
-                                    for (int d0 = 0; d0 < dims1; d0++)
-                                    {
-                                        layer1_range[d0] = layer1_max[d0] - layer1_min[d0];
-                                    }
-
-                                    //////////////////////////////////////////////////////////////////////////////////
-
-                                    // layer ops sqrt
-                                    float ops_range[dims1];
-                                    for (int ops = 0; ops < dims1; ops++)
-                                    {
-                                        ops_range[ops] = sqrt(layer0_range[ops] * layer1_range[ops]);
-                                    }
-
-                                    float S01[dims1];
-                                    float S01_F[dims1];
-                                    for (int ops = 0; ops < dims1; ops++)
-                                    {
-                                        if (ops_range[ops] == 0)
+                                        //                                    printf("### %d ###\n",dims1);
+                                        for (int d0 = 0; d0 < dims1; d0++)
                                         {
-                                            S01[ops] = 0.0;
+                                            layer1_range[d0] = layer1_max[d0] - layer1_min[d0];
                                         }
-                                        else
-                                        {
-                                            S01[ops] = layer0_range[ops] / ops_range[ops];
-                                        }
-                                        if (layer0_range[ops] == 0)
-                                            S01_F[ops] = 0.0;
-                                        else
-                                            S01_F[ops] = ops_range[ops] / layer0_range[ops];
-                                    }
-                                    //////////////////////////////////////////////////////////////////////////////////
-                                    // layer0 output
-                                    nodeP = graphn->node_list[node_input_id];
-                                    input_tensor = get_ir_graph_tensor(graphn, nodeP->input_tensors[1]);
-                                    dims0 = input_tensor->dims[0];
-                                    dims123 = input_tensor->dims[1] * input_tensor->dims[2] * input_tensor->dims[3];
-                                    for (int d0 = 0; d0 < dims0; d0++)
-                                    {
-                                        for (int d1 = 0; d1 < dims123; d1++)
-                                        {
-                                            data_layer0[dims123 * d0 + d1] = data_layer0[dims123 * d0 + d1] * S01_F[d0];
-                                        }
-                                    }
-                                    input_tensor = get_ir_graph_tensor(graphn, nodeP->input_tensors[2]);
-                                    dims0 = input_tensor->dims[0];
-                                    float* data_layer0_bias = (float*)sys_malloc(sizeof(float) * dims0);
-                                    data_layer0_bias = (float*)input_tensor->data;
-                                    for (int d0 = 0; d0 < dims0; d0++)
-                                    {
-                                        data_layer0_bias[d0] = data_layer0_bias[d0] * S01_F[d0];
-                                    }
 
-                                    // layer1 output
-                                    nodeP = graphn->node_list[i];
-                                    input_tensor = get_ir_graph_tensor(graphn, nodeP->input_tensors[1]);
-                                    dims0 = input_tensor->dims[0];
-                                    dims1 = input_tensor->dims[1];
-                                    dims23 = input_tensor->dims[2] * input_tensor->dims[3];
-                                    for (int d0 = 0; d0 < dims0; d0++)
-                                    {
-                                        for (int d1 = 0; d1 < dims1; d1++)
+                                        //////////////////////////////////////////////////////////////////////////////////
+
+                                        // layer ops sqrt
+                                        float ops_range[dims1];
+                                        for (int ops = 0; ops < dims1; ops++)
                                         {
-                                            for (int d2 = 0; d2 < dims23; d2++)
+                                            ops_range[ops] = sqrt(layer0_range[ops] * layer1_range[ops]);
+                                        }
+
+                                        float S01[dims1];
+                                        float S01_F[dims1];
+                                        for (int ops = 0; ops < dims1; ops++)
+                                        {
+                                            if (ops_range[ops] == 0)
                                             {
-                                                data_layer1[dims1 * dims23 * d0 + dims23 * d1 + d2] = data_layer1[dims1 * dims23 * d0 + dims23 * d1 + d2] * S01[d1];
+                                                S01[ops] = 0.0;
+                                            }
+                                            else
+                                            {
+                                                S01[ops] = layer0_range[ops] / ops_range[ops];
+                                            }
+                                            if (layer0_range[ops] == 0)
+                                                S01_F[ops] = 0.0;
+                                            else
+                                                S01_F[ops] = ops_range[ops] / layer0_range[ops];
+                                        }
+                                        //////////////////////////////////////////////////////////////////////////////////
+                                        // layer0 output
+                                        nodeP = graphn->node_list[node_input_id];
+                                        input_tensor = get_ir_graph_tensor(graphn, nodeP->input_tensors[1]);
+                                        dims0 = input_tensor->dims[0];
+                                        dims123 = input_tensor->dims[1] * input_tensor->dims[2] * input_tensor->dims[3];
+                                        for (int d0 = 0; d0 < dims0; d0++)
+                                        {
+                                            for (int d1 = 0; d1 < dims123; d1++)
+                                            {
+                                                data_layer0[dims123 * d0 + d1] = data_layer0[dims123 * d0 + d1] * S01_F[d0];
+                                            }
+                                        }
+                                        input_tensor = get_ir_graph_tensor(graphn, nodeP->input_tensors[2]);
+                                        dims0 = input_tensor->dims[0];
+                                        float* data_layer0_bias = (float*)sys_malloc(sizeof(float) * dims0);
+                                        data_layer0_bias = (float*)input_tensor->data;
+                                        for (int d0 = 0; d0 < dims0; d0++)
+                                        {
+                                            data_layer0_bias[d0] = data_layer0_bias[d0] * S01_F[d0];
+                                        }
+
+                                        // layer1 output
+                                        nodeP = graphn->node_list[i];
+                                        input_tensor = get_ir_graph_tensor(graphn, nodeP->input_tensors[1]);
+                                        dims0 = input_tensor->dims[0];
+                                        dims1 = input_tensor->dims[1];
+                                        dims23 = input_tensor->dims[2] * input_tensor->dims[3];
+                                        for (int d0 = 0; d0 < dims0; d0++)
+                                        {
+                                            for (int d1 = 0; d1 < dims1; d1++)
+                                            {
+                                                for (int d2 = 0; d2 < dims23; d2++)
+                                                {
+                                                    data_layer1[dims1 * dims23 * d0 + dims23 * d1 + d2] = data_layer1[dims1 * dims23 * d0 + dims23 * d1 + d2] * S01[d1];
+                                                }
                                             }
                                         }
                                     }
