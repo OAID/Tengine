@@ -12,9 +12,9 @@
 #include "tengine_operations.h"
 
 #define NUM_JOINTS   17
-#define TARGET_H     192      //lightning = 192,thunder = 256
-#define TARGET_W     192      //lightning = 192,thunder = 256
-#define FEATURE_SIZE 48       //lightning = 48,thunder = 64
+#define TARGET_H     192                //lightning = 192,thunder = 256
+#define TARGET_W     192                //lightning = 192,thunder = 256
+#define FEATURE_SIZE 48                 //lightning = 48,thunder = 64
 #define KPTS_SCALE   0.0208282470703125 //lightning = 0.0208282470703125,thunder = 0.015625
 typedef struct
 {
@@ -24,7 +24,8 @@ typedef struct
 } keypoint;
 
 template<class ForwardIterator>
-inline static size_t argmax(ForwardIterator first, ForwardIterator last) {
+inline static size_t argmax(ForwardIterator first, ForwardIterator last)
+{
     return std::distance(first, std::max_element(first, last));
 }
 
@@ -35,8 +36,8 @@ void show_usage()
         "[Usage]:  [-h]\n    [-m model_file] [-i image_file] [-r repeat_count] [-t thread_count]\n");
 }
 
-static void get_input_fp32_data(const char* image_file, float* input_data, 
-    int letterbox_rows, int letterbox_cols, const float* mean, const float* scale)
+static void get_input_fp32_data(const char* image_file, float* input_data,
+                                int letterbox_rows, int letterbox_cols, const float* mean, const float* scale)
 {
     cv::Mat sample = cv::imread(image_file, 1);
     cv::Mat img;
@@ -75,7 +76,7 @@ static void get_input_fp32_data(const char* image_file, float* input_data,
     cv::copyMakeBorder(img, img_new, top, bot, left, right, cv::BORDER_CONSTANT, cv::Scalar(0, 0, 0));
 
     float* img_data = (float*)img_new.data;
-    
+
     /* nhwc to nchw */
     for (int h = 0; h < letterbox_rows; h++)
     {
@@ -85,18 +86,17 @@ static void get_input_fp32_data(const char* image_file, float* input_data,
             {
                 int in_index = h * letterbox_cols * 3 + w * 3 + c;
                 int out_index = c * letterbox_rows * letterbox_cols + h * letterbox_cols + w;
-                input_data[out_index] = (img_data[in_index]-mean[c])* scale[c];
+                input_data[out_index] = (img_data[in_index] - mean[c]) * scale[c];
             }
         }
     }
-
 }
 
 static void draw_result(const cv::Mat& bgr, std::vector<keypoint> pose)
 {
-    int skele_index[][2] = { {0,1},{0,2},{1,3},{2,4},{0,5},{0,6},{5,6},{5,7},{7,9},{6,8},{8,10},{11,12},
-                                {5,11},{11,13},{13,15},{6,12},{12,14},{14,16} };
-    int color_index[][3] = { {255, 0, 0},
+    int skele_index[][2] = {{0, 1}, {0, 2}, {1, 3}, {2, 4}, {0, 5}, {0, 6}, {5, 6}, {5, 7}, {7, 9}, {6, 8}, {8, 10}, {11, 12}, {5, 11}, {11, 13}, {13, 15}, {6, 12}, {12, 14}, {14, 16}};
+    int color_index[][3] = {
+        {255, 0, 0},
         {0, 0, 255},
         {255, 0, 0},
         {0, 0, 255},
@@ -113,7 +113,8 @@ static void draw_result(const cv::Mat& bgr, std::vector<keypoint> pose)
         {255, 0, 0},
         {0, 0, 255},
         {0, 0, 255},
-        {0, 0, 255}, };
+        {0, 0, 255},
+    };
 
     for (int i = 0; i < 18; i++)
     {
@@ -127,11 +128,10 @@ static void draw_result(const cv::Mat& bgr, std::vector<keypoint> pose)
     }
 
     cv::imwrite("movenet_result.jpg", bgr);
-
 }
 
 static std::vector<keypoint> post_process(const float* center_data, const float* kpt_heatmap_data, const float* kpt_regress_data, const float* kpt_offset_data,
-    std::vector<std::vector<float>> dist_y, std::vector<std::vector<float>> dist_x,int letterbox_rows, int letterbox_cols, int img_h, int img_w)
+                                          std::vector<std::vector<float> > dist_y, std::vector<std::vector<float> > dist_x, int letterbox_rows, int letterbox_cols, int img_h, int img_w)
 {
     int top_index = 0;
     float top_score = 0;
@@ -143,13 +143,12 @@ static std::vector<keypoint> post_process(const float* center_data, const float*
     int ct_x = top_index - ct_y * FEATURE_SIZE;
 
     std::vector<float> kpt_ys_regress(NUM_JOINTS), kpt_xs_regress(NUM_JOINTS);
-    int offset =  ct_y * FEATURE_SIZE * NUM_JOINTS * 2 + ct_x * NUM_JOINTS * 2;
+    int offset = ct_y * FEATURE_SIZE * NUM_JOINTS * 2 + ct_x * NUM_JOINTS * 2;
     for (size_t i = 0; i < NUM_JOINTS; i++)
     {
         kpt_ys_regress[i] = kpt_regress_data[i + offset] + (float)ct_y;
         kpt_xs_regress[i] = kpt_regress_data[i + offset + NUM_JOINTS] + (float)ct_x;
     }
-
 
     cv::Mat scores = cv::Mat(NUM_JOINTS, FEATURE_SIZE * FEATURE_SIZE, CV_32FC1);
     float* scores_data = (float*)scores.data;
@@ -182,7 +181,6 @@ static std::vector<keypoint> post_process(const float* center_data, const float*
         kpts_xs.push_back(top_x);
     }
 
-
     float scale_letterbox;
     int resize_rows;
     int resize_cols;
@@ -208,7 +206,7 @@ static std::vector<keypoint> post_process(const float* center_data, const float*
     {
         float kpt_offset_x = kpt_offset_data[kpts_ys[i] * FEATURE_SIZE * NUM_JOINTS * 2 + kpts_xs[i] * NUM_JOINTS * 2 + i * 2];
         float kpt_offset_y = kpt_offset_data[kpts_ys[i] * FEATURE_SIZE * NUM_JOINTS * 2 + kpts_xs[i] * NUM_JOINTS * 2 + i * 2 + 1];
-        
+
         float kpt_x = (kpts_xs[i] + kpt_offset_y) * KPTS_SCALE * letterbox_cols;
         float kpt_y = (kpts_ys[i] + kpt_offset_x) * KPTS_SCALE * letterbox_rows;
 
@@ -226,8 +224,8 @@ int main(int argc, char** argv)
     const char* image_file = nullptr;
 
     int img_c = 3;
-    const float mean[3] = { 127.5f, 127.5f,  127.5f };
-    const float scale[3] = { 1 / 127.5f, 1 / 127.5f, 1 / 127.5f };
+    const float mean[3] = {127.5f, 127.5f, 127.5f};
+    const float scale[3] = {1 / 127.5f, 1 / 127.5f, 1 / 127.5f};
 
     // allow none square letterbox, set default letterbox size
     int letterbox_rows = TARGET_H;
@@ -310,7 +308,7 @@ int main(int argc, char** argv)
     }
 
     int img_size = letterbox_rows * letterbox_cols * img_c;
-    int dims[] = { 1, 3, letterbox_rows, letterbox_cols };
+    int dims[] = {1, 3, letterbox_rows, letterbox_cols};
     std::vector<float> input_data(img_size);
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
@@ -362,9 +360,9 @@ int main(int argc, char** argv)
         max_time = std::max(max_time, cur);
     }
     fprintf(stderr, "Repeat %d times, thread %d, avg time %.2f ms, max_time %.2f ms, min_time %.2f ms\n", repeat_count, num_thread,
-        total_time / repeat_count, max_time, min_time);
+            total_time / repeat_count, max_time, min_time);
     fprintf(stderr, "--------------------------------------\n");
-    
+
     tensor_t center = get_graph_tensor(graph, "center");
     tensor_t heatmap = get_graph_tensor(graph, "heatmap");
     tensor_t regress = get_graph_tensor(graph, "regress");
@@ -373,8 +371,8 @@ int main(int argc, char** argv)
     float* kpt_heatmap_data = (float*)get_tensor_buffer(heatmap);
     float* kpt_offset_data = (float*)get_tensor_buffer(offset);
     float* kpt_regress_data = (float*)get_tensor_buffer(regress);
-    
-    std::vector<std::vector<float>> dist_y, dist_x;
+
+    std::vector<std::vector<float> > dist_y, dist_x;
     for (int i = 0; i < FEATURE_SIZE; i++)
     {
         std::vector<float> x, y;
@@ -386,14 +384,14 @@ int main(int argc, char** argv)
         dist_y.push_back(y);
         dist_x.push_back(x);
     }
-    std::vector<keypoint> pose= post_process(center_data, kpt_heatmap_data, kpt_regress_data, kpt_offset_data,
-        dist_y, dist_x, letterbox_rows, letterbox_cols, img.rows, img.cols);
-   
+    std::vector<keypoint> pose = post_process(center_data, kpt_heatmap_data, kpt_regress_data, kpt_offset_data,
+                                              dist_y, dist_x, letterbox_rows, letterbox_cols, img.rows, img.cols);
+
     draw_result(img, pose);
-    
+
     postrun_graph(graph);
     destroy_graph(graph);
     release_tengine();
-    
+
     return 0;
 }
