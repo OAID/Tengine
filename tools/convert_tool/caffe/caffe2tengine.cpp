@@ -24,6 +24,8 @@
 
 #include "caffe2tengine.hpp"
 
+#include <assert.h>
+
 /*
 *   SELF DEFINE VARIABLE
 *   FOR CAFFE SERIALIZER
@@ -149,7 +151,10 @@ static void load_blob(ir_graph_t* ir_graph, std::string node_name, const std::ve
                 }
             }
         }
-        set_ir_tensor_shape(ir_tensor, dims, dim_num);
+        int res = set_ir_tensor_shape(ir_tensor, dims, dim_num);
+        free(dims);
+        dims = nullptr;
+        assert(res == 0);
         ir_tensor->tensor_type = TENSOR_TYPE_CONST;
         int tensor_size = data_num * sizeof(float);
         ir_tensor->data = sys_malloc(tensor_size);

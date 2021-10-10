@@ -22,19 +22,6 @@ src = father_path + "/build/install/lib/" + libtengine
 dst = dest + "/tengine/" + libtengine
 shutil.copyfile(src, dst)
 
-files = [
-    "__init__",
-    "base",
-    "context",
-    "device",
-    "graph",
-    "libinfo",
-    "node",
-    "tengine",
-    "tensor",
-    libtengine,
-]
-
 setup(
     name="pytengine",
     version="0.9.1",

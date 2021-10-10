@@ -208,7 +208,7 @@ int onnx_serializer::load_constant_tensor(ir_graph_t* graph, const onnx::GraphPr
 
             const char* name = node.input(1).c_str();
             int dim_num = onnx_tensor.dims_size();
-            int* dims = new int[dim_num];
+            std::vector<int> dims(dim_num);
             for (int j = 0; j < dim_num; j++)
             {
                 dims[j] = onnx_tensor.dims(j);
@@ -221,7 +221,7 @@ int onnx_serializer::load_constant_tensor(ir_graph_t* graph, const onnx::GraphPr
                 fprintf(stderr, "create ir tensor failed!\n");
                 return -1;
             }
-            set_ir_tensor_shape(ir_tensor, dims, dim_num);
+            set_ir_tensor_shape(ir_tensor, dims.data(), dim_num);
             ir_tensor->tensor_type = TENSOR_TYPE_CONST;
             // set tensor data
             if (7 == onnx_tensor.data_type())

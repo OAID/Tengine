@@ -23,6 +23,7 @@
  */
 
 #include "utility/float.h"
+#include <math.h>
 
 #define BF16_EXP_MAX (256 - 1)  //  2^8 - 1
 #define FP16_EXP_MAX (32 - 1)   //  2^5 - 1
@@ -99,7 +100,7 @@ fp32_t fp16_to_fp32(fp16_t package)
         return data.value;
     }
 
-    return data.value;
+    return NAN;
 }
 
 fp16_t fp32_to_fp16(fp32_t value)
