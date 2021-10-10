@@ -91,7 +91,8 @@ int tengine_classify(const char* model_file, const char* image_file, int img_h, 
     int img_size = img_h * img_w * 3;
     int dims[] = {1, 3, img_h, img_w}; // nchw
     uint8_t* input_data = (uint8_t*)malloc(img_size);
-    if (input_data == NULL) {
+    if (input_data == NULL)
+    {
         return -1;
     }
 

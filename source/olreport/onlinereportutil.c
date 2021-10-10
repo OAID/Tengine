@@ -169,7 +169,8 @@ void get_os_kernel_info(char* os, int maxlen)
     }
 
     int res = fscanf(fp, "%s", os);
-    if (res != 1) {
+    if (res != 1)
+    {
         return;
     }
     fclose(fp);

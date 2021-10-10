@@ -724,8 +724,8 @@ void tensorflow_serializer::CleanupResizeNearestNeighbor()
 
             for (unsigned int i = 0; i < data_node->outputs.size(); i++)
             {
-
-                if (data_node->outputs[i]->op == "Shape") {
+                if (data_node->outputs[i]->op == "Shape")
+                {
                     data_shape_node = data_node->outputs[i];
                 }
             }
