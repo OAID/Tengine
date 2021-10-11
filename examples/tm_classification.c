@@ -71,6 +71,10 @@ int tengine_classify(const char* model_file, const char* image_file, int img_h, 
     int img_size = img_h * img_w * 3;
     int dims[] = {1, 3, img_h, img_w}; // nchw
     float* input_data = (float*)malloc(img_size * sizeof(float));
+    if (input_data == NULL)
+    {
+        return -1;
+    }
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == NULL)

@@ -168,9 +168,13 @@ void get_os_kernel_info(char* os, int maxlen)
         return;
     }
 
-    int offset = fscanf(fp, "%s", os);
+    int res = fscanf(fp, "%s", os);
+    if (res != 1)
+    {
+        return;
+    }
     fclose(fp);
-    offset = strlen(os);
+    int offset = strlen(os);
     os[offset] = ' ';
     offset += 1;
 

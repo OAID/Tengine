@@ -33,6 +33,7 @@
 #include "device/cpu/cpu_module.h"
 
 #include <math.h>
+#include <assert.h>
 
 struct reverse_param
 {
@@ -47,12 +48,12 @@ int ref_reverse_fp32(void* input, void* input_axis, void* output, const struct r
     int* axis_ptr = (int*)input_axis;
     int axis = axis_ptr[0];
 
-    int in_w = param->in_shape[3];
-    int in_hw = param->in_shape[2] * in_w;
-    int in_chw = param->in_shape[1] * in_hw;
-
     if (param->dim_size == 4)
     {
+        int in_w = param->in_shape[3];
+        int in_hw = param->in_shape[2] * in_w;
+        int in_chw = param->in_shape[1] * in_hw;
+
         if (axis == 0 || axis == -4)
         {
             for (int i = 0; i < param->in_shape[0]; i++)
@@ -136,12 +137,12 @@ int ref_reverse_uint8(void* input, void* input_axis, void* output, const struct 
     int* axis_ptr = (int*)input_axis;
     int axis = axis_ptr[0];
 
-    int in_w = param->in_shape[3];
-    int in_hw = param->in_shape[2] * in_w;
-    int in_chw = param->in_shape[1] * in_hw;
-
     if (param->dim_size == 4)
     {
+        int in_w = param->in_shape[3];
+        int in_hw = param->in_shape[2] * in_w;
+        int in_chw = param->in_shape[1] * in_hw;
+
         if (axis == 0 || axis == -4)
         {
             for (int i = 0; i < param->in_shape[0]; i++)

@@ -413,8 +413,8 @@ static int weight_bn(ir_graph_t* graph, ir_node_t* conv_node, float* mean, float
     float* kernel_data = (float*)kernel_tensor->data;
     int channel_num = kernel_tensor->dims[0];
 
-    float* scale_mean = (float*)malloc(channel_num * sizeof(float));
-    float* scale_var_inv = (float*)malloc(channel_num * sizeof(float));
+    std::vector<float> scale_mean(channel_num);
+    std::vector<float> scale_var_inv(channel_num);
 
     float rescale_factor_tmp = rescale_factor;
     float* bias = NULL;
@@ -501,9 +501,6 @@ static int weight_bn(ir_graph_t* graph, ir_node_t* conv_node, float* mean, float
     {
         bias_data[i] = scale_mean[i];
     }
-
-    free(scale_var_inv);
-    free(scale_mean);
 
     return 0;
 }

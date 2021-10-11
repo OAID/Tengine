@@ -70,7 +70,6 @@ int getFeature(const char* imagefile, float* feature)
     int height = MOBILE_FACE_HEIGHT;
     int width = MOBILE_FACE_WIDTH;
     int img_size = height * width * 3;
-    int dims[] = {1, 3, height, width};
     float means[3] = {DEFAULT_MEAN1, DEFAULT_MEAN2, DEFAULT_MEAN3};
     float scales[3] = {1, 1, 1};
     std::vector<float> input_data(img_size);

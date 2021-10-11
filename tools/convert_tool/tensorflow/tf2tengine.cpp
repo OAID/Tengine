@@ -724,12 +724,13 @@ void tensorflow_serializer::CleanupResizeNearestNeighbor()
 
             for (unsigned int i = 0; i < data_node->outputs.size(); i++)
             {
-                data_shape_node = data_node->outputs[i];
-
-                if (data_shape_node->op == "Shape")
-                    break;
+                if (data_node->outputs[i]->op == "Shape")
+                {
+                    data_shape_node = data_node->outputs[i];
+                }
             }
 
+            assert(data_shape_node != nullptr);
             DisconnectNode(data_shape_node);
 
             TFNode* mul_node = cur_node->inputs[1];
