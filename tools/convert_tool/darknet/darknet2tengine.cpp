@@ -168,8 +168,8 @@ int darknet_serializer::load_model(ir_graph_t* graph, std::string model_file, st
 {
     register_op_load();
 
-    const char* cfg_file = model_file.c_str();
-    const char* weight_file = proto_file.c_str();
+    const char* cfg_file = proto_file.c_str();
+    const char* weight_file = model_file.c_str();
 
     // load cfg
     list* sections = read_cfg(cfg_file);
