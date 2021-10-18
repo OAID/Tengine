@@ -19,7 +19,7 @@ jobs:
   linux-x64-cpu-gcc:
     runs-on: test-coverage
     steps:
-    - uses: actions/checkout@v2.3.4
+    - uses: actions/checkout@v2.3.5
     # - name: update
     #   run: sudo apt-get update
     # - name: depends
@@ -67,7 +67,7 @@ jobs:
   linux-x64-cpu-tools-quant:
     runs-on: test-coverage
     steps:
-    - uses: actions/checkout@v2.3.4
+    - uses: actions/checkout@v2.3.5
     # - name: update
     #   run: sudo apt-get update
     # - name: depends
@@ -108,7 +108,7 @@ jobs:
   linux-gcc-x86-timvx-simulator:
     runs-on: test-coverage
     steps:
-    - uses: actions/checkout@v2.3.4
+    - uses: actions/checkout@v2.3.5
     # - name: update
     #   run: sudo apt-get update
     # - name: depends
@@ -171,7 +171,7 @@ jobs:
   linux-gcc-arm64-timvx-khadas:
     runs-on: khadas-vim3
     steps:
-    - uses: actions/checkout@v2.3.4
+    - uses: actions/checkout@v2.3.5
     - name: tim-vx
       run: |
         git clone https://github.com/VeriSilicon/TIM-VX.git
@@ -216,7 +216,7 @@ jobs:
   linux-gcc-arm64-AGX-xaiver:
     runs-on: AGX-xaiver
     steps:
-    - uses: actions/checkout@v2.3.4
+    - uses: actions/checkout@v2.3.5
     - name: configure
       run: mkdir build && cd build && cmake -GNinja -DCMAKE_BUILD_TYPE=debug -DTENGINE_ENABLE_TENSORRT=ON -DTENGINE_COVERAGE=ON -DTENGINE_BUILD_TESTS=ON ..
     - name: build
