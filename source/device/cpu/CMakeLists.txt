@@ -93,7 +93,7 @@ ENDIF()
 # 1.4.1 collect source files for cpu device
 FILE (GLOB _CPU_DEVICE_SOURCE "${CMAKE_SOURCE_DIR}/source/device/cpu/*.c")
 
-# 1.4.1 collect source files for cpu operators
+# 1.4.2 collect source files for cpu operators
 FOREACH(_OP_NAME ${_CPU_OP_LIST})
     # base op files should be placed at ${_OP_NAME}/
     # base op main file should be name with "${_OP_NAME}_ref.c"
