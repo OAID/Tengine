@@ -239,7 +239,7 @@ std::vector<Box2f> generate_anchors(int base_size, const std::vector<float>& rat
         int r_h = (int)round((float)r_w * ar); // round(base_size * sqrt(ar));
 
         for (int j = 0; j < num_scale; j++)
-        {
+        {https://github.com/OAID/Tengine/blob/tengine-lite/examples/tm_retinaface.cpp
             float scale = scales[j];
 
             float rs_w = (float)r_w * scale;
@@ -345,39 +345,6 @@ static void generate_proposals(std::vector<Box2f>& anchors, int feat_stride, con
     }
 }
 
-int get_input_data(const char* image_file, const int& max_size, const int& target_size, std::vector<float>& image_data,
-                   Size2i& ori_size, Size2i& dst_size, float& scale)
-{
-    image img = imread(image_file);
-
-    ori_size.width = img.w;
-    ori_size.height = img.h;
-
-    img = image_permute(img);
-
-    int im_size_min = std::min(img.h, img.w);
-    int im_size_max = std::max(img.h, img.w);
-
-    scale = float(target_size) / float(im_size_min);
-
-    if (scale * (float)im_size_max > (float)max_size)
-        scale = float(max_size) / float(im_size_max);
-
-    dst_size.width = (int)round((float)img.w * scale);
-    dst_size.height = (int)round((float)img.h * scale);
-
-    image resImg = resize_image(img, dst_size.width, dst_size.height);
-    int img_size = dst_size.height * dst_size.width * 3;
-
-    image_data.resize(img_size);
-
-    memcpy(image_data.data(), resImg.data, img_size * sizeof(float));
-
-    free_image(img);
-    free_image(resImg);
-
-    return img_size;
-}
 
 int get_input_data(const char* image_file, std::vector<float>& image_data, Size2i& size)
 {
