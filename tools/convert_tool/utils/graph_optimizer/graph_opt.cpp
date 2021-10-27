@@ -341,7 +341,8 @@ int add_node_above(ir_graph_t* graph, int16_t down_node_id, int add_node_type, c
         }
         set_ir_node_input_tensor(add_node, i, up_node_output_tensor);
     }
-    down_node->input_tensors[0] = add_tensor->index;
+    if (down_node->input_num != 0)
+        down_node->input_tensors[0] = add_tensor->index;
     add_tensor->consumer[0] = down_node_id;
     add_tensor->consumer_num = 1;
 
@@ -412,8 +413,8 @@ static int weight_bn(ir_graph_t* graph, ir_node_t* conv_node, float* mean, float
     float* kernel_data = (float*)kernel_tensor->data;
     int channel_num = kernel_tensor->dims[0];
 
-    float* scale_mean = (float*)malloc(channel_num * sizeof(float));
-    float* scale_var_inv = (float*)malloc(channel_num * sizeof(float));
+    std::vector<float> scale_mean(channel_num);
+    std::vector<float> scale_var_inv(channel_num);
 
     float rescale_factor_tmp = rescale_factor;
     float* bias = NULL;
@@ -500,9 +501,6 @@ static int weight_bn(ir_graph_t* graph, ir_node_t* conv_node, float* mean, float
     {
         bias_data[i] = scale_mean[i];
     }
-
-    free(scale_var_inv);
-    free(scale_mean);
 
     return 0;
 }

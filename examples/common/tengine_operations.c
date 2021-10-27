@@ -21,6 +21,7 @@
  * Copyright (c) 2020, OPEN AI LAB
  */
 
+#include <assert.h>
 #include <stdint.h>
 #include <math.h>
 #include <string.h>
@@ -479,7 +480,7 @@ image copyMaker(image im, int top, int bottom, int left, int right, float value)
 void save_image(image im, const char* name)
 {
     char buff[256] = {0};
-    unsigned char* data = (unsigned char*)calloc((size_t)im.w * im.h * im.c, sizeof(char));
+    unsigned char* data = (unsigned char*)calloc((size_t)im.w * im.h * im.c, sizeof(unsigned char));
     int i, k;
     for (k = 0; k < im.c; ++k)
     {
@@ -1019,6 +1020,7 @@ static void sort_cls_score(cls_score* array, int left, int right)
 
 void print_topk(float* data, int total_num, int topk)
 {
+    assert(total_num >= topk);
     cls_score* cls_scores = (cls_score*)malloc(total_num * sizeof(cls_score));
     for (int i = 0; i < total_num; i++)
     {

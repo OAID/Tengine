@@ -97,8 +97,8 @@ void get_tengine_env_data(REPORT_DATA_T* dat)
     get_os_info(dat->data_.OS_, OS_LEN);
     get_os_kernel_info(dat->data_.KERNEL_, KERNEL_LEN);
     get_cur_process_info(&(dat->data_.PID_), dat->data_.PROC_);
-    get_loacl_ip_and_mac(dat->data_.IP_, dat->data_.UID_);
-    dat->data_.MEM_ = get_totoal_memory();
+    get_local_ip_and_mac(dat->data_.IP_, dat->data_.UID_);
+    dat->data_.MEM_ = get_total_memory();
     sprintf(dat->data_.ARCH_, "%u", get_arch());
 }
 

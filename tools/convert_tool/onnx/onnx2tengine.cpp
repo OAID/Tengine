@@ -168,6 +168,131 @@ int onnx_serializer::load_model_file(std::string model_file, onnx::ModelProto& m
     return 0;
 }
 
+#define TASSERT(x)                                \
+    if (!(x))                                     \
+    {                                             \
+        throw std::runtime_error("check failed"); \
+    }
+
+// this class is used to force the user to explicitly specify the template argument type
+// of GetAttributeOrDefault
+// Ref: https://stackoverflow.com/a/28171644
+template<typename T>
+struct Identity
+{
+    using type = T;
+};
+
+class NoAttrWithGivenNameError : public std::runtime_error
+{
+public:
+    explicit NoAttrWithGivenNameError(const std::string& msg)
+        : std::runtime_error(msg)
+    {
+    }
+};
+
+template<typename T>
+T GetAttributeOrThrow(const onnx::NodeProto& node, const std::string& name);
+
+template<typename T>
+T GetAttributeOrDefault(const onnx::NodeProto& node, const std::string& name, typename Identity<T>::type default_val);
+
+#define DEFINE_GetAttribute_FOR_SCALAR(cpp_type, onnx_proto_type, onnx_attr_getter) \
+    template<>                                                                      \
+    cpp_type GetAttributeOrThrow<cpp_type>(const onnx::NodeProto& node,             \
+                                           const std::string& name)                 \
+    {                                                                               \
+        for (int k = 0; k < node.attribute_size(); k++)                             \
+        {                                                                           \
+            const onnx::AttributeProto& attr = node.attribute(k);                   \
+                                                                                    \
+            if (attr.name() == name)                                                \
+            {                                                                       \
+                if (attr.type() != onnx::AttributeProto::onnx_proto_type)           \
+                {                                                                   \
+                    throw std::invalid_argument(                                    \
+                        "the type of attr " + name + " is "                         \
+                        + onnx::AttributeProto::AttributeType_Name(attr.type())     \
+                        + ", expected "                                             \
+                        + onnx::AttributeProto::AttributeType_Name(                 \
+                            onnx::AttributeProto::onnx_proto_type));                \
+                }                                                                   \
+                return attr.onnx_attr_getter();                                     \
+            }                                                                       \
+        }                                                                           \
+        throw NoAttrWithGivenNameError("cannot find attr " + name);                 \
+    }                                                                               \
+    template<>                                                                      \
+    cpp_type GetAttributeOrDefault<cpp_type>(                                       \
+        const onnx::NodeProto& node, const std::string& name, cpp_type default_val) \
+    {                                                                               \
+        try                                                                         \
+        {                                                                           \
+            return GetAttributeOrThrow<cpp_type>(node, name);                       \
+        }                                                                           \
+        catch (const NoAttrWithGivenNameError&)                                     \
+        {                                                                           \
+            return default_val;                                                     \
+        }                                                                           \
+    }
+
+DEFINE_GetAttribute_FOR_SCALAR(float, FLOAT, f);
+DEFINE_GetAttribute_FOR_SCALAR(int, INT, i);
+DEFINE_GetAttribute_FOR_SCALAR(std::string, STRING, s);
+
+#undef DEFINE_GetAttribute_FOR_SCALAR
+
+#define DEFINE_GetAttribute_FOR_VECTOR(cpp_type, onnx_proto_type, onnx_attr_getter) \
+    template<>                                                                      \
+    cpp_type GetAttributeOrThrow<cpp_type>(const onnx::NodeProto& node,             \
+                                           const std::string& name)                 \
+    {                                                                               \
+        for (int k = 0; k < node.attribute_size(); k++)                             \
+        {                                                                           \
+            const onnx::AttributeProto& attr = node.attribute(k);                   \
+                                                                                    \
+            if (attr.name() == name)                                                \
+            {                                                                       \
+                if (attr.type() != onnx::AttributeProto::onnx_proto_type)           \
+                {                                                                   \
+                    throw std::invalid_argument(                                    \
+                        "the type of attr " + name + " is "                         \
+                        + onnx::AttributeProto::AttributeType_Name(attr.type())     \
+                        + ", expected "                                             \
+                        + onnx::AttributeProto::AttributeType_Name(                 \
+                            onnx::AttributeProto::onnx_proto_type));                \
+                }                                                                   \
+                cpp_type res;                                                       \
+                auto size = attr.onnx_attr_getter##_size();                         \
+                for (int i = 0; i < size; i++)                                      \
+                {                                                                   \
+                    res.push_back(attr.onnx_attr_getter(i));                        \
+                }                                                                   \
+                return res;                                                         \
+            }                                                                       \
+        }                                                                           \
+        throw NoAttrWithGivenNameError("cannot find attr " + name);                 \
+    }                                                                               \
+    template<>                                                                      \
+    cpp_type GetAttributeOrDefault<cpp_type>(                                       \
+        const onnx::NodeProto& node, const std::string& name, cpp_type default_val) \
+    {                                                                               \
+        try                                                                         \
+        {                                                                           \
+            return GetAttributeOrThrow<cpp_type>(node, name);                       \
+        }                                                                           \
+        catch (const NoAttrWithGivenNameError&)                                     \
+        {                                                                           \
+            return default_val;                                                     \
+        }                                                                           \
+    }
+
+DEFINE_GetAttribute_FOR_VECTOR(std::vector<float>, FLOATS, floats);
+DEFINE_GetAttribute_FOR_VECTOR(std::vector<int>, INTS, ints);
+
+#undef DEFINE_GetAttribute_FOR_VECTOR
+
 int onnx_serializer::load_constant_tensor(ir_graph_t* graph, const onnx::GraphProto& onnx_graph)
 {
     std::map<std::string, onnx::TensorProto> node_tensor;
@@ -208,7 +333,7 @@ int onnx_serializer::load_constant_tensor(ir_graph_t* graph, const onnx::GraphPr
 
             const char* name = node.input(1).c_str();
             int dim_num = onnx_tensor.dims_size();
-            int* dims = new int[dim_num];
+            std::vector<int> dims(dim_num);
             for (int j = 0; j < dim_num; j++)
             {
                 dims[j] = onnx_tensor.dims(j);
@@ -221,7 +346,7 @@ int onnx_serializer::load_constant_tensor(ir_graph_t* graph, const onnx::GraphPr
                 fprintf(stderr, "create ir tensor failed!\n");
                 return -1;
             }
-            set_ir_tensor_shape(ir_tensor, dims, dim_num);
+            set_ir_tensor_shape(ir_tensor, dims.data(), dim_num);
             ir_tensor->tensor_type = TENSOR_TYPE_CONST;
             // set tensor data
             if (7 == onnx_tensor.data_type())
@@ -516,7 +641,7 @@ int onnx_serializer::load_graph_node(ir_graph_t* graph, const onnx::GraphProto& 
             int tensor_id = get_ir_tensor_index_from_name(graph, input_name.c_str());
             ir_tensor_t* tensor = get_ir_graph_tensor(graph, tensor_id);
             tensor_check[tensor->name] = tensor_check[tensor->name] + 1;
-            set_ir_node_input_tensor(ir_node, j, tensor);
+            set_ir_node_input_tensor(ir_node, ir_node->input_num, tensor);
         }
 
         for (int j = 0; j < onnx_node.output_size(); j++)
@@ -932,7 +1057,7 @@ static int load_pool(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& 
     }
     else
     {
-        fprintf(stderr, "UKNOWN POOLING: %s \n", onnx_op.c_str());
+        fprintf(stderr, "UNKNOWN POOLING: %s \n", onnx_op.c_str());
         return -1;
     }
 
@@ -961,39 +1086,17 @@ static int load_gemm(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& 
 {
     struct gemm_param* gemm_param = (struct gemm_param*)node->op.param_mem;
     // set default
-    gemm_param->alpha = 1.0f;
-    gemm_param->beta = 1.0f;
-    gemm_param->transA = 0;
-    gemm_param->transB = 0;
-
-    for (int k = 0; k < onnx_node.attribute_size(); k++)
-    {
-        const onnx::AttributeProto& attr = onnx_node.attribute(k);
-
-        if (attr.name() == "alpha")
-        {
-            gemm_param->alpha = attr.f();
-        }
-        else if (attr.name() == "beta")
-        {
-            gemm_param->beta = attr.f();
-        }
-        else if (attr.name() == "transA")
-        {
-            gemm_param->transA = attr.i();
-        }
-        else if (attr.name() == "transB")
-        {
-            gemm_param->transB = attr.i();
-        }
-    }
+    gemm_param->alpha = GetAttributeOrDefault<float>(onnx_node, "alpha", 1.0f);
+    gemm_param->beta = GetAttributeOrDefault<float>(onnx_node, "beta", 1.0f);
+    gemm_param->transA = GetAttributeOrDefault<int>(onnx_node, "transA", 0);
+    gemm_param->transB = GetAttributeOrDefault<int>(onnx_node, "transB", 0);
 
     ir_tensor_t* weight_tensor = get_ir_graph_tensor(graph, node->input_tensors[1]);
     ir_tensor_t* bias_tensor = get_ir_graph_tensor(graph, node->input_tensors[2]);
 
     if (gemm_param->transA)
     {
-        return 0;
+        return -1;
     }
 
     // create fc instead
@@ -1050,14 +1153,7 @@ static int load_concat(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto
 {
     struct concat_param* concat_param = (struct concat_param*)node->op.param_mem;
 
-    for (int k = 0; k < onnx_node.attribute_size(); k++)
-    {
-        const onnx::AttributeProto& attr = onnx_node.attribute(k);
-        if (attr.name() == "axis")
-        {
-            concat_param->axis = attr.i();
-        }
-    }
+    concat_param->axis = GetAttributeOrThrow<int>(onnx_node, "axis");
 
     return 0;
 }
@@ -1066,16 +1162,7 @@ static int load_bn(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& on
 {
     struct batchnorm_param* batchnorm_param = (struct batchnorm_param*)node->op.param_mem;
 
-    // get espilon
-    for (int k = 0; k < onnx_node.attribute_size(); k++)
-    {
-        const onnx::AttributeProto& attr = onnx_node.attribute(k);
-
-        if (attr.name() == "epsilon")
-        {
-            batchnorm_param->eps = attr.f();
-        }
-    }
+    batchnorm_param->eps = GetAttributeOrThrow<float>(onnx_node, "epsilon");
 
     return 0;
 }
@@ -1140,20 +1227,12 @@ static int load_clip(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& 
 {
     struct clip_param* clip_param = (struct clip_param*)node->op.param_mem;
 
-    int size = onnx_node.attribute_size();
-    for (int i = 0; i < size; i++)
+    if (node->input_num == 1)
     {
-        const onnx::AttributeProto& attr = onnx_node.attribute(i);
-        if (attr.name() == "max")
-        {
-            clip_param->max = attr.f();
-        }
-        else if (attr.name() == "min")
-        {
-            clip_param->min = attr.f();
-        }
+        clip_param->max = GetAttributeOrThrow<float>(onnx_node, "max");
+        clip_param->min = GetAttributeOrThrow<float>(onnx_node, "min");
     }
-    if (node->input_num == 3)
+    else if (node->input_num == 3)
     {
         ir_tensor_t* min = find_tensor(graph, onnx_node.input(1));
         ir_tensor_t* max = find_tensor(graph, onnx_node.input(2));
@@ -1165,6 +1244,10 @@ static int load_clip(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& 
             clip_param->max = max_data[0];
             node->input_num = 1;
         }
+    }
+    else
+    {
+        throw std::invalid_argument("unsupported clip op input num: " + std::to_string(node->input_num));
     }
 
     return 0;
@@ -1219,32 +1302,14 @@ static int load_softmax(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProt
 static int load_elu(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct elu_param* elu_param = (struct elu_param*)node->op.param_mem;
-
-    for (int k = 0; k < onnx_node.attribute_size(); k++)
-    {
-        const onnx::AttributeProto& attr = onnx_node.attribute(k);
-
-        if (attr.name() == "alpha")
-        {
-            elu_param->alpha = attr.f();
-        }
-    }
+    elu_param->alpha = GetAttributeOrDefault<float>(onnx_node, "alpha", 1.f);
 
     return 0;
 }
 
 static int load_interp(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
-    std::string mode = "nearest";
-    for (int k = 0; k < onnx_node.attribute_size(); k++)
-    {
-        const onnx::AttributeProto& attr = onnx_node.attribute(k);
-
-        if (attr.name() == "mode")
-        {
-            mode = attr.s();
-        }
-    }
+    std::string mode = GetAttributeOrDefault<std::string>(onnx_node, "mode", "nearest");
     if (mode != "nearest")
     {
         struct interp_param* interp_param = (struct interp_param*)node->op.param_mem;
@@ -1394,14 +1459,11 @@ static int load_split(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto&
 {
     struct split_param* split_param = (struct split_param*)node->op.param_mem;
     split_param->is_onnx = true;
+    split_param->axis = GetAttributeOrDefault<int>(onnx_node, "axis", 0);
     for (int k = 0; k < onnx_node.attribute_size(); k++)
     {
         const onnx::AttributeProto& attr = onnx_node.attribute(k);
-        if (attr.name() == "axis")
-        {
-            split_param->axis = attr.i();
-        }
-        else if (attr.name() == "split")
+        if (attr.name() == "split")
         {
             int size = attr.ints_size();
             struct vector* new_shape = create_vector(sizeof(int), NULL);
@@ -1537,19 +1599,10 @@ static int load_matmul(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto
 static int load_reducel2(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct reducel2_param* reducel2_param = (struct reducel2_param*)node->op.param_mem;
-
-    for (int k = 0; k < onnx_node.attribute_size(); k++)
-    {
-        const onnx::AttributeProto& attr = onnx_node.attribute(k);
-        if (attr.name() == "axes")
-        {
-            reducel2_param->axis = attr.ints(0); // TODO:Support muti axis
-        }
-        if (attr.name() == "keepdims")
-        {
-            reducel2_param->keepdim = attr.i();
-        }
-    }
+    const auto axes = GetAttributeOrThrow<std::vector<int> >(onnx_node, "axes");
+    TASSERT(axes.size() == 1);
+    reducel2_param->axis = axes[0];
+    reducel2_param->keepdim = GetAttributeOrDefault<int>(onnx_node, "keepdims", 1);
 
     return 0;
 }
@@ -1558,15 +1611,8 @@ static int load_gather(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto
 {
     struct gather_param* gather_param = (struct gather_param*)node->op.param_mem;
 
+    gather_param->axis = GetAttributeOrDefault<int>(onnx_node, "axis", 0);
     ir_tensor_t* indices_tensor = find_tensor(graph, onnx_node.input(1));
-    for (int k = 0; k < onnx_node.attribute_size(); k++)
-    {
-        const onnx::AttributeProto& attr = onnx_node.attribute(k);
-        if (attr.name() == "axis")
-        {
-            gather_param->axis = attr.i();
-        }
-    }
     int64_t* data = (int64_t*)indices_tensor->data;
     gather_param->indices_num = *data;
     gather_param->is_onnx = 1;
@@ -1598,26 +1644,10 @@ static int load_comparison(ir_graph_t* graph, ir_node_t* node, const onnx::NodeP
 static int load_LRN(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct lrn_param* lrn_param = (struct lrn_param*)node->op.param_mem;
-    for (int k = 0; k < onnx_node.attribute_size(); k++)
-    {
-        const onnx::AttributeProto& attr = onnx_node.attribute(k);
-        if (attr.name() == "alpha")
-        {
-            lrn_param->alpha = attr.f(); // TODO:Support multi axis
-        }
-        if (attr.name() == "beta")
-        {
-            lrn_param->beta = attr.f();
-        }
-        if (attr.name() == "bias")
-        {
-            lrn_param->k = attr.f();
-        }
-        if (attr.name() == "size")
-        {
-            lrn_param->local_size = attr.i();
-        }
-    }
+    lrn_param->alpha = GetAttributeOrDefault<float>(onnx_node, "alpha", 0.0001);
+    lrn_param->beta = GetAttributeOrDefault<float>(onnx_node, "alpha", 0.0001);
+    lrn_param->k = GetAttributeOrDefault<float>(onnx_node, "bias", 1.);
+    lrn_param->local_size = GetAttributeOrThrow<int>(onnx_node, "size");
 
     return 0;
 }
@@ -1716,7 +1746,7 @@ static int load_pad(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& o
             {
                 pad_param->mode = 0;
             }
-            else if (attr.s() == "reflect")
+            else if (attr.s() == "edge")
             {
                 pad_param->mode = 1;
             }
@@ -1741,23 +1771,7 @@ static int load_pad(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& o
             pad_param->value = attr.f();
         }
     }
-    if (onnx_node.input_size() > 1)
-    {
-        ir_tensor_t* shape_tensor = find_tensor(graph, onnx_node.input(1));
-        int size = shape_tensor->dims[0];
-        int64_t* data = (int64_t*)shape_tensor->data;
-        for (int i = 0; i < size; i++)
-        {
-            pad_param->pad_0_h = data[0];
-            pad_param->pad_0_w = data[4];
-            pad_param->pad_1_h = data[1];
-            pad_param->pad_1_w = data[5];
-            pad_param->pad_2_h = data[2];
-            pad_param->pad_2_w = data[6];
-            pad_param->pad_3_h = data[3];
-            pad_param->pad_3_w = data[7];
-        }
-    }
+
     return 0;
 }
 
@@ -1899,20 +1913,8 @@ static int load_argmax(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto
 {
     struct argmax_param* argmax_param = (struct argmax_param*)node->op.param_mem;
 
-    int size = onnx_node.attribute_size();
-    argmax_param->axis = 0;
-    for (int i = 0; i < size; i++)
-    {
-        const onnx::AttributeProto& attr = onnx_node.attribute(i);
-        if (attr.name() == "axis")
-        {
-            argmax_param->axis = attr.i();
-        }
-        if (attr.name() == "keepdims")
-        {
-            argmax_param->keepdims = attr.i();
-        }
-    }
+    argmax_param->axis = GetAttributeOrDefault<int>(onnx_node, "axis", 0);
+    argmax_param->keepdims = GetAttributeOrDefault<float>(onnx_node, "keepdims", 1);
 
     return 0;
 }
@@ -1921,20 +1923,8 @@ static int load_argmin(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto
 {
     struct argmin_param* argmin_param = (struct argmin_param*)node->op.param_mem;
 
-    int size = onnx_node.attribute_size();
-    argmin_param->axis = 0;
-    for (int i = 0; i < size; i++)
-    {
-        const onnx::AttributeProto& attr = onnx_node.attribute(i);
-        if (attr.name() == "axis")
-        {
-            argmin_param->axis = attr.i();
-        }
-        if (attr.name() == "keepdims")
-        {
-            argmin_param->keepdims = attr.i();
-        }
-    }
+    argmin_param->axis = GetAttributeOrDefault<int>(onnx_node, "axis", 0);
+    argmin_param->keepdims = GetAttributeOrDefault<float>(onnx_node, "keepdims", 1);
 
     return 0;
 }
@@ -1943,16 +1933,7 @@ static int load_log_softmax(ir_graph_t* graph, ir_node_t* node, const onnx::Node
 {
     struct logsoftmax_param* logsoftmax_param = (struct logsoftmax_param*)node->op.param_mem;
 
-    int size = onnx_node.attribute_size();
-    logsoftmax_param->axis = 1;
-    for (int i = 0; i < size; i++)
-    {
-        const onnx::AttributeProto& attr = onnx_node.attribute(i);
-        if (attr.name() == "axis")
-        {
-            logsoftmax_param->axis = attr.i();
-        }
-    }
+    logsoftmax_param->axis = GetAttributeOrDefault<int>(onnx_node, "axis", -1);
 
     return 0;
 }
@@ -2008,7 +1989,8 @@ static int load_deconv(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto
         {
             int* dim = tensor->dims;
             /* onnx hide the output channel in weight ..*/
-            deconv_param->num_output = dim[1];
+            /* The number of channels in the output should be equal to W.shape[1] * group */
+            deconv_param->num_output = dim[1] * deconv_param->group;
             deconv_param->kernel_h = dim[2];
             deconv_param->kernel_w = dim[3];
         }
@@ -2059,7 +2041,8 @@ static int load_selu(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& 
 static int load_hard_sigmoid(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct hard_sigmoid_param* hard_sigmoid_param = (struct hard_sigmoid_param*)node->op.param_mem;
-
+    hard_sigmoid_param->alpha = 1 / 6.f;
+    hard_sigmoid_param->beta = 0.5f;
     for (int k = 0; k < onnx_node.attribute_size(); k++)
     {
         const onnx::AttributeProto& attr = onnx_node.attribute(k);
@@ -2102,15 +2085,7 @@ static int load_cast(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& 
 static int load_depth_to_space(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct depthtospace_param* depthtospace_param = (struct depthtospace_param*)node->op.param_mem;
-
-    for (int k = 0; k < onnx_node.attribute_size(); k++)
-    {
-        const onnx::AttributeProto& attr = onnx_node.attribute(k);
-        if (attr.name() == "blocksize")
-        {
-            depthtospace_param->block_size = attr.i();
-        }
-    }
+    depthtospace_param->block_size = GetAttributeOrThrow<int>(onnx_node, "blocksize");
 
     return 0;
 }
@@ -2118,13 +2093,7 @@ static int load_depth_to_space(ir_graph_t* graph, ir_node_t* node, const onnx::N
 static int load_instance_norm(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct instancenorm_Param* instancenorm_param = (struct instancenorm_Param*)node->op.param_mem;
-
-    for (int k = 0; k < onnx_node.attribute_size(); k++)
-    {
-        const onnx::AttributeProto& attr = onnx_node.attribute(k);
-        if (attr.name() == "epsilon")
-            instancenorm_param->eps = attr.f();
-    }
+    instancenorm_param->eps = GetAttributeOrDefault<float>(onnx_node, "epsilon", 1e-5);
 
     return 0;
 }
@@ -2135,16 +2104,9 @@ static int load_resize(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto
     interp_param->height_scale = 0;
     interp_param->width_scale = 0;
 
-    int align_corner = 0;
-    for (int k = 0; k < onnx_node.attribute_size(); k++)
-    {
-        const onnx::AttributeProto& attr = onnx_node.attribute(k);
-        if (attr.name() == "coordinate_transformation_mode")
-        {
-            if (attr.s() == "align_corners")
-                align_corner = 1;
-        }
-    }
+    std::string coordinate_transformation_mode = GetAttributeOrDefault<std::string>(onnx_node, "coordinate_transformation_mode", "half_pixel");
+    TASSERT(coordinate_transformation_mode == "half_pixel" || coordinate_transformation_mode == "align_corners");
+    int align_corner = (coordinate_transformation_mode == "align_corners");
 
     if (onnx_node.input_size() == 1)
     {
@@ -2194,14 +2156,7 @@ static int load_resize(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto
         return -1;
     }
 
-    std::string mode = "nearest";
-    for (int k = 0; k < onnx_node.attribute_size(); k++)
-    {
-        const onnx::AttributeProto& attr = onnx_node.attribute(k);
-        if (attr.name() == "mode")
-            mode = attr.s();
-    }
-
+    std::string mode = GetAttributeOrDefault<std::string>(onnx_node, "mode", "nearest");
     if (mode == "nearest")
     {
         interp_param->resize_type = 1;
@@ -2218,20 +2173,9 @@ static int load_LSTM(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& 
 {
     struct lstm_param* lstm_param = (struct lstm_param*)node->op.param_mem;
 
-    int s_size;
-    std::string lstm_type;
-    for (int k = 0; k < onnx_node.attribute_size(); k++)
-    {
-        const onnx::AttributeProto& attr = onnx_node.attribute(k);
-        if (attr.name() == "hidden_size")
-            s_size = attr.i();
-        if (attr.name() == "direction")
-            lstm_type = attr.s();
-    }
-
     lstm_param->mxnet_flag = 0;
-    lstm_param->hidden_size = s_size;
-    lstm_param->cell_size = s_size;
+    lstm_param->hidden_size = GetAttributeOrThrow<int>(onnx_node, "hidden_size");
+    lstm_param->cell_size = lstm_param->hidden_size;
 
     return 0;
 }
@@ -2254,6 +2198,22 @@ static int load_expand(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto
     {
         expand_param->ex_shape[i] = data[i];
     }
+    return 0;
+}
+
+static int load_gru(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
+{
+    gru_param* param = (gru_param*)node->op.param_mem;
+    param->hidden_size = GetAttributeOrThrow<int>(onnx_node, "hidden_size");
+    param->clip = 0;
+    param->output_len = 1;
+    param->sequence_len = 1;
+    param->input_size = 1;
+    param->has_clip = 0;
+    param->has_gate_bias = 0;
+    param->has_candidate_bias = 0;
+    param->has_init_state = 0;
+
     return 0;
 }
 
@@ -2291,6 +2251,7 @@ void onnx_serializer::register_op_load()
     op_load_map["Gemm"] = std::pair<int, op_load_t>(OP_GEMM, load_gemm);
     op_load_map["Gather"] = std::pair<int, op_load_t>(OP_GATHER, load_gather);
     op_load_map["Greater"] = std::pair<int, op_load_t>(OP_COMPARISON, load_comparison);
+    op_load_map["GRU"] = std::pair<int, op_load_t>(OP_GRU, load_gru);
     op_load_map["GlobalAveragePool"] = std::pair<int, op_load_t>(OP_POOL, load_pool);
     op_load_map["HardSwish"] = std::pair<int, op_load_t>(OP_HARDSWISH, load_no_param);
     op_load_map["HardSigmoid"] = std::pair<int, op_load_t>(OP_HARDSIGMOID, load_hard_sigmoid);

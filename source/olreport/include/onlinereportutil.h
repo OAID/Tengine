@@ -40,7 +40,7 @@ extern "C" {
 
 int get_rand();
 uint32_t get_arch();
-uint32_t get_totoal_memory();
+uint32_t get_total_memory();
 void get_cur_process_info(uint32_t* id, char* name);
 void get_os_info(char* os, int maxLen);
 void get_os_kernel_info(char* os, int maxlen);

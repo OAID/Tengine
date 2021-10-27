@@ -53,3 +53,7 @@ build*/
 
 # 3rd
 3rdparty
+
+# Python
+*.egg-info/
+__pycache__/

@@ -62,8 +62,9 @@ bool VXEngine::AddEltwiseNode(struct node* ir_node)
             vx_node_map[ir_node->index] = reshape;
 
             (*reshape)
-                    .BindInputs({ this->vx_tensor_map[input_tensor0->index] })
-                    .BindOutputs({ this->vx_tensor_map[output_tensor->index] });
+                .BindInputs({ this->vx_tensor_map[input_tensor0->index] })
+                .BindOutputs({ this->vx_tensor_map[output_tensor->index] });
+            return true;
         }
         else if (const_size == 1 && const_fp32[0] != 0)
         {
@@ -120,8 +121,28 @@ bool VXEngine::AddEltwiseNode(struct node* ir_node)
         }
         else
         {
-            //to do
-            fprintf(stderr,"To do!!\n");
+            struct tensor* input_tensor1 = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
+
+            float* data_fp32 = (float*)get_tensor_buffer(input_tensor1);
+
+            __fp16* fp16_data = (__fp16*)malloc(input_tensor0->elem_num * sizeof(__fp16) );
+            for (int p = 0; p < input_tensor0->elem_num; p++)
+            {
+                __fp16 data_fp16 = fp32_to_fp16(data_fp32[p]);
+                fp16_data[p] = data_fp16;
+            }
+
+            tim::vx::ShapeType vx_shape;
+            for (int i = input_tensor0->dim_num - 1; i >= 0; i--)
+            {
+                vx_shape.push_back(input_tensor0->dims[i]);
+            }
+
+            tim::vx::TensorSpec vx_spec(tim::vx::DataType::FLOAT16, vx_shape,
+                                        tim::vx::TensorAttribute::CONSTANT);
+            auto vx_tensor = this->graph->CreateTensor(vx_spec, fp16_data);
+
+            this->vx_tensor_map[input_tensor1->index] = vx_tensor;
         }
 
     }

@@ -527,10 +527,10 @@ void QuantTool::weight_requant(struct tensor* weight_tensor, float* data, int el
         float weight_min = *std::min_element(data + c * elem_perchannel, data + (c + 1) * elem_perchannel);
         if (symmetry == 1)
         {
-            if (abs(weight_max) > abs(weight_min))
-                scale = abs(weight_max) / fake_quant_max;
+            if (std::abs(weight_max) > std::abs(weight_min))
+                scale = std::abs(weight_max) / fake_quant_max;
             else
-                scale = abs(weight_min) / fake_quant_max;
+                scale = std::abs(weight_min) / fake_quant_max;
             zero_point = 0;
         }
         else
@@ -690,10 +690,10 @@ void QuantTool::gen_weight_scale(struct tensor* weight_tensor, float* data, int 
         float weight_min = *std::min_element(data + c * elem_perchannel, data + (c + 1) * elem_perchannel);
         if (symmetry == 1)
         {
-            if (abs(weight_max) > abs(weight_min))
-                scale = abs(weight_max) / fake_quant_max;
+            if (std::abs(weight_max) > std::abs(weight_min))
+                scale = std::abs(weight_max) / fake_quant_max;
             else
-                scale = abs(weight_min) / fake_quant_max;
+                scale = std::abs(weight_min) / fake_quant_max;
             zero_point = 0;
         }
         else

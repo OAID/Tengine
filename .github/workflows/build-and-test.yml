@@ -19,7 +19,7 @@ jobs:
   android-armv7-cpu:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2.3.4
+    - uses: actions/checkout@v2.3.5
     - name: configure
       run: mkdir build && cd build && cmake -DCMAKE_TOOLCHAIN_FILE=$ANDROID_HOME/ndk-bundle/build/cmake/android.toolchain.cmake -DANDROID_ABI="armeabi-v7a" -DANDROID_PLATFORM=android-19 ..
     - name: build
@@ -28,115 +28,115 @@ jobs:
   android-armv8-cpu:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2.3.4
+    - uses: actions/checkout@v2.3.5
     - name: configure
       run: mkdir build && cd build && cmake -DCMAKE_TOOLCHAIN_FILE=$ANDROID_HOME/ndk-bundle/build/cmake/android.toolchain.cmake -DANDROID_ABI="arm64-v8a" -DANDROID_PLATFORM=android-21 ..
     - name: build
       run: cmake --build build -j 2
 
-  linux-armv7-cpu-gcc:
-    runs-on: ubuntu-20.04
-    steps:
-    - uses: actions/checkout@v2.3.4
+  # linux-armv7-cpu-gcc:
+  #   runs-on: ubuntu-20.04
+  #   steps:
+  #   - uses: actions/checkout@v2.3.5
 
-    - name: cache-qemu
-      id: cache-qemu
-      uses: actions/cache@v2.1.6
-      with:
-        path: qemu-install
-        key: qemu-arm-install-1
-    - name: checkout-qemu
-      if: steps.cache-qemu.outputs.cache-hit != 'true'
-      uses: actions/checkout@v2.3.4
-      with:
-        repository: qemu/qemu
-        path: qemu
-        ref: 8746309137ba470d1b2e8f5ce86ac228625db940
-    - name: qemu
-      if: steps.cache-qemu.outputs.cache-hit != 'true'
-      run: |
-        cd qemu
-        ./configure --prefix=install --target-list=arm-linux-user --disable-system
-        make -j2
-        make install
-        cp -r arm-linux-user/install $GITHUB_WORKSPACE/qemu-install
+  #   - name: cache-qemu
+  #     id: cache-qemu
+  #     uses: actions/cache@v2.1.6
+  #     with:
+  #       path: qemu-install
+  #       key: qemu-arm-install-1
+  #   - name: checkout-qemu
+  #     if: steps.cache-qemu.outputs.cache-hit != 'true'
+  #     uses: actions/checkout@v2.3.5
+  #     with:
+  #       repository: qemu/qemu
+  #       path: qemu
+  #       ref: 8746309137ba470d1b2e8f5ce86ac228625db940
+  #   - name: qemu
+  #     if: steps.cache-qemu.outputs.cache-hit != 'true'
+  #     run: |
+  #       cd qemu
+  #       ./configure --prefix=install --target-list=arm-linux-user --disable-system
+  #       make -j2
+  #       make install
+  #       cp -r arm-linux-user/install $GITHUB_WORKSPACE/qemu-install
 
-    - name: arm-gnu-toolchain
-      run: |
-        sudo apt-get update
-        sudo apt-get install g++-arm-linux-gnueabi
+  #   - name: arm-gnu-toolchain
+  #     run: |
+  #       sudo apt-get update
+  #       sudo apt-get install g++-arm-linux-gnueabi
 
-    - name: configure
-      run: mkdir build && cd build && cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/arm-linux-gnueabi.toolchain.cmake -DTENGINE_BUILD_TESTS=ON ..
-    - name: build
-      run: cmake --build build -j 2
-    - name: models
-      run: |
-        cd build
-        wget -c ftp://219.139.34.182/tengine/ci_test/images/* -P images
-        wget -c ftp://219.139.34.182/tengine/ci_test/data_arm32/* -P data
-        wget -c ftp://219.139.34.182/tengine/ci_test/model_test/* -P models
-    - name: test
-      run: |
-        export PATH=$GITHUB_WORKSPACE/qemu-install/bin:$PATH
-        chmod +x ./tests/test_arm32.sh
-        cd build
-        ../tests/test_arm32.sh
+  #   - name: configure
+  #     run: mkdir build && cd build && cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/arm-linux-gnueabi.toolchain.cmake -DTENGINE_BUILD_TESTS=ON ..
+  #   - name: build
+  #     run: cmake --build build -j 2
+  #   - name: models
+  #     run: |
+  #       cd build
+  #       wget -c http://8.136.149.78/download/ci_data/images.zip && unzip images.zip && rm images.zip
+  #       wget -c http://8.136.149.78/download/ci_data/data_arm32.zip && unzip data_arm32.zip && rm data_arm32.zip && mv data_arm32 data
+  #       wget -c http://8.136.149.78/download/ci_data/model_test.zip && unzip model_test.zip && rm model_test.zip && mv model_test model
+  #   - name: test
+  #     run: |
+  #       export PATH=$GITHUB_WORKSPACE/qemu-install/bin:$PATH
+  #       chmod +x ./tests/test_arm32.sh
+  #       cd build
+  #       ../tests/test_arm32.sh
 
-  linux-armv8-cpu-gcc:
-    runs-on: ubuntu-20.04
-    steps:
-    - uses: actions/checkout@v2.3.4
+  # linux-armv8-cpu-gcc:
+  #   runs-on: ubuntu-20.04
+  #   steps:
+  #   - uses: actions/checkout@v2.3.5
 
-    - name: cache-qemu
-      id: cache-qemu
-      uses: actions/cache@v2.1.6
-      with:
-        path: qemu-install
-        key: qemu-aarch64-install-1
-    - name: checkout-qemu
-      if: steps.cache-qemu.outputs.cache-hit != 'true'
-      uses: actions/checkout@v2.3.4
-      with:
-        repository: qemu/qemu
-        path: qemu
-        ref: 8746309137ba470d1b2e8f5ce86ac228625db940
-    - name: qemu
-      if: steps.cache-qemu.outputs.cache-hit != 'true'
-      run: |
-        cd qemu
-        ./configure --prefix=install --target-list=aarch64-linux-user --disable-system
-        make -j2
-        make install
-        cp -r aarch64-linux-user/install $GITHUB_WORKSPACE/qemu-install
+  #   - name: cache-qemu
+  #     id: cache-qemu
+  #     uses: actions/cache@v2.1.6
+  #     with:
+  #       path: qemu-install
+  #       key: qemu-aarch64-install-1
+  #   - name: checkout-qemu
+  #     if: steps.cache-qemu.outputs.cache-hit != 'true'
+  #     uses: actions/checkout@v2.3.5
+  #     with:
+  #       repository: qemu/qemu
+  #       path: qemu
+  #       ref: 8746309137ba470d1b2e8f5ce86ac228625db940
+  #   - name: qemu
+  #     if: steps.cache-qemu.outputs.cache-hit != 'true'
+  #     run: |
+  #       cd qemu
+  #       ./configure --prefix=install --target-list=aarch64-linux-user --disable-system
+  #       make -j2
+  #       make install
+  #       cp -r aarch64-linux-user/install $GITHUB_WORKSPACE/qemu-install
 
-    - name: aarch64-gnu-toolchain
-      run: |
-        sudo apt-get update
-        sudo apt-get install g++-aarch64-linux-gnu
+  #   - name: aarch64-gnu-toolchain
+  #     run: |
+  #       sudo apt-get update
+  #       sudo apt-get install g++-aarch64-linux-gnu
 
-    - name: configure
-      run: mkdir build && cd build && cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/aarch64-linux-gnu.toolchain.cmake -DTENGINE_BUILD_TESTS=ON ..
-    - name: build
-      run: cmake --build build -j 2
-    - name: models
-      run: |
-        cd build
-        wget -c ftp://219.139.34.182/tengine/ci_test/images/* -P images
-        wget -c ftp://219.139.34.182/tengine/ci_test/data_arm64/* -P data
-        wget -c ftp://219.139.34.182/tengine/ci_test/model_test/* -P models
+  #   - name: configure
+  #     run: mkdir build && cd build && cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/aarch64-linux-gnu.toolchain.cmake -DTENGINE_BUILD_TESTS=ON ..
+  #   - name: build
+  #     run: cmake --build build -j 2
+  #   - name: models
+  #     run: |
+  #       cd build
+  #       wget -c http://8.136.149.78/download/ci_data/images.zip && unzip images.zip && rm images.zip
+  #       wget -c http://8.136.149.78/download/ci_data/data_arm64.zip && unzip data_arm64.zip && rm data_arm64.zip && mv data_arm64 data
+  #       wget -c http://8.136.149.78/download/ci_data/model_test.zip && unzip model_test.zip && rm model_test.zip && mv model_test model
 
-    - name: test
-      run: |
-        export PATH=$GITHUB_WORKSPACE/qemu-install/bin:$PATH
-        chmod +x ./tests/test_arm64.sh
-        cd build
-        ../tests/test_arm64.sh
+  #   - name: test
+  #     run: |
+  #       export PATH=$GITHUB_WORKSPACE/qemu-install/bin:$PATH
+  #       chmod +x ./tests/test_arm64.sh
+  #       cd build
+  #       ../tests/test_arm64.sh
 
   linux-armv8-cpu-gcc-timvx:
     runs-on: khadas-vim3
     steps:
-    - uses: actions/checkout@v2.3.4
+    - uses: actions/checkout@v2.3.5
     - name: tim-vx
       run: |
         git clone https://github.com/VeriSilicon/TIM-VX.git
@@ -164,7 +164,7 @@ jobs:
   linux-armv8-cpu-gcc-AGX-Xaiver:
     runs-on: AGX-xaiver
     steps:
-    - uses: actions/checkout@v2.3.4
+    - uses: actions/checkout@v2.3.5
     - name: configure
       run: mkdir build && cd build && cmake -GNinja -DTENGINE_BUILD_TESTS=ON -DTENGINE_ENABLE_TENSORRT=ON ..
     - name: build
@@ -190,7 +190,7 @@ jobs:
       uses: styfle/cancel-workflow-action@0.9.1
       with:
         access_token: ${{ secrets.GITHUB_TOKEN }}
-    - uses: actions/checkout@v2.3.4
+    - uses: actions/checkout@v2.3.5
 
     - name: cache-qemu
       id: cache-qemu
@@ -200,7 +200,7 @@ jobs:
         key: qemu-mips64el-install-1
     - name: checkout-qemu
       if: steps.cache-qemu.outputs.cache-hit != 'true'
-      uses: actions/checkout@v2.3.4
+      uses: actions/checkout@v2.3.5
       with:
         repository: qemu/qemu
         path: qemu
@@ -227,7 +227,7 @@ jobs:
   windows-x64-cpu-vs2017:
     runs-on: windows-2016
     steps:
-    - uses: actions/checkout@v2.3.4
+    - uses: actions/checkout@v2.3.5
     - name: build
       run: |
         mkdir build; cd build
@@ -237,7 +237,7 @@ jobs:
   windows-x64-cpu-vs2019:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v2.3.4
+    - uses: actions/checkout@v2.3.5
     - name: build
       run: |
         mkdir build; cd build
@@ -247,7 +247,7 @@ jobs:
   windows-x86-cpu-vs2017:
     runs-on: windows-2016
     steps:
-    - uses: actions/checkout@v2.3.4
+    - uses: actions/checkout@v2.3.5
     - name: build
       run: |
         mkdir build; cd build
@@ -257,7 +257,7 @@ jobs:
   windows-x86-cpu-vs2019:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v2.3.4
+    - uses: actions/checkout@v2.3.5
     - name: build
       run: |
         mkdir build; cd build
@@ -267,7 +267,7 @@ jobs:
   linux-x64-cpu-timvx-gcc:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2.3.4
+    - uses: actions/checkout@v2.3.5
     - name: update
       run: sudo apt-get update
     - name: protobuf
@@ -290,32 +290,31 @@ jobs:
       run: cmake --build build -j 2
 
   linux-x64-cpu-gcc:
-    runs-on: ubuntu-latest
+    runs-on: x86-server-build-test
     steps:
-    - uses: actions/checkout@v2.3.4
-    - name: update
-      run: sudo apt-get update
-    - name: depends
-      run: sudo apt-get install libprotobuf-dev protobuf-compiler libopencv-dev
+    - uses: actions/checkout@v2.3.5
+    # - name: update
+    #   run: sudo apt-get update
+    # - name: depends
+    #   run: sudo apt-get install libprotobuf-dev protobuf-compiler libopencv-dev
     - name: configure
-      run: mkdir build && cd build && cmake -DTENGINE_BUILD_TESTS=ON ..
+      run: mkdir build && cd build && /usr/local/cmake-3.19.8-Linux-x86_64/bin/cmake -DTENGINE_BUILD_TESTS=ON ..
     - name: build
-      run: cmake --build build -j 2
+      run: /usr/local/cmake-3.19.8-Linux-x86_64/bin/cmake --build build -j 8
     - name: optest
       run: |
         cd build
-        git clone https://github.com/BUG1989/onnx_op_test_data.git
-        mv onnx_op_test_data onnx_node
+        actions=/home/dongdong
+        ln -s ${actions}/ci_test/onnx_op_test_data/ onnx_node
         export TG_DEBUG_REF=1
         ctest --output-on-failure
     - name: test-data
       run: |
         cd build
-        wget -c ftp://219.139.34.182/tengine/ci_test/images/* -P images
-        wget -c ftp://219.139.34.182/tengine/ci_test/data_x86/* -P data
-        wget -c ftp://219.139.34.182/tengine/ci_test/model_test/* -P models
-        git clone https://github.com/BUG1989/onnx_op_test_data.git
-        mv onnx_op_test_data onnx_node            
+        actions=/home/dongdong
+        ln -s ${actions}/ci_test/model_test/  models
+        ln -s ${actions}/ci_test/images/      images
+        ln -s ${actions}/ci_test/data_x86/    data         
     - name: test-models
       run: |
         chmod +x ./tests/test.sh
@@ -328,28 +327,28 @@ jobs:
         ctest --output-on-failure       
 
   linux-x64-cpu-clang:
-    runs-on: ubuntu-latest
+    runs-on: x86-server-build-test
     steps:
-    - uses: actions/checkout@v2.3.4
-    - name: update
-      run: sudo apt-get update
-    - name: depends
-      run: sudo apt-get install libprotobuf-dev protobuf-compiler libopencv-dev
+    - uses: actions/checkout@v2.3.5
+    # - name: update
+    #   run: sudo apt-get update
+    # - name: depends
+    #   run: sudo apt-get install libprotobuf-dev protobuf-compiler libopencv-dev
     - name: configure
       env:
         CC: clang
         CXX: clang++    
-      run: mkdir build && cd build && cmake -DTENGINE_BUILD_TESTS=ON ..
+      run: mkdir build && cd build && /usr/local/cmake-3.19.8-Linux-x86_64/bin/cmake -DTENGINE_BUILD_TESTS=ON -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX  ..
     - name: build
-      run: cmake --build build -j 2
+      run: /usr/local/cmake-3.19.8-Linux-x86_64/bin/cmake --build build -j 8
     - name: test-data
       run: |
         cd build
-        wget -c ftp://219.139.34.182/tengine/ci_test/images/* -P images
-        wget -c ftp://219.139.34.182/tengine/ci_test/data_x86/* -P data
-        wget -c ftp://219.139.34.182/tengine/ci_test/model_test/* -P models
-        git clone https://github.com/BUG1989/onnx_op_test_data.git
-        mv onnx_op_test_data onnx_node          
+        actions=/home/dongdong
+        ln -s ${actions}/ci_test/onnx_op_test_data/ onnx_node
+        ln -s ${actions}/ci_test/model_test/        models
+        ln -s ${actions}/ci_test/images/            images
+        ln -s ${actions}/ci_test/data_x86/          data           
     - name: test-models
       run: |
         chmod +x ./tests/test.sh
@@ -362,101 +361,152 @@ jobs:
         ctest --output-on-failure        
         
   linux-x64-cpu-tools-convert:
-    runs-on: ubuntu-latest
+    runs-on: x86-server-build-test
     steps:
-    - uses: actions/checkout@v2.3.4
-    - uses: actions/checkout@v2.3.4
-      with:
-        repository: protocolbuffers/protobuf
-        ref: v3.17.3
-        path: protobuf
-        submodules: recursive
-    - name: Build AppImage
-      run: |
-        docker run --network=host --env PROTOBUF_REPO_DIR=$PWD/protobuf -v $PWD:$PWD -w $PWD --privileged --ipc=host centos:7 $PWD/.github/workflows/build-package-and-test-convert-tools.sh
-    - name: Install dependencies for test
-      run: |
-        sudo apt-get update
-        sudo apt-get install libopencv-dev
-    - name: Configure
-      run: mkdir build && cd build && cmake -DTENGINE_BUILD_TESTS=ON ..
-    - name: Build test
-      run: cmake --build build -j 2          
-    - name: Download and unzip test data
-      run: |
-        cd build
-        wget -c ftp://219.139.34.182/tengine/ci_test/model_test_convert/onnx_models.zip
-        unzip onnx_models.zip
-        wget -c ftp://219.139.34.182/tengine/ci_test/model_test_convert/onnx_models_output.zip
-        unzip onnx_models_output.zip
-    - name: Run tests
-      run: |
-        chmod +x ./tests/test_onnx_model.sh
-        cd build
-        ../tests/test_onnx_model.sh ../convert_tool-x86_64.AppImage
-    - name: Upload AppImage
-      uses: actions/upload-artifact@v2
-      with:
-        name: convert_tool_AppImage
-        path: convert_tool-x86_64.AppImage
-
-  linux-x64-cpu-tools-quant:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2.3.4
-    - uses: actions/checkout@v2.3.4
-      with:
-        repository: opencv/opencv
-        ref: 4.5.3
-        path: opencv
-        submodules: recursive
-    - name: Build AppImage
-      run: |
-        docker run --network=host --env OPENCV_REPO_DIR=$PWD/opencv -v $PWD:$PWD -w $PWD --privileged --ipc=host centos:7 $PWD/.github/workflows/build-quant-tool-appimage.sh
-    - name: update
-      run: sudo apt-get update
-    - name: opencv
-      run: sudo apt-get install libopencv-dev
+    - uses: actions/checkout@v2.3.5
+    # - name: update
+    #   run: |
+    #     sudo apt-get update
+    #     sudo apt-get install libopencv-dev
     - name: configure
-      run: mkdir build && cd build && cmake -DTENGINE_BUILD_EXAMPLES=ON ..
+      run: mkdir build && cd build && /usr/local/cmake-3.19.8-Linux-x86_64/bin/cmake -DTENGINE_BUILD_CONVERT_TOOL=ON -DTENGINE_BUILD_TESTS=ON ..
     - name: build
-      run: cmake --build build -j 2
+      run: /usr/local/cmake-3.19.8-Linux-x86_64/bin/cmake --build build -j 8     
     - name: depends
       run: |
-        git clone https://github.com/BUG1989/tengine_test_data.git
-        cp ./tengine_test_data/mobilenet.tmfile ./
-        cp -rf ./tengine_test_data/dataset ./
-        wget -c ftp://219.139.34.182/tengine/ci_test/images/* -P images
+        cd build 
+        actions=/home/dongdong
+        ln -s ${actions}/ci_test/model_test_convert/models       models
+        ln -s ${actions}/ci_test/model_test_convert/outputs      outputs
+    - name: Run tests
+      run: |
+        chmod +x ./tests/test_onnx_model.sh 
+        cd build
+        ../tests/test_onnx_model.sh
+
+  # linux-x64-cpu-tools-convert:
+  #   runs-on: x86-server-build-test
+  #   steps:
+  #   - uses: actions/checkout@v2.3.5
+  #     with:
+  #       repository: protocolbuffers/protobuf
+  #       ref: v3.17.3
+  #       path: protobuf
+  #       submodules: recursive
+  #   - name: Build AppImage
+  #     run: |
+  #       docker run --network=host --env PROTOBUF_REPO_DIR=$PWD/protobuf -v $PWD:$PWD -w $PWD --privileged --ipc=host centos:7 $PWD/.github/workflows/build-package-and-test-convert-tools.sh
+  #   - name: Install dependencies for test
+  #     run: |
+  #       sudo apt-get update
+  #       sudo apt-get install libopencv-dev
+  #   - name: Configure
+  #     run: mkdir build && cd build && /home/dongdong/actions-runners-x86/build_and_test/help/cmake-3.21.2-linux-x86_64/bin/cmake -DTENGINE_BUILD_TESTS=ON ..
+  #   - name: Build test
+  #     run: /home/dongdong/actions-runners-x86/build_and_test/help/cmake-3.21.2-linux-x86_64/bin/cmake --build build -j 2          
+  #   - name: Download and unzip test data
+  #     run: |
+  #       cd build 
+  #       actions=/home/dongdong
+  #       ln -s ${actions}/ci_test/model_test_convert/onnx_models.zip onnx_models.zip
+  #       unzip onnx_models.zip
+  #       ln -s ${actions}/ci_test/model_test_convert/onnx_models_output.zip onnx_models_output.zip
+  #       unzip onnx_models_output.zip
+  #   - name: Run tests
+  #     run: |
+  #       chmod +x ./tests/test_onnx_model.sh 
+  #       cd build
+  #       ../tests/test_onnx_model.sh ../convert_tool-x86_64.AppImage
+  #   - name: Upload AppImage
+  #     uses: actions/upload-artifact@v2
+  #     with:
+  #       name: convert_tool_AppImage
+  #       path: convert_tool-x86_64.AppImage
+
+  linux-x64-cpu-tools-quant:
+    runs-on: x86-server-build-test
+    steps:
+    - uses: actions/checkout@v2.3.5
+    # - name: update
+    #   run: |
+    #     sudo apt-get update
+    #     sudo apt-get install libopencv-dev
+    - name: configure
+      run: mkdir build && cd build && /usr/local/cmake-3.19.8-Linux-x86_64/bin/cmake -DTENGINE_BUILD_QUANT_TOOL=ON -DTENGINE_BUILD_EXAMPLES=ON ..
+    - name: build
+      run: /usr/local/cmake-3.19.8-Linux-x86_64/bin/cmake --build build -j 8     
+    - name: depends
+      run: |
+        cd build
+        actions=/home/dongdong
+        ln -s ${actions}/ci_test/tengine_test_data/mobilenet.tmfile   mobilenet.tmfile
+        ln -s ${actions}/ci_test/tengine_test_data/dataset            dataset
+        ln -s ${actions}/ci_test/images/                              images
     - name: quant-tools-test
       run: |
-        ./quant_tool_uint8-x86_64.AppImage -m mobilenet.tmfile -o mobilenet_uint8.tmfile -i ./dataset -g 3,224,224 -s 0.017,0.017,0.017 -c 1
+        cd build
+        ./tools/quantize/quant_tool_uint8 -m mobilenet.tmfile -o mobilenet_uint8.tmfile -i ./dataset -g 3,224,224 -s 0.017,0.017,0.017 -c 1
     - name: uint8-model-test
       run: |
-        ./build/examples/tm_classification_uint8 -m mobilenet_uint8.tmfile -i images/cat.jpg -g 224,224 -s 0.017,0.017,0.017
-    - name: Upload AppImage
-      uses: actions/upload-artifact@v2
-      with:
-        name: quant_tool_AppImage
-        path: quant_tool_uint8-x86_64.AppImage
+        cd build
+        ./examples/tm_classification_uint8 -m mobilenet_uint8.tmfile -i images/cat.jpg -g 224,224 -s 0.017,0.017,0.017
 
-  publish-releases:
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/tengine-lite'
-    needs: [linux-x64-cpu-tools-convert, linux-x64-cpu-tools-quant]
-    steps:
-    - uses: actions/checkout@v2.3.4
-    - uses: actions/download-artifact@v2
-      with:
-        path: artifacts
-    - name: Display structure of downloaded files
-      run: ls -R
-      working-directory: artifacts
-    - uses: "marvinpinto/action-automatic-releases@latest"
-      with:
-        repo_token: "${{ secrets.GITHUB_TOKEN }}"
-        automatic_release_tag: "latest"
-        prerelease: true
-        title: "Development Build"
-        files: |
-          artifacts/**/*.AppImage
+  # linux-x64-cpu-tools-quant:
+  #   runs-on: x86-server-build-test
+  #   steps:
+  #   - uses: actions/checkout@v2.3.5
+  #     with:
+  #       repository: opencv/opencv
+  #       ref: 4.5.3
+  #       path: opencv 
+  #       submodules: recursive
+  #   - name: Build AppImage
+  #     run: |
+  #       docker run --network=host --env OPENCV_REPO_DIR=$PWD/opencv -v $PWD:$PWD -w $PWD --privileged --ipc=host centos:7 $PWD/.github/workflows/build-quant-tool-appimage.sh
+  #   - name: update
+  #     run: sudo apt-get update
+  #   - name: opencv
+  #     run: sudo apt-get install libopencv-dev
+  #   - name: configure
+  #     run: mkdir build && cd build && /home/dongdong/actions-runners-x86/test_coverage/help/cmake-3.21.2-linux-x86_64/bin/cmake -DTENGINE_BUILD_EXAMPLES=ON ..
+  #   - name: build
+  #     run: /home/dongdong/actions-runners-x86/test_coverage/help/cmake-3.21.2-linux-x86_64/bin/cmake --build build -j 2
+  #   - name: depends
+  #     run: |
+  #       actions=/home/dongdong
+  #       ln -s ${actions}/ci_test/tengine_test_data/mobilenet.tmfile   mobilenet.tmfile
+  #       ln -s ${actions}/ci_test/tengine_test_data/dataset            dataset
+  #       ln -s ${actions}/ci_test/images/    images
+  #   - name: quant-tools-test
+  #     run: |
+  #       ./quant_tool_uint8-x86_64.AppImage -m mobilenet.tmfile -o mobilenet_uint8.tmfile -i ./dataset -g 3,224,224 -s 0.017,0.017,0.017 -c 1
+  #   - name: uint8-model-test
+  #     run: |
+  #       ./build/examples/tm_classification_uint8 -m mobilenet_uint8.tmfile -i images/cat.jpg -g 224,224 -s 0.017,0.017,0.017
+  #   - name: Upload AppImage
+  #     uses: actions/upload-artifact@v2
+  #     with:
+  #       name: quant_tool_AppImage
+  #       path: quant_tool_uint8-x86_64.AppImage
+
+  # publish-releases:
+  #   runs-on: x86-server-build-test
+  #   if: github.ref == 'refs/heads/tengine-lite'
+  #   needs: [linux-x64-cpu-tools-convert, linux-x64-cpu-tools-quant]
+  #   steps:
+  #   - uses: actions/checkout@v2.3.5
+  #   - uses: actions/download-artifact@v2
+  #     with:
+  #       path: artifacts
+  #   - name: Display structure of downloaded files
+  #     run: ls -R
+  #     working-directory: artifacts
+  #   - uses: "marvinpinto/action-automatic-releases@latest"
+  #     with:
+  #       repo_token: "${{ secrets.GITHUB_TOKEN }}"
+  #       automatic_release_tag: "latest"
+  #       prerelease: true
+  #       title: "Development Build"
+  #       files: |
+  #         artifacts/**/*.AppImage
 

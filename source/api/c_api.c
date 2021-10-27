@@ -393,29 +393,18 @@ graph_t create_graph(context_t context, const char* model_format, const char* fi
     {
         int ret = 0;
         struct serializer* loader = find_serializer_via_name(model_format);
+        va_list ap;
         if (loader == NULL)
         {
-            TLOG_ERR("Tengine: No matched serializer(name: %s) found.\n", model_format);
-            return create_graph_error;
-        }
-
-        va_list ap;
-        va_start(ap, file_name);
-
-        const char* p = strchr(model_format, ':');
-
-        // load from file or memory
-        if (NULL == p)
-        {
-            ret = loader->load_model(loader, ir_graph, file_name, ap);
-        }
-        else
-        {
-            if (p[1] != 'm')
+            // load from memory
+            const char* p = strchr(model_format, ':');
+            if ((NULL == p) || (p[1] != 'm'))
             {
                 TLOG_ERR("Tengine: Invalid postfix(%s) for model format: should 'm' only.\n", p);
                 return create_graph_error(ir_graph);
             }
+
+            loader = find_serializer_via_name("tengine");
 
             if (NULL == loader->load_mem)
             {
@@ -423,12 +412,24 @@ graph_t create_graph(context_t context, const char* model_format, const char* fi
                 return create_graph_error(ir_graph);
             }
 
+            va_start(ap, file_name);
+
             int size = va_arg(ap, int);
 
             ret = loader->load_mem(loader, ir_graph, (void*)file_name, size, ap);
-        }
 
-        va_end(ap);
+            va_end(ap);
+        }
+        else
+        {
+            // load from file
+
+            va_start(ap, file_name);
+
+            ret = loader->load_model(loader, ir_graph, file_name, ap);
+
+            va_end(ap);
+        }
 
         if (0 != ret)
         {

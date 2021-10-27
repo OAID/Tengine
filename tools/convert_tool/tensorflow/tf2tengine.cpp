@@ -238,6 +238,7 @@ int tensorflow_serializer::set_graph_input(ir_graph_t* graph)
         if (tf_node->op == "Placeholder")
         {
             ir_tensor_t* ir_tensor = create_ir_tensor(graph, tf_node->name.c_str(), TENGINE_DT_FP32);
+            ir_tensor->tensor_type = TENSOR_TYPE_INPUT;
             tensorflow::AttrValue shape;
 
             int pb_defs_cnt = tf_node->pb_defs.size();
@@ -723,12 +724,13 @@ void tensorflow_serializer::CleanupResizeNearestNeighbor()
 
             for (unsigned int i = 0; i < data_node->outputs.size(); i++)
             {
-                data_shape_node = data_node->outputs[i];
-
-                if (data_shape_node->op == "Shape")
-                    break;
+                if (data_node->outputs[i]->op == "Shape")
+                {
+                    data_shape_node = data_node->outputs[i];
+                }
             }
 
+            assert(data_shape_node != nullptr);
             DisconnectNode(data_shape_node);
 
             TFNode* mul_node = cur_node->inputs[1];

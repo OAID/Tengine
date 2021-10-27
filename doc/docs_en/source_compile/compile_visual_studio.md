@@ -2,7 +2,7 @@
 
 ## Brief
 
-The Visual Studio dev tools & services make app development easy for any platform & language. Tengine support building on windows now.
+The Visual Studio dev tools & services make app development easy for any platform & language. Tengine support building on Windows now.
 
 
 ## Prepare

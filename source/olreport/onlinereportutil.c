@@ -64,7 +64,7 @@ uint32_t get_arch()
 #endif
 }
 
-uint32_t get_totoal_memory()
+uint32_t get_total_memory()
 {
     uint32_t res = 0;
     FILE* fp = fopen("/proc/meminfo", "r");
@@ -168,9 +168,13 @@ void get_os_kernel_info(char* os, int maxlen)
         return;
     }
 
-    int offset = fscanf(fp, "%s", os);
+    int res = fscanf(fp, "%s", os);
+    if (res != 1)
+    {
+        return;
+    }
     fclose(fp);
-    offset = strlen(os);
+    int offset = strlen(os);
     os[offset] = ' ';
     offset += 1;
 
