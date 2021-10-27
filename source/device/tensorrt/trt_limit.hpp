@@ -147,7 +147,7 @@ const int trt_supported_ops[] = {
     OP_SQUEEZE,
     //OP_STRIDED_SLICE,             // Not supported, last checked version 7.1.3
     //OP_SWAP_AXIS,
-    //        OP_TANH,
+    OP_TANH,
     //OP_THRESHOLD,                 // Not supported, last checked version 7.1.3
     //OP_THRESHOLD,                 // Not supported, last checked version 7.1.3
     //        OP_TOPKV2,
