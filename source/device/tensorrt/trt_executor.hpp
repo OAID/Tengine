@@ -103,6 +103,7 @@ private:
     bool AddReductionNode(struct graph* ir_graph, struct node* node);
     bool AddReshapeNode(struct graph* ir_graph, struct node* node);
     bool AddResizeNode(struct graph* ir_graph, struct node* node);
+    bool AddTanhNode(struct graph* ir_graph, struct node* node);
     bool AddTranspose(struct graph* ir_graph, struct node* node);
     bool AddSliceNode(struct graph* ir_graph, struct node* node);
     bool AddSoftmaxNode(struct graph* ir_graph, struct node* node);
