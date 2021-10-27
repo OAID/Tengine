@@ -605,18 +605,18 @@ int main(int argc, char* argv[])
         uint8_t* landmark_blob_u8 = (uint8_t*)get_tensor_buffer(landmark_blob_tensor);
 
         get_tensor_quant_param(score_blob_tensor, &output_scale, &output_zero_point, 1);
-        float* score_blob = (float*)malloc(get_tensor_buffer_size(score_blob_tensor) * sizeof(float));
-        for (int i = 0; i < get_tensor_buffer_size(score_blob_tensor); i++)
+        std::vector<float> score_blob(get_tensor_buffer_size(score_blob_tensor));
+        for (int i = 0; i < score_blob.size(); i++)
             score_blob[i] = ((float)score_blob_u8[i] - (float)output_zero_point) * output_scale;
 
         get_tensor_quant_param(bbox_blob_tensor, &output_scale, &output_zero_point, 1);
-        float* bbox_blob = (float*)malloc(get_tensor_buffer_size(bbox_blob_tensor) * sizeof(float));
-        for (int i = 0; i < get_tensor_buffer_size(bbox_blob_tensor); i++)
+        std::vector<float> bbox_blob(get_tensor_buffer_size(bbox_blob_tensor));
+        for (int i = 0; i < bbox_blob.size(); i++)
             bbox_blob[i] = ((float)bbox_blob_u8[i] - (float)output_zero_point) * output_scale;
 
         get_tensor_quant_param(landmark_blob_tensor, &output_scale, &output_zero_point, 1);
-        float* landmark_blob = (float*)malloc(get_tensor_buffer_size(landmark_blob_tensor) * sizeof(float));
-        for (int i = 0; i < get_tensor_buffer_size(landmark_blob_tensor); i++)
+        std::vector<float> landmark_blob(get_tensor_buffer_size(landmark_blob_tensor));
+        for (int i = 0; i < landmark_blob.size(); i++)
             landmark_blob[i] = ((float)landmark_blob_u8[i] - (float)output_zero_point) * output_scale;
 
         const int base_size = 16;
@@ -634,7 +634,7 @@ int main(int argc, char* argv[])
         std::vector<Box2f> anchors = generate_anchors(base_size, current_ratios, current_scales);
 
         std::vector<Face2f> face_objects;
-        generate_proposals(anchors, feat_stride, score_blob, score_blob_dims, bbox_blob, bbox_blob_dims, landmark_blob,
+        generate_proposals(anchors, feat_stride, score_blob.data(), score_blob_dims, bbox_blob.data(), bbox_blob_dims, landmark_blob.data(),
                            landmark_blob_dims, threshold, face_objects);
 
         face_proposals.insert(face_proposals.end(), face_objects.begin(), face_objects.end());
