@@ -1914,7 +1914,7 @@ static int load_argmax(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto
     struct argmax_param* argmax_param = (struct argmax_param*)node->op.param_mem;
 
     argmax_param->axis = GetAttributeOrDefault<int>(onnx_node, "axis", 0);
-    argmax_param->keepdims = GetAttributeOrDefault<float>(onnx_node, "keepdims", 1);
+    argmax_param->keepdims = GetAttributeOrDefault<int>(onnx_node, "keepdims", 1);
 
     return 0;
 }
@@ -1924,7 +1924,7 @@ static int load_argmin(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto
     struct argmin_param* argmin_param = (struct argmin_param*)node->op.param_mem;
 
     argmin_param->axis = GetAttributeOrDefault<int>(onnx_node, "axis", 0);
-    argmin_param->keepdims = GetAttributeOrDefault<float>(onnx_node, "keepdims", 1);
+    argmin_param->keepdims = GetAttributeOrDefault<int>(onnx_node, "keepdims", 1);
 
     return 0;
 }
