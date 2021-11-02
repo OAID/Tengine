@@ -37,11 +37,23 @@ bool VXEngine::AddEltwiseNode(struct node* ir_node)
 {
     struct graph* ir_graph = ir_node->graph;
 
-    struct tensor* input_tensor0 = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-
     struct tensor* const_tensor = nullptr;
+    int pi = 0;
     if (ir_node->input_num > 1)
-        const_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
+    {
+        for (int i = 0; i < ir_node->input_num; i++)
+        {
+            const_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[i]);
+            if (const_tensor->tensor_type == TENSOR_TYPE_CONST)
+            {
+                if (i == 0)
+                    pi = 1;
+                break;
+            }
+        }
+    }
+
+    struct tensor* input_tensor0 = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[pi]);
 
     eltwise_param* param = (eltwise_param*)ir_node->op.param_mem;
 
@@ -68,9 +80,7 @@ bool VXEngine::AddEltwiseNode(struct node* ir_node)
         }
         else if (const_size == 1 && const_fp32[0] != 0)
         {
-            struct tensor* input_tensor1 = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
-
-            float data_fp32 = ((float*)get_tensor_buffer(input_tensor1))[0];
+            float data_fp32 = ((float*)get_tensor_buffer(const_tensor))[0];
             __fp16 data_fp16 = fp32_to_fp16(data_fp32);
 
             __fp16* fp16_data = (__fp16*)malloc(input_tensor0->elem_num * sizeof(__fp16) );
@@ -89,13 +99,11 @@ bool VXEngine::AddEltwiseNode(struct node* ir_node)
                                         tim::vx::TensorAttribute::CONSTANT);
             auto vx_tensor = this->graph->CreateTensor(vx_spec, fp16_data);
 
-            this->vx_tensor_map[input_tensor1->index] = vx_tensor;
+            this->vx_tensor_map[const_tensor->index] = vx_tensor;
         }
         else if (const_size == input_tensor0->dims[1])
         {
-            struct tensor* input_tensor1 = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
-
-            float* data_fp32 = (float*)get_tensor_buffer(input_tensor1);
+            float* data_fp32 = (float*)get_tensor_buffer(const_tensor);
 
             __fp16* fp16_data = (__fp16*)malloc(input_tensor0->elem_num * sizeof(__fp16) );
             for (int p = 0; p < input_tensor0->dims[1]; p++)
@@ -117,11 +125,11 @@ bool VXEngine::AddEltwiseNode(struct node* ir_node)
                                         tim::vx::TensorAttribute::CONSTANT);
             auto vx_tensor = this->graph->CreateTensor(vx_spec, fp16_data);
 
-            this->vx_tensor_map[input_tensor1->index] = vx_tensor;
+            this->vx_tensor_map[const_tensor->index] = vx_tensor;
         }
         else
         {
-            struct tensor* input_tensor1 = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
+            struct tensor* input_tensor1 = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[pi]);
 
             float* data_fp32 = (float*)get_tensor_buffer(input_tensor1);
 

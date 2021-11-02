@@ -38,7 +38,7 @@ bool VXEngine::AddInterpNode(struct node* ir_node)
     struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
     struct interp_param* param = (struct interp_param*)ir_node->op.param_mem;
-
+    bool align_corners = false;
     tim::vx::ResizeType resize_type;
     if (param->resize_type == 1)
     {
@@ -47,6 +47,11 @@ bool VXEngine::AddInterpNode(struct node* ir_node)
     else if(param->resize_type == 2)
     {
         resize_type = tim::vx::ResizeType::BILINEAR;
+    }
+    else if(param->resize_type == 4)
+    {
+        resize_type = tim::vx::ResizeType::BILINEAR;
+        align_corners = true;
     }
     else
     {
@@ -57,7 +62,9 @@ bool VXEngine::AddInterpNode(struct node* ir_node)
     struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     add_in_tensor = this->vx_tensor_map[input_tensor->index];
 
-    auto resize = graph->CreateOperation<tim::vx::ops::Resize>(resize_type, 0.0f, false, false, param->output_height, param->output_width);
+
+
+    auto resize = graph->CreateOperation<tim::vx::ops::Resize>(resize_type, 0.0f, align_corners, true, param->output_height, param->output_width);
     vx_node_map[ir_node->index] = resize;
 
     (*resize)
