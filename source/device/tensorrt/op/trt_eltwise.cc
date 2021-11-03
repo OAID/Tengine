@@ -35,8 +35,21 @@ EXPORT_FINISH
 bool TensorRTEngine::AddEltwiseLayer(struct graph* ir_graph, struct node* node)
 {
     struct tensor* const_tensor = nullptr;
+
+    int pi = 0;
     if (node->input_num > 1)
-        const_tensor = get_ir_graph_tensor(ir_graph, node->input_tensors[1]);
+    {
+        for (int i = 0; i < node->input_num; i++)
+        {
+            const_tensor = get_ir_graph_tensor(ir_graph, node->input_tensors[i]);
+            if (const_tensor->tensor_type == TENSOR_TYPE_CONST)
+            {
+                if (i == 0)
+                    pi = 1;
+                break;
+            }
+        }
+    }
 
     if (nullptr != const_tensor && const_tensor->tensor_type == TENSOR_TYPE_CONST && const_tensor->data_type == TENGINE_DT_FP32)
     {
@@ -44,7 +57,7 @@ bool TensorRTEngine::AddEltwiseLayer(struct graph* ir_graph, struct node* node)
         int const_size = get_tensor_buffer_size(const_tensor) / sizeof(float) ;
         if (const_size == 1 && const_fp32[0] == 0)
         {
-            struct tensor* reshape_input = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
+            struct tensor* reshape_input = get_ir_graph_tensor(ir_graph, node->input_tensors[pi]);
             struct tensor* reshape_output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
             if (nullptr == reshape_input || nullptr == reshape_output)
             {
@@ -91,7 +104,7 @@ bool TensorRTEngine::AddEltwiseLayer(struct graph* ir_graph, struct node* node)
         else if (const_size == 1)
         {
             float input1_data = ((float*)const_tensor->data)[0];
-            struct tensor* input0 = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
+            struct tensor* input0 = get_ir_graph_tensor(ir_graph, node->input_tensors[pi]);
 
             nvinfer1::Weights weight{nvinfer1::DataType::kFLOAT, nullptr, 0};
 
@@ -121,7 +134,7 @@ bool TensorRTEngine::AddEltwiseLayer(struct graph* ir_graph, struct node* node)
 
     for(uint8_t i = 0; i < node->input_num; i++)
     {
-        struct tensor* ir_tensor = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
+        struct tensor* ir_tensor = get_ir_graph_tensor(ir_graph, node->input_tensors[pi]);
         if (nullptr != ir_tensor && !check_if_input_in_map(ir_tensor->index, this->tensor_swap_map))
         {
             fprintf(stderr, "Tengine: Query input for Eltwise(id: %d, name: %s) layer failed.\n", node->index, node->name);

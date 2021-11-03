@@ -1,26 +1,26 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * License); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * AS IS BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* License); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing,
+* software distributed under the License is distributed on an
+* AS IS BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+* KIND, either express or implied.  See the License for the
+* specific language governing permissions and limitations
+* under the License.
+*/
 
 /*
- * Copyright (c) 2020, OPEN AI LAB
- * Author: hhchen@openailab.com
- */
+* Copyright (c) 2020, OPEN AI LAB
+* Author: hhchen@openailab.com
+*/
 
 #include <algorithm>
 #include "quant_save_graph.hpp"
@@ -227,73 +227,83 @@ int save_graph_u8_perlayer(const char* model_file, const char* scale_file, const
             /* Step 3.1 : quant weight */
             struct tensor* weight_tensor = ir_graph->tensor_list[noden->input_tensors[1]];
 
-            uint8_t* u8_weight_data = (uint8_t*)sys_malloc(weight_tensor->elem_num * sizeof(uint8_t));
-            float* weight_data = (float*)weight_tensor->data;
-
-            /* calculate the quant scale value of weight perchannel, scale = (min-max / 255) */
-            float weight_max = 0;
-            float weight_min = 0;
-            float weight_scale = 0;
-            int weight_zero_point = 0;
-
-            if (internal)
+            if (weight_tensor->data_type == TENGINE_DT_FP32)
             {
-                weight_scale = weight_tensor->scale;
-                weight_zero_point = weight_tensor->zero_point;
-            }
-            else
-            {
-                weight_max = *std::max_element(weight_data, weight_data + weight_tensor->elem_num);
-                weight_min = *std::min_element(weight_data, weight_data + weight_tensor->elem_num);
-                weight_scale = (weight_max - weight_min) / 255.f;
-                weight_zero_point = int(-weight_min / weight_scale);
-            }
-            //            fprintf(stderr, "[weight] scale final %8.4f, zero point %4d\n", weight_scale, weight_zero_point);
+                uint8_t* u8_weight_data = (uint8_t*)sys_malloc(weight_tensor->elem_num);
+                float* weight_data = (float*)weight_tensor->data;
 
-            /* quantize the value of weight from Float32 to UInt8, value_u8 = (value_fp32 / scale).round().clip(0, 255) */
-            for (int wi = 0; wi < weight_tensor->elem_num; wi++)
-            {
-                weight_data[wi] = roundf(weight_data[wi] / weight_scale + (float)weight_zero_point);
-                weight_data[wi] = weight_data[wi] > 255.f ? 255.f : weight_data[wi];
-                weight_data[wi] = weight_data[wi] < 0.f ? 0.f : weight_data[wi];
-                u8_weight_data[wi] = uint8_t(weight_data[wi]);
-            }
+                /* calculate the quant scale value of weight perchannel, scale = (min-max / 255) */
+                float weight_max = 0;
+                float weight_min = 0;
+                float weight_scale = 0;
+                int weight_zero_point = 0;
 
-            weight_tensor->scale = weight_scale;
-            weight_tensor->zero_point = weight_zero_point;
-            weight_tensor->data_type = TENGINE_DT_UINT8;
-            weight_tensor->elem_size = sizeof(uint8_t);
-            weight_tensor->data = u8_weight_data;
-
-            /* step 3.2 : quant bias */
-            if (noden->input_num > 2)
-            {
-                struct tensor* input_tensor = ir_graph->tensor_list[noden->input_tensors[0]];
-                struct tensor* bias_tensor = ir_graph->tensor_list[noden->input_tensors[2]];
-
-                int* int32_bias_data = (int*)sys_malloc(bias_tensor->elem_num * bias_tensor->elem_size);
-                float* bias_data = (float*)bias_tensor->data;
-
-                /* calculate the quant scale value of bias perchannel, scale = scale_weight * scale_in */
-                float bias_scale = input_tensor->scale * weight_tensor->scale;
-
-                /* quantize the value of bias from Float32 to Int32, value_i32 = (value_fp32 / scale).round() */
-                for (int bi = 0; bi < bias_tensor->elem_num; bi++)
+                if (internal)
                 {
-                    if (bias_scale == 0)
-                        int32_bias_data[bi] = 0;
-                    else
-                    {
-                        bias_data[bi] = roundf(bias_data[bi] / bias_scale);
-                        int32_bias_data[bi] = int(bias_data[bi]);
-                    }
+                    weight_scale = weight_tensor->scale;
+                    weight_zero_point = weight_tensor->zero_point;
+                }
+                else
+                {
+                    weight_max = *std::max_element(weight_data, weight_data + weight_tensor->elem_num);
+                    weight_min = *std::min_element(weight_data, weight_data + weight_tensor->elem_num);
+                    weight_scale = (weight_max - weight_min) / 255.f;
+                    weight_zero_point = int(-weight_min / weight_scale);
+                }
+                //            fprintf(stderr, "[weight] scale final %8.4f, zero point %4d\n", weight_scale, weight_zero_point);
+
+                if (weight_scale > 10000000)
+                    fprintf(stderr, "R U KIDDING ME??? %f\n", weight_scale);
+
+                /* quantize the value of weight from Float32 to UInt8, value_u8 = (value_fp32 / scale).round().clip(0, 255) */
+                float weight_data_tmp;
+                for (int wi = 0; wi < weight_tensor->elem_num; wi++)
+                {
+                    //                weight_data[wi] = std::round(weight_data[wi] / weight_scale + static_cast<float>(weight_zero_point) );
+                    //                weight_data[wi] = weight_data[wi] > 255 ? 255 : weight_data[wi];
+                    //                weight_data[wi] = weight_data[wi] < 0 ? 0 : weight_data[wi];
+                    weight_data_tmp = std::round(weight_data[wi] / weight_scale + static_cast<float>(weight_zero_point));
+                    weight_data_tmp = weight_data_tmp > 255 ? 255 : weight_data_tmp;
+                    weight_data_tmp = weight_data_tmp < 0 ? 0 : weight_data_tmp;
+                    u8_weight_data[wi] = static_cast<uint8_t>(weight_data_tmp);
                 }
 
-                bias_tensor->scale = bias_scale;
-                bias_tensor->data_type = TENGINE_DT_INT32;
-                bias_tensor->data = int32_bias_data;
+                weight_tensor->scale = weight_scale;
+                weight_tensor->zero_point = weight_zero_point;
+                weight_tensor->data_type = TENGINE_DT_UINT8;
+                weight_tensor->elem_size = sizeof(uint8_t);
+                weight_tensor->data = u8_weight_data;
 
-                //                fprintf(stderr, "[bias]   scale final %8.4f\n", bias_scale);
+                /* step 3.2 : quant bias */
+                if (noden->input_num > 2)
+                {
+                    struct tensor* input_tensor = ir_graph->tensor_list[noden->input_tensors[0]];
+                    struct tensor* bias_tensor = ir_graph->tensor_list[noden->input_tensors[2]];
+
+                    int* int32_bias_data = (int*)sys_malloc(bias_tensor->elem_num * bias_tensor->elem_size);
+                    float* bias_data = (float*)bias_tensor->data;
+
+                    /* calculate the quant scale value of bias perchannel, scale = scale_weight * scale_in */
+                    float bias_scale = input_tensor->scale * weight_tensor->scale;
+
+                    /* quantize the value of bias from Float32 to Int32, value_i32 = (value_fp32 / scale).round() */
+                    for (int bi = 0; bi < bias_tensor->elem_num; bi++)
+                    {
+                        if (bias_scale == 0)
+                            int32_bias_data[bi] = 0;
+                        else
+                        {
+                            bias_data[bi] = roundf(bias_data[bi] / bias_scale);
+                            int32_bias_data[bi] = int(bias_data[bi]);
+                        }
+                    }
+
+                    bias_tensor->scale = bias_scale;
+                    bias_tensor->data_type = TENGINE_DT_INT32;
+                    bias_tensor->data = int32_bias_data;
+
+                    //                fprintf(stderr, "[bias]   scale final %8.4f\n", bias_scale);
+                }
             }
         }
         /* quantize the tensor data from fp32 to fp16, for TIM-VX NPU IP */
@@ -800,105 +810,189 @@ int save_graph_u8_perchannel(const char* model_file, const char* scale_file, con
             /* Step 3.1 : quant weight */
             struct tensor* weight_tensor = ir_graph->tensor_list[noden->input_tensors[1]];
 
-            int channel_num = weight_tensor->dims[0];
-            int cstep = int(weight_tensor->elem_num / channel_num);
-            float* weight_data = (float*)weight_tensor->data;
-            int8_t* i8_weight_data = (int8_t*)sys_malloc(weight_tensor->elem_num * sizeof(int8_t));
-
-            float* weight_scale_list = (float*)sys_malloc(channel_num * sizeof(float));
-            int* weight_zp_list = (int*)sys_malloc(channel_num * sizeof(int));
-
-            fprintf(fp_weight, "%s ", weight_tensor->name);
-            /* calculate the quant scale value of weight perchannel, scale = abs(min, max) / 127 */
-            if (internal)
+            if (weight_tensor->dims[0] == 1 || noden->input_num == 2)
             {
-                // TODO
+                fprintf(stderr, "weight_tensor->name %s\n", weight_tensor->name);
+                uint8_t* u8_weight_data = (uint8_t*)sys_malloc(weight_tensor->elem_num);
+                float* weight_data = (float*)weight_tensor->data;
+
+                /* calculate the quant scale value of weight perchannel, scale = (min-max / 255) */
+                float weight_max = 0;
+                float weight_min = 0;
+                float weight_scale = 0;
+                int weight_zero_point = 0;
+
+                if (internal)
+                {
+                    weight_scale = weight_tensor->scale;
+                    weight_zero_point = weight_tensor->zero_point;
+                }
+                else
+                {
+                    weight_max = *std::max_element(weight_data, weight_data + weight_tensor->elem_num);
+                    weight_min = *std::min_element(weight_data, weight_data + weight_tensor->elem_num);
+                    weight_scale = (weight_max - weight_min) / 255.f;
+                    weight_zero_point = int(-weight_min / weight_scale);
+                }
+                //            fprintf(stderr, "[weight] scale final %8.4f, zero point %4d\n", weight_scale, weight_zero_point);
+
+                if (weight_scale > 10000000)
+                    fprintf(stderr, "R U KIDDING ME??? %f\n", weight_scale);
+
+                /* quantize the value of weight from Float32 to UInt8, value_u8 = (value_fp32 / scale).round().clip(0, 255) */
+                float weight_data_tmp;
+                for (int wi = 0; wi < weight_tensor->elem_num; wi++)
+                {
+                    //                weight_data[wi] = std::round(weight_data[wi] / weight_scale + static_cast<float>(weight_zero_point) );
+                    //                weight_data[wi] = weight_data[wi] > 255 ? 255 : weight_data[wi];
+                    //                weight_data[wi] = weight_data[wi] < 0 ? 0 : weight_data[wi];
+                    weight_data_tmp = std::round(weight_data[wi] / weight_scale + static_cast<float>(weight_zero_point));
+                    weight_data_tmp = weight_data_tmp > 255 ? 255 : weight_data_tmp;
+                    weight_data_tmp = weight_data_tmp < 0 ? 0 : weight_data_tmp;
+                    u8_weight_data[wi] = static_cast<uint8_t>(weight_data_tmp);
+                }
+
+                weight_tensor->scale = weight_scale;
+                weight_tensor->zero_point = weight_zero_point;
+                weight_tensor->data_type = TENGINE_DT_UINT8;
+                weight_tensor->elem_size = sizeof(uint8_t);
+                weight_tensor->data = u8_weight_data;
+                weight_tensor->quant_param_num = 1;
+
+                /* step 3.2 : quant bias */
+                if (noden->input_num > 2)
+                {
+                    struct tensor* input_tensor = ir_graph->tensor_list[noden->input_tensors[0]];
+                    struct tensor* bias_tensor = ir_graph->tensor_list[noden->input_tensors[2]];
+
+                    int* int32_bias_data = (int*)sys_malloc(bias_tensor->elem_num * bias_tensor->elem_size);
+                    float* bias_data = (float*)bias_tensor->data;
+
+                    /* calculate the quant scale value of bias perchannel, scale = scale_weight * scale_in */
+                    float bias_scale = input_tensor->scale * weight_tensor->scale;
+
+                    /* quantize the value of bias from Float32 to Int32, value_i32 = (value_fp32 / scale).round() */
+                    for (int bi = 0; bi < bias_tensor->elem_num; bi++)
+                    {
+                        if (bias_scale == 0)
+                            int32_bias_data[bi] = 0;
+                        else
+                        {
+                            bias_data[bi] = roundf(bias_data[bi] / bias_scale);
+                            int32_bias_data[bi] = int(bias_data[bi]);
+                        }
+                    }
+
+                    bias_tensor->scale = bias_scale;
+                    bias_tensor->data_type = TENGINE_DT_INT32;
+                    bias_tensor->data = int32_bias_data;
+                    bias_tensor->quant_param_num = 1;
+
+                    //                fprintf(stderr, "[bias]   scale final %8.4f\n", bias_scale);
+                }
             }
             else
             {
-                for (int ch = 0; ch < channel_num; ch++)
-                {
-                    float* weight_data_ch_start = weight_data + ch * cstep;
-                    float* weight_data_ch_end = weight_data + (ch + 1) * cstep;
-                    float weight_max = *std::max_element(weight_data_ch_start, weight_data_ch_end);
-                    float weight_min = *std::min_element(weight_data_ch_start, weight_data_ch_end);
+                int channel_num = weight_tensor->dims[0];
+                int cstep = int(weight_tensor->elem_num / channel_num);
+                float* weight_data = (float*)weight_tensor->data;
+                int8_t* i8_weight_data = (int8_t*)sys_malloc(weight_tensor->elem_num * sizeof(int8_t));
 
-                    weight_scale_list[ch] = std::max(std::abs(weight_max), std::abs(weight_min)) / 127.f;
-                    weight_zp_list[ch] = 0;
-                    fprintf(fp_weight, "%8.8f ", weight_scale_list[ch]);
+                float* weight_scale_list = (float*)sys_malloc(channel_num * sizeof(float));
+                int* weight_zp_list = (int*)sys_malloc(channel_num * sizeof(int));
+
+                fprintf(fp_weight, "%s ", weight_tensor->name);
+                /* calculate the quant scale value of weight perchannel, scale = abs(min, max) / 127 */
+                if (internal)
+                {
+                    // TODO
                 }
-                fprintf(fp_weight, "\n");
-            }
-            //            fprintf(stderr, "[weight] scale final %8.4f, zero point %4d\n", weight_scale, weight_zero_point);
-
-            /* quantize the value of weight from Float32 to Int8, value_i8 = (value_fp32 / scale).round().clip(-127, 127) */
-            for (int ch = 0; ch < channel_num; ch++)
-            {
-                for (int j = 0; j < cstep; j++)
+                else
                 {
-                    if (weight_data[ch * cstep + j] == 0 || weight_scale_list[ch] == 0)
-                        i8_weight_data[ch * cstep + j] = 0;
-                    else
+                    for (int ch = 0; ch < channel_num; ch++)
                     {
-                        float int8_data = round(weight_data[ch * cstep + j] / weight_scale_list[ch]);
-                        int8_data = int8_data > 127.f ? 127.f : int8_data;
-                        int8_data = int8_data < -127.f ? -127.f : int8_data;
-                        i8_weight_data[ch * cstep + j] = int8_t(int8_data);
+                        float* weight_data_ch_start = weight_data + ch * cstep;
+                        float* weight_data_ch_end = weight_data + (ch + 1) * cstep;
+                        float weight_max = *std::max_element(weight_data_ch_start, weight_data_ch_end);
+                        float weight_min = *std::min_element(weight_data_ch_start, weight_data_ch_end);
+
+                        weight_scale_list[ch] = std::max(std::abs(weight_max), std::abs(weight_min)) / 127.f;
+                        weight_zp_list[ch] = 0;
+                        fprintf(fp_weight, "%8.8f ", weight_scale_list[ch]);
                     }
+                    fprintf(fp_weight, "\n");
                 }
-            }
+                //            fprintf(stderr, "[weight] scale final %8.4f, zero point %4d\n", weight_scale, weight_zero_point);
 
-            weight_tensor->scale_list = weight_scale_list;
-            weight_tensor->zp_list = weight_zp_list;
-            weight_tensor->data_type = TENGINE_DT_INT8;
-            weight_tensor->elem_size = sizeof(int8_t); // int8, signed char
-            weight_tensor->data = i8_weight_data;
-            weight_tensor->quant_param_num = channel_num;
-
-            /* step 3.2 : quant bias */
-            if (noden->input_num > 2)
-            {
-                struct tensor* input_tensor = ir_graph->tensor_list[noden->input_tensors[0]];
-                struct tensor* bias_tensor = ir_graph->tensor_list[noden->input_tensors[2]];
-
-                float* bias_scale_list = (float*)sys_malloc(bias_tensor->dims[0] * sizeof(float));
-                int* bias_zp_list = (int*)sys_malloc(bias_tensor->dims[0] * sizeof(int32_t));
-
-                float* bias_data = (float*)bias_tensor->data;
-                int* int32_bias_data = (int*)sys_malloc(bias_tensor->elem_num * sizeof(int32_t));
-
-                int bstep = int(bias_tensor->elem_num / channel_num);
-
-                fprintf(fp_bias, "%s ", bias_tensor->name);
-
-                /* calculate the quant scale value of bias perchannel, scale = scale_weight * scale_in */
+                /* quantize the value of weight from Float32 to Int8, value_i8 = (value_fp32 / scale).round().clip(-127, 127) */
                 for (int ch = 0; ch < channel_num; ch++)
                 {
-                    bias_scale_list[ch] = weight_scale_list[ch] * input_tensor->scale;
-                    bias_zp_list[ch] = 0;
-
-                    fprintf(fp_bias, "%8.8f ", bias_scale_list[ch]);
-                }
-                fprintf(fp_bias, "\n");
-
-                /* quantize the value of bias from Float32 to Int32, value_i32 = (value_fp32 / scale).round() */
-                for (int ch = 0; ch < channel_num; ch++)
-                {
-                    for (int bi = 0; bi < bstep; bi++)
+                    for (int j = 0; j < cstep; j++)
                     {
-                        if (bias_data[ch * bstep + bi] == 0 || bias_scale_list[ch] == 0)
-                            int32_bias_data[ch * bstep + bi] = 0;
+                        if (weight_data[ch * cstep + j] == 0 || weight_scale_list[ch] == 0)
+                            i8_weight_data[ch * cstep + j] = 0;
                         else
-                            int32_bias_data[ch * bstep + bi] = int(round(bias_data[ch * bstep + bi] / bias_scale_list[ch]));
+                        {
+                            float int8_data = round(weight_data[ch * cstep + j] / weight_scale_list[ch]);
+                            int8_data = int8_data > 127.f ? 127.f : int8_data;
+                            int8_data = int8_data < -127.f ? -127.f : int8_data;
+                            i8_weight_data[ch * cstep + j] = int8_t(int8_data);
+                        }
                     }
                 }
 
-                bias_tensor->scale_list = bias_scale_list;
-                bias_tensor->zp_list = bias_zp_list;
-                bias_tensor->data_type = TENGINE_DT_INT32;
-                bias_tensor->elem_size = sizeof(int32_t); // int32, signed int
-                bias_tensor->data = int32_bias_data;
-                bias_tensor->quant_param_num = channel_num;
+                weight_tensor->scale_list = weight_scale_list;
+                weight_tensor->zp_list = weight_zp_list;
+                weight_tensor->data_type = TENGINE_DT_INT8;
+                weight_tensor->elem_size = sizeof(int8_t); // int8, signed char
+                weight_tensor->data = i8_weight_data;
+                weight_tensor->quant_param_num = channel_num;
+
+                /* step 3.2 : quant bias */
+                if (noden->input_num > 2)
+                {
+                    struct tensor* input_tensor = ir_graph->tensor_list[noden->input_tensors[0]];
+                    struct tensor* bias_tensor = ir_graph->tensor_list[noden->input_tensors[2]];
+
+                    float* bias_scale_list = (float*)sys_malloc(bias_tensor->dims[0] * sizeof(float));
+                    int* bias_zp_list = (int*)sys_malloc(bias_tensor->dims[0] * sizeof(int32_t));
+
+                    float* bias_data = (float*)bias_tensor->data;
+                    int* int32_bias_data = (int*)sys_malloc(bias_tensor->elem_num * sizeof(int32_t));
+
+                    int bstep = int(bias_tensor->elem_num / channel_num);
+
+                    fprintf(fp_bias, "%s ", bias_tensor->name);
+
+                    /* calculate the quant scale value of bias perchannel, scale = scale_weight * scale_in */
+                    for (int ch = 0; ch < channel_num; ch++)
+                    {
+                        bias_scale_list[ch] = weight_scale_list[ch] * input_tensor->scale;
+                        bias_zp_list[ch] = 0;
+
+                        fprintf(fp_bias, "%8.8f ", bias_scale_list[ch]);
+                    }
+                    fprintf(fp_bias, "\n");
+
+                    /* quantize the value of bias from Float32 to Int32, value_i32 = (value_fp32 / scale).round() */
+                    for (int ch = 0; ch < channel_num; ch++)
+                    {
+                        for (int bi = 0; bi < bstep; bi++)
+                        {
+                            if (bias_data[ch * bstep + bi] == 0 || bias_scale_list[ch] == 0)
+                                int32_bias_data[ch * bstep + bi] = 0;
+                            else
+                                int32_bias_data[ch * bstep + bi] = int(round(bias_data[ch * bstep + bi] / bias_scale_list[ch]));
+                        }
+                    }
+
+                    bias_tensor->scale_list = bias_scale_list;
+                    bias_tensor->zp_list = bias_zp_list;
+                    bias_tensor->data_type = TENGINE_DT_INT32;
+                    bias_tensor->elem_size = sizeof(int32_t); // int32, signed int
+                    bias_tensor->data = int32_bias_data;
+                    bias_tensor->quant_param_num = channel_num;
+                }
 
                 // fprintf(stderr, "bias   %8.8f \t%s\n", bias_scale_list[0], bias_tensor->name);
             }

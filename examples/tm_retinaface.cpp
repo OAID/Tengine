@@ -345,8 +345,6 @@ static void generate_proposals(std::vector<Box2f>& anchors, int feat_stride, con
     }
 }
 
-
-
 int get_input_data(const char* image_file, std::vector<float>& image_data, Size2i& size)
 {
     image img = imread(image_file);
