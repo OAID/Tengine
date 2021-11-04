@@ -10,7 +10,7 @@ extern "C"
 
 bool OCLEngine::AddSliceNode(struct node* ir_node)
 {
-    TLOG_INFO("Tengine OpenCL: Support OP_FLATTEN(%d).\n", ir_node->index);
+    TLOG_INFO("Tengine OpenCL: Support OP_SLICE(%d).\n", ir_node->index);
 
     struct graph* ir_graph = ir_node->graph;
 

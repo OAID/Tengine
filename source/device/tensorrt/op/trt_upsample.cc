@@ -37,13 +37,13 @@ bool TensorRTEngine::AddUpSampleNode(struct graph* ir_graph, struct node* node)
     struct tensor* upsample_output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
     if (nullptr == upsample_input || nullptr == upsample_output)
     {
-        fprintf(stderr, "Tengine: Get input & output for Interp(id: %d, name: %s) layer failed.\n", node->index, node->name);
+        fprintf(stderr, "Tengine: Get input & output for Upsample(id: %d, name: %s) layer failed.\n", node->index, node->name);
         return false;
     }
 
     if (!check_if_input_in_map(upsample_input->index, this->tensor_swap_map))
     {
-        fprintf(stderr, "Tengine: Query input for Interp(id: %d, name: %s) layer failed.\n", node->index, node->name);
+        fprintf(stderr, "Tengine: Query input for Upsample(id: %d, name: %s) layer failed.\n", node->index, node->name);
         return false;
     }
 

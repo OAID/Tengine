@@ -69,7 +69,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         ret = ref_concat_int8(ir_graph, ir_node, concat_param->axis);
     }
     else
-        TLOG_ERR("Input data type %d not to be supported.\n", output_tensor->data_type);
+        TLOG_ERR("Output data type %d not to be supported.\n", output_tensor->data_type);
 
     return ret;
 }

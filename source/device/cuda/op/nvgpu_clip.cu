@@ -63,7 +63,7 @@ void relu6_gpu_kernel(struct graph* ir_graph, struct node* ir_node, dict_uint2vo
 
 void CUDAEngine::AddClipNode(struct graph* ir_graph, struct node* ir_node)
 {
-    TLOG_INFO("Tengine GPU: Support OP(%d) OP_RELU.\n", ir_node->index);
+    TLOG_INFO("Tengine GPU: Support OP(%d) OP_CLIP.\n", ir_node->index);
     relu6_gpu_kernel(ir_graph, ir_node, this->gpu_addr_map);
     this->ops.push_back(std::bind(&relu6_gpu_kernel, ir_graph, ir_node, this->gpu_addr_map));
 }

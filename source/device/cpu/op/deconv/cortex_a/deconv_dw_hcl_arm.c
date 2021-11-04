@@ -57,7 +57,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
     if (deconv_dw_run(input_tensor, weight_tensor, bias_tensor, output_tensor, deconv_param, num_thread, cpu_affinity) < 0)
     {
-        TLOG_ERR("hcl conv run failed\n");
+        TLOG_ERR("hcl deconv run failed\n");
         // set_tengine_errno(EFAULT);
         return -1;
     }
