@@ -288,7 +288,7 @@ static int cpu_describe(struct device* device, struct vector* allowed_ops, struc
     }
     if (NULL == blocked_ops)
     {
-        TLOG_ERR("Error: Allowed op list pointer is NULL\n");
+        TLOG_ERR("Error: Blocked op list pointer is NULL\n");
     }
 
     for (int i = OP_GENERIC + 1; i < OP_BUILTIN_LAST - 1; i++)

@@ -96,7 +96,7 @@ nvdla::priv::canonical_ast::Node * ODLAEngine::AddDeconvlutionNode(struct node* 
             break;
         }
         default:
-            fprintf(stderr, "Tengine: Unsupported weight quant data type(%d) of conv(id: %d, name: %s).\n", conv_weight->data_type, ir_node->index, ir_node->name);
+            fprintf(stderr, "Tengine: Unsupported weight quant data type(%d) of deconv(id: %d, name: %s).\n", conv_weight->data_type, ir_node->index, ir_node->name);
             return nullptr;
         }
 
@@ -138,7 +138,7 @@ nvdla::priv::canonical_ast::Node * ODLAEngine::AddDeconvlutionNode(struct node* 
                 break;
             }
             default:
-                fprintf(stderr, "Tengine: Unsupported weight quant data type(%d) of conv(id: %d, name: %s).\n", conv_bias->data_type, ir_node->index, ir_node->name);
+                fprintf(stderr, "Tengine: Unsupported weight quant data type(%d) of deconv(id: %d, name: %s).\n", conv_bias->data_type, ir_node->index, ir_node->name);
                 return nullptr;
             }
 

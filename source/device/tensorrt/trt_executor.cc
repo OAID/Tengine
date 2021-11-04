@@ -260,7 +260,7 @@ int TensorRTEngine::Build(struct subgraph* subgraph)
             {
                 if (!AddInterpNode(ir_graph, ir_node))
                 {
-                    TLOG_ERR("Tengine: Cannot add FullyConnected op(%d).\n", ir_node->index);
+                    TLOG_ERR("Tengine: Cannot add Interp op(%d).\n", ir_node->index);
                     return -6;
                 }
                 break;

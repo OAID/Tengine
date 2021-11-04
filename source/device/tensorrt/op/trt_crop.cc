@@ -83,7 +83,7 @@ bool TensorRTEngine::AddCropNode(struct graph* ir_graph, struct node* node)
     nvinfer1::IPaddingLayer* layer = this->network->addPadding(*crop_input_tensor, prePadding, postPadding);
     if (nullptr == layer)
     {
-        fprintf(stderr, "Tengine: Add Flatten(id: %d, name: %s) layer failed.\n", node->index, node->name);
+        fprintf(stderr, "Tengine: Add Crop(id: %d, name: %s) layer failed.\n", node->index, node->name);
         return false;
     }
 
