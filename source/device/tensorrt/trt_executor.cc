@@ -24,6 +24,7 @@
 
 #include "trt_executor.hpp"
 #include "trt_helper.hpp"
+#include "trt_dump.hpp"
 
 EXPORT_BEGIN
 #include "convolution_param.h"
@@ -34,9 +35,7 @@ EXPORT_FINISH
 
 #include <NvInferRuntime.h>
 
-
 static Logger gLogger(nvinfer1::ILogger::Severity::kERROR);
-
 
 int TensorRTEngine::get_type(int mode, nvinfer1::DataType& type)
 {
@@ -370,11 +369,20 @@ int TensorRTEngine::Build(struct subgraph* subgraph)
                 }
                 break;
             }
+            case OP_TANH:
+            {
+                if(!AddTanhNode(ir_graph, ir_node))
+                {
+                    TLOG_ERR("Tengine: Cannot add Tanh op(%d).\n", ir_node->index);
+                    return -6;
+                }
+                break;
+            }
             case OP_TRANSPOSE:
             {
                 if(!AddTranspose(ir_graph, ir_node))
                 {
-                    TLOG_ERR("Tengine: Cannot add Softmax op(%d).\n", ir_node->index);
+                    TLOG_ERR("Tengine: Cannot add Transpose op(%d).\n", ir_node->index);
                     return -6;
                 }
                 break;
@@ -514,6 +522,8 @@ bool TensorRTEngine::AddTensor(struct graph* ir_graph, struct tensor *ir_tensor)
 
 int TensorRTEngine::PreRun(struct subgraph* subgraph, struct trt_option* options)
 {
+    dump_sub_graph_trt(subgraph);
+
     trt_opt_t* opt = &this->option;
     if (nullptr != options)
     {
