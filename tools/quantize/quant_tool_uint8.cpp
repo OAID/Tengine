@@ -66,6 +66,7 @@ QuantTool::QuantTool()
     this->focus = 0;
     this->inplace = true;
     this->algorithm_type = ALGORITHM_MIN_MAX;
+    this->evaluate = false;
 }
 
 QuantTool::~QuantTool()
