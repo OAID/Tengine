@@ -50,6 +50,7 @@ def parse_args():
     parser.add_argument('--output', help='output model path', default='./yolov5s-opt.onnx', type=str)
     parser.add_argument('--in_tensor', help='input tensor name', default='167', type=str)
     parser.add_argument('--out_tensor', help='output tensor names', default='381,420,459', type=str)
+    parser.add_argument('--cut_focus', action='store_false', help='cut focus from model if true')
     parser.add_argument('--verbose', action='store_true', help='show verbose info')
     
     args = parser.parse_args()
@@ -180,8 +181,9 @@ def main():
     new_nodes = old_node[:]
 
     # cut the focus and postprocess nodes
-    print("[Quant Tools Info]: Step 1, Remove the focus and postprocess nodes.")
-    new_nodes = cut_focus_output(old_node, in_tensor, out_tensor)
+    if args.cut_focus:
+        print("[Quant Tools Info]: Step 1, Remove the focus and postprocess nodes.")
+        new_nodes = cut_focus_output(old_node, in_tensor, out_tensor)
 
     # op fusion, using HardSwish replace the Sigmoid and Mul
     print("[Quant Tools Info]: Step 2, Using hardswish replace the sigmoid and mul.")
