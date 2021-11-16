@@ -32,9 +32,8 @@
 #include "tengine/c_api.h"
 #include "tengine_operations.h"
 
-
-static void get_input_fp32_data(const char* image_file, float* input_data, 
-    int letterbox_rows, int letterbox_cols, const float* mean, const float* scale)
+static void get_input_fp32_data(const char* image_file, float* input_data,
+                                int letterbox_rows, int letterbox_cols, const float* mean, const float* scale)
 {
     cv::Mat sample = cv::imread(image_file, 1);
     cv::Mat img;
@@ -73,7 +72,7 @@ static void get_input_fp32_data(const char* image_file, float* input_data,
     cv::copyMakeBorder(img, img_new, top, bot, left, right, cv::BORDER_CONSTANT, cv::Scalar(0, 0, 0));
 
     float* img_data = (float*)img_new.data;
-    
+
     /* nhwc to nchw */
     for (int h = 0; h < letterbox_rows; h++)
     {
@@ -83,11 +82,10 @@ static void get_input_fp32_data(const char* image_file, float* input_data,
             {
                 int in_index = h * letterbox_cols * 3 + w * 3 + c;
                 int out_index = c * letterbox_rows * letterbox_cols + h * letterbox_cols + w;
-                input_data[out_index] = (img_data[in_index]-mean[c])* scale[c];
+                input_data[out_index] = (img_data[in_index] - mean[c]) * scale[c];
             }
         }
     }
-
 }
 void show_usage()
 {
@@ -100,28 +98,28 @@ static void draw_result(const cv::Mat& bgr, std::vector<cv::Point2f> pts)
     cv::Scalar color3(5, 255, 55);
     cv::Scalar color4(25, 15, 255);
     cv::Scalar color5(225, 15, 55);
-    for(size_t j = 0; j < 21; j++)
+    for (size_t j = 0; j < 21; j++)
     {
-        cv::circle(bgr, pts[j],4,cv::Scalar(255,0,255),-1);
+        cv::circle(bgr, pts[j], 4, cv::Scalar(255, 0, 255), -1);
         if (j < 4)
         {
-            cv::line(bgr, pts[j], pts[j+1], color1, 2, 8);
+            cv::line(bgr, pts[j], pts[j + 1], color1, 2, 8);
         }
         if (j < 8 && j > 4)
         {
-            cv::line(bgr, pts[j], pts[j+1], color2, 2, 8);
+            cv::line(bgr, pts[j], pts[j + 1], color2, 2, 8);
         }
         if (j < 12 && j > 8)
         {
-            cv::line(bgr, pts[j], pts[j+1], color3, 2, 8);
+            cv::line(bgr, pts[j], pts[j + 1], color3, 2, 8);
         }
         if (j < 16 && j > 12)
         {
-            cv::line(bgr, pts[j], pts[j+1], color4, 2, 8);
+            cv::line(bgr, pts[j], pts[j + 1], color4, 2, 8);
         }
         if (j < 20 && j > 16)
         {
-            cv::line(bgr, pts[j], pts[j+1], color5, 2, 8);
+            cv::line(bgr, pts[j], pts[j + 1], color5, 2, 8);
         }
     }
     cv::line(bgr, pts[0], pts[5], color2, 2, 8);
@@ -130,7 +128,6 @@ static void draw_result(const cv::Mat& bgr, std::vector<cv::Point2f> pts)
     cv::line(bgr, pts[0], pts[17], color5, 2, 8);
 
     cv::imwrite("handpose_result.jpg", bgr);
-
 }
 int main(int argc, char* argv[])
 {
@@ -201,7 +198,7 @@ int main(int argc, char* argv[])
     opt.precision = TENGINE_MODE_FP32;
     opt.affinity = 0;
 
-     /* inital tengine */
+    /* inital tengine */
     if (init_tengine() != 0)
     {
         fprintf(stderr, "Initial tengine failed.\n");
@@ -219,7 +216,7 @@ int main(int argc, char* argv[])
 
     /* set the input shape to initial the graph, and prerun graph to infer shape */
     int img_size = letterbox_rows * letterbox_cols * img_c;
-    int dims[] = { 1, 3, letterbox_rows, letterbox_cols };
+    int dims[] = {1, 3, letterbox_rows, letterbox_cols};
     std::vector<float> input_data(img_size);
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
@@ -272,7 +269,7 @@ int main(int argc, char* argv[])
             max_time = cur;
     }
     fprintf(stderr, "Repeat %d times, thread %d, avg time %.2f ms, max_time %.2f ms, min_time %.2f ms\n", repeat_count, num_thread,
-        total_time / repeat_count, max_time, min_time);
+            total_time / repeat_count, max_time, min_time);
     fprintf(stderr, "--------------------------------------\n");
 
     /* get output tensor */
@@ -308,11 +305,12 @@ int main(int argc, char* argv[])
         float y = (points_data[3 * i + 1] - tmp_h) * ratio_y;
         pts.push_back(cv::Point2f(x, y));
     }
-    if(score_data[0] > 0.5)
+    if (score_data[0] > 0.5)
     {
         fprintf(stderr, "Right hand\n");
     }
-    else{
+    else
+    {
         fprintf(stderr, "Left hand\n");
     }
 
