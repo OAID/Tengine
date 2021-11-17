@@ -27,8 +27,7 @@
 #include "ocl_limit.hpp"
 #include "ocl_graph.hpp"
 
-extern "C"
-{
+extern "C" {
 #include "api/c_api.h"
 #include "device/device.h"
 #include "graph/tensor.h"
@@ -43,7 +42,6 @@ extern "C"
 }
 
 #include <cstring>
-
 
 int ocl_describe(struct device* device, struct vector* allowed_ops, struct vector* blocked_ops, struct vector* precision)
 {
@@ -78,7 +76,6 @@ int ocl_describe(struct device* device, struct vector* allowed_ops, struct vecto
     return 0;
 }
 
-
 int ocl_evaluation(struct device* device, struct subgraph* sub_graph, struct vector* evolution_tensors, struct vector* evolution_nodes)
 {
     // nothing to do with tensorrt
@@ -89,7 +86,6 @@ int ocl_evaluation(struct device* device, struct subgraph* sub_graph, struct vec
 
     return 0;
 }
-
 
 int ocl_allocate(struct device* device, struct subgraph* sub_graph)
 {
@@ -111,7 +107,6 @@ int ocl_allocate(struct device* device, struct subgraph* sub_graph)
 
     return 0;
 }
-
 
 int ocl_release(struct device* device, struct subgraph* sub_graph)
 {
@@ -162,47 +157,40 @@ int ocl_split_graph(struct graph* ir_graph)
     return 0;
 }
 
-
-extern "C"
-{
+extern "C" {
 static struct interface ocl_interface = {
-        .init           = ocl_dev_init,
-        .pre_run        = ocl_dev_prerun,
-        .run            = ocl_dev_run,
-        .post_run       = ocl_dev_postrun,
-        .async_run      = nullptr,
-        .async_wait     = nullptr,
-        .release_graph  = nullptr,
-        .release_device = ocl_dev_release,
+    .init = ocl_dev_init,
+    .pre_run = ocl_dev_prerun,
+    .run = ocl_dev_run,
+    .post_run = ocl_dev_postrun,
+    .async_run = nullptr,
+    .async_wait = nullptr,
+    .release_graph = nullptr,
+    .release_device = ocl_dev_release,
 };
-
 
 static struct allocator ocl_allocator = {
-        .describe       = ocl_describe,
-        .evaluation     = ocl_evaluation,
-        .allocate       = ocl_allocate,
-        .release        = ocl_release,
+    .describe = ocl_describe,
+    .evaluation = ocl_evaluation,
+    .allocate = ocl_allocate,
+    .release = ocl_release,
 };
-
 
 static struct optimizer ocl_optimizer = {
-        .split_graph    = ocl_split_graph,
-        .optimize_graph = nullptr,
+    .split_graph = ocl_split_graph,
+    .optimize_graph = nullptr,
 };
-
-
 
 static struct ocl_device ocl_dev = {
-        .base = {
-                .name       = OCL_DEV_NAME,
-                .interface  = &ocl_interface,
-                .allocator  = &ocl_allocator,
-                .optimizer  = &ocl_optimizer,
-                .scheduler  = nullptr,
-                .privacy    = nullptr,
-        },
+    .base = {
+        .name = OCL_DEV_NAME,
+        .interface = &ocl_interface,
+        .allocator = &ocl_allocator,
+        .optimizer = &ocl_optimizer,
+        .scheduler = nullptr,
+        .privacy = nullptr,
+    },
 };
-
 
 int register_ocl_device(void)
 {
@@ -216,7 +204,6 @@ int register_ocl_device(void)
     TLOG_INFO("Tengine plugin device %s is registered.\n", ocl_dev.base.name);
     return 0;
 }
-
 
 int unregister_ocl_device(void)
 {
