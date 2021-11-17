@@ -66,7 +66,7 @@ public:
 
 private:
     std::map<int, uint64_t> gpu_mem_map;
-    std::pair<int, std::shared_ptr<cl::Buffer>> temp_buffer_up_down;
+    std::pair<int, std::shared_ptr<cl::Buffer> > temp_buffer_up_down;
 
 public:
     std::vector<std::shared_ptr<ocl_node> > exe_ocl_node_list;

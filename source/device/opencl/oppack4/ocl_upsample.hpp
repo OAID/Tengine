@@ -40,7 +40,7 @@ private:
     cl::Kernel ocl_upsample_kernel;
     std::vector<uint32_t> global_work_size = {1, 1, 1};
     std::vector<uint32_t> local_work_size = {1, 1, 1};
-    uint32_t  max_work_group_size;
+    uint32_t max_work_group_size;
 };
 
 #endif //TENGINE_LITE_SOURCE_DEVICE_OPENCL_OPPACK4_OCL_UPSAMPLE_HPP_

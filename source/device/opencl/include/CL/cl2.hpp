@@ -396,79 +396,79 @@
  * both and hence work with either version of the bindings.
  */
 #if !defined(CL_HPP_USE_DX_INTEROP) && defined(USE_DX_INTEROP)
-# pragma message("cl2.hpp: USE_DX_INTEROP is deprecated. Define CL_HPP_USE_DX_INTEROP instead")
-# define CL_HPP_USE_DX_INTEROP
+#pragma message("cl2.hpp: USE_DX_INTEROP is deprecated. Define CL_HPP_USE_DX_INTEROP instead")
+#define CL_HPP_USE_DX_INTEROP
 #endif
 #if !defined(CL_HPP_USE_CL_DEVICE_FISSION) && defined(USE_CL_DEVICE_FISSION)
-# pragma message("cl2.hpp: USE_CL_DEVICE_FISSION is deprecated. Define CL_HPP_USE_CL_DEVICE_FISSION instead")
-# define CL_HPP_USE_CL_DEVICE_FISSION
+#pragma message("cl2.hpp: USE_CL_DEVICE_FISSION is deprecated. Define CL_HPP_USE_CL_DEVICE_FISSION instead")
+#define CL_HPP_USE_CL_DEVICE_FISSION
 #endif
 #if !defined(CL_HPP_ENABLE_EXCEPTIONS) && defined(__CL_ENABLE_EXCEPTIONS)
-# pragma message("cl2.hpp: __CL_ENABLE_EXCEPTIONS is deprecated. Define CL_HPP_ENABLE_EXCEPTIONS instead")
-# define CL_HPP_ENABLE_EXCEPTIONS
+#pragma message("cl2.hpp: __CL_ENABLE_EXCEPTIONS is deprecated. Define CL_HPP_ENABLE_EXCEPTIONS instead")
+#define CL_HPP_ENABLE_EXCEPTIONS
 #endif
 #if !defined(CL_HPP_NO_STD_VECTOR) && defined(__NO_STD_VECTOR)
-# pragma message("cl2.hpp: __NO_STD_VECTOR is deprecated. Define CL_HPP_NO_STD_VECTOR instead")
-# define CL_HPP_NO_STD_VECTOR
+#pragma message("cl2.hpp: __NO_STD_VECTOR is deprecated. Define CL_HPP_NO_STD_VECTOR instead")
+#define CL_HPP_NO_STD_VECTOR
 #endif
 #if !defined(CL_HPP_NO_STD_STRING) && defined(__NO_STD_STRING)
-# pragma message("cl2.hpp: __NO_STD_STRING is deprecated. Define CL_HPP_NO_STD_STRING instead")
-# define CL_HPP_NO_STD_STRING
+#pragma message("cl2.hpp: __NO_STD_STRING is deprecated. Define CL_HPP_NO_STD_STRING instead")
+#define CL_HPP_NO_STD_STRING
 #endif
 #if defined(VECTOR_CLASS)
-# pragma message("cl2.hpp: VECTOR_CLASS is deprecated. Alias cl::vector instead")
+#pragma message("cl2.hpp: VECTOR_CLASS is deprecated. Alias cl::vector instead")
 #endif
 #if defined(STRING_CLASS)
-# pragma message("cl2.hpp: STRING_CLASS is deprecated. Alias cl::string instead.")
+#pragma message("cl2.hpp: STRING_CLASS is deprecated. Alias cl::string instead.")
 #endif
 #if !defined(CL_HPP_USER_OVERRIDE_ERROR_STRINGS) && defined(__CL_USER_OVERRIDE_ERROR_STRINGS)
-# pragma message("cl2.hpp: __CL_USER_OVERRIDE_ERROR_STRINGS is deprecated. Define CL_HPP_USER_OVERRIDE_ERROR_STRINGS instead")
-# define CL_HPP_USER_OVERRIDE_ERROR_STRINGS
+#pragma message("cl2.hpp: __CL_USER_OVERRIDE_ERROR_STRINGS is deprecated. Define CL_HPP_USER_OVERRIDE_ERROR_STRINGS instead")
+#define CL_HPP_USER_OVERRIDE_ERROR_STRINGS
 #endif
 
 /* Warn about features that are no longer supported
  */
 #if defined(__USE_DEV_VECTOR)
-# pragma message("cl2.hpp: __USE_DEV_VECTOR is no longer supported. Expect compilation errors")
+#pragma message("cl2.hpp: __USE_DEV_VECTOR is no longer supported. Expect compilation errors")
 #endif
 #if defined(__USE_DEV_STRING)
-# pragma message("cl2.hpp: __USE_DEV_STRING is no longer supported. Expect compilation errors")
+#pragma message("cl2.hpp: __USE_DEV_STRING is no longer supported. Expect compilation errors")
 #endif
 
 /* Detect which version to target */
 #if !defined(CL_HPP_TARGET_OPENCL_VERSION)
-# pragma message("cl2.hpp: CL_HPP_TARGET_OPENCL_VERSION is not defined. It will default to 200 (OpenCL 2.0)")
-# define CL_HPP_TARGET_OPENCL_VERSION 200
+#pragma message("cl2.hpp: CL_HPP_TARGET_OPENCL_VERSION is not defined. It will default to 200 (OpenCL 2.0)")
+#define CL_HPP_TARGET_OPENCL_VERSION 200
 #endif
 #if CL_HPP_TARGET_OPENCL_VERSION != 100 && CL_HPP_TARGET_OPENCL_VERSION != 110 && CL_HPP_TARGET_OPENCL_VERSION != 120 && CL_HPP_TARGET_OPENCL_VERSION != 200
-# pragma message("cl2.hpp: CL_HPP_TARGET_OPENCL_VERSION is not a valid value (100, 110, 120 or 200). It will be set to 200")
-# undef CL_HPP_TARGET_OPENCL_VERSION
-# define CL_HPP_TARGET_OPENCL_VERSION 200
+#pragma message("cl2.hpp: CL_HPP_TARGET_OPENCL_VERSION is not a valid value (100, 110, 120 or 200). It will be set to 200")
+#undef CL_HPP_TARGET_OPENCL_VERSION
+#define CL_HPP_TARGET_OPENCL_VERSION 200
 #endif
 
 #if !defined(CL_HPP_MINIMUM_OPENCL_VERSION)
 #define CL_HPP_MINIMUM_OPENCL_VERSION 200
 #endif
 #if CL_HPP_MINIMUM_OPENCL_VERSION != 100 && CL_HPP_MINIMUM_OPENCL_VERSION != 110 && CL_HPP_MINIMUM_OPENCL_VERSION != 120 && CL_HPP_MINIMUM_OPENCL_VERSION != 200
-# pragma message("cl2.hpp: CL_HPP_MINIMUM_OPENCL_VERSION is not a valid value (100, 110, 120 or 200). It will be set to 100")
-# undef CL_HPP_MINIMUM_OPENCL_VERSION
-# define CL_HPP_MINIMUM_OPENCL_VERSION 100
+#pragma message("cl2.hpp: CL_HPP_MINIMUM_OPENCL_VERSION is not a valid value (100, 110, 120 or 200). It will be set to 100")
+#undef CL_HPP_MINIMUM_OPENCL_VERSION
+#define CL_HPP_MINIMUM_OPENCL_VERSION 100
 #endif
 #if CL_HPP_MINIMUM_OPENCL_VERSION > CL_HPP_TARGET_OPENCL_VERSION
-# error "CL_HPP_MINIMUM_OPENCL_VERSION must not be greater than CL_HPP_TARGET_OPENCL_VERSION"
+#error "CL_HPP_MINIMUM_OPENCL_VERSION must not be greater than CL_HPP_TARGET_OPENCL_VERSION"
 #endif
 
 #if CL_HPP_MINIMUM_OPENCL_VERSION <= 100 && !defined(CL_USE_DEPRECATED_OPENCL_1_0_APIS)
-# define CL_USE_DEPRECATED_OPENCL_1_0_APIS
+#define CL_USE_DEPRECATED_OPENCL_1_0_APIS
 #endif
 #if CL_HPP_MINIMUM_OPENCL_VERSION <= 110 && !defined(CL_USE_DEPRECATED_OPENCL_1_1_APIS)
-# define CL_USE_DEPRECATED_OPENCL_1_1_APIS
+#define CL_USE_DEPRECATED_OPENCL_1_1_APIS
 #endif
 #if CL_HPP_MINIMUM_OPENCL_VERSION <= 120 && !defined(CL_USE_DEPRECATED_OPENCL_1_2_APIS)
-# define CL_USE_DEPRECATED_OPENCL_1_2_APIS
+#define CL_USE_DEPRECATED_OPENCL_1_2_APIS
 #endif
 #if CL_HPP_MINIMUM_OPENCL_VERSION <= 200 && !defined(CL_USE_DEPRECATED_OPENCL_2_0_APIS)
-# define CL_USE_DEPRECATED_OPENCL_2_0_APIS
+#define CL_USE_DEPRECATED_OPENCL_2_0_APIS
 #endif
 
 #ifdef _WIN32
@@ -483,17 +483,17 @@
 
 #if defined(_MSC_VER)
 #include <intrin.h>
-#endif // _MSC_VER 
- 
- // Check for a valid C++ version
+#endif // _MSC_VER
 
-// Need to do both tests here because for some reason __cplusplus is not 
+// Check for a valid C++ version
+
+// Need to do both tests here because for some reason __cplusplus is not
 // updated in visual studio
 #if (!defined(_MSC_VER) && __cplusplus < 201103L) || (defined(_MSC_VER) && _MSC_VER < 1700)
 #error Visual studio 2013 or another C++11-supporting compiler required
 #endif
 
-// 
+//
 #if defined(CL_HPP_USE_CL_DEVICE_FISSION) || defined(CL_HPP_USE_CL_SUB_GROUPS_KHR)
 #include <CL/cl_ext.h>
 #endif
@@ -507,24 +507,24 @@
 #endif
 
 #if defined(_MSC_VER)
-# define CL_HPP_DEFINE_STATIC_MEMBER_ __declspec(selectany)
+#define CL_HPP_DEFINE_STATIC_MEMBER_ __declspec(selectany)
 #elif defined(__MINGW32__)
-# define CL_HPP_DEFINE_STATIC_MEMBER_ __attribute__((selectany))
+#define CL_HPP_DEFINE_STATIC_MEMBER_ __attribute__((selectany))
 #else
-# define CL_HPP_DEFINE_STATIC_MEMBER_ __attribute__((weak))
+#define CL_HPP_DEFINE_STATIC_MEMBER_ __attribute__((weak))
 #endif // !_MSC_VER
 
 // Define deprecated prefixes and suffixes to ensure compilation
 // in case they are not pre-defined
 #if !defined(CL_EXT_PREFIX__VERSION_1_1_DEPRECATED)
-#define CL_EXT_PREFIX__VERSION_1_1_DEPRECATED  
+#define CL_EXT_PREFIX__VERSION_1_1_DEPRECATED
 #endif // #if !defined(CL_EXT_PREFIX__VERSION_1_1_DEPRECATED)
 #if !defined(CL_EXT_SUFFIX__VERSION_1_1_DEPRECATED)
 #define CL_EXT_SUFFIX__VERSION_1_1_DEPRECATED
 #endif // #if !defined(CL_EXT_PREFIX__VERSION_1_1_DEPRECATED)
 
 #if !defined(CL_EXT_PREFIX__VERSION_1_2_DEPRECATED)
-#define CL_EXT_PREFIX__VERSION_1_2_DEPRECATED  
+#define CL_EXT_PREFIX__VERSION_1_2_DEPRECATED
 #endif // #if !defined(CL_EXT_PREFIX__VERSION_1_2_DEPRECATED)
 #if !defined(CL_EXT_SUFFIX__VERSION_1_2_DEPRECATED)
 #define CL_EXT_SUFFIX__VERSION_1_2_DEPRECATED
@@ -541,18 +541,16 @@
 #include <cstring>
 #include <functional>
 
-
 // Define a size_type to represent a correctly resolved size_t
 #if defined(CL_HPP_ENABLE_SIZE_T_COMPATIBILITY)
 namespace cl {
-    using size_type = ::size_t;
+using size_type = ::size_t;
 } // namespace cl
-#else // #if defined(CL_HPP_ENABLE_SIZE_T_COMPATIBILITY)
+#else  // #if defined(CL_HPP_ENABLE_SIZE_T_COMPATIBILITY)
 namespace cl {
-    using size_type = size_t;
+using size_type = size_t;
 } // namespace cl
 #endif // #if defined(CL_HPP_ENABLE_SIZE_T_COMPATIBILITY)
-
 
 #if defined(CL_HPP_ENABLE_EXCEPTIONS)
 #include <exception>
@@ -561,15 +559,15 @@ namespace cl {
 #if !defined(CL_HPP_NO_STD_VECTOR)
 #include <vector>
 namespace cl {
-    template < class T, class Alloc = std::allocator<T> >
-    using vector = std::vector<T, Alloc>;
+template<class T, class Alloc = std::allocator<T> >
+using vector = std::vector<T, Alloc>;
 } // namespace cl
 #endif // #if !defined(CL_HPP_NO_STD_VECTOR)
 
 #if !defined(CL_HPP_NO_STD_STRING)
 #include <string>
 namespace cl {
-    using string = std::string;
+using string = std::string;
 } // namespace cl
 #endif // #if !defined(CL_HPP_NO_STD_STRING)
 
@@ -578,18 +576,18 @@ namespace cl {
 #if !defined(CL_HPP_NO_STD_UNIQUE_PTR)
 #include <memory>
 namespace cl {
-    // Replace unique_ptr and allocate_pointer for internal use
-    // to allow user to replace them
-    template<class T, class D>
-    using pointer = std::unique_ptr<T, D>;
+// Replace unique_ptr and allocate_pointer for internal use
+// to allow user to replace them
+template<class T, class D>
+using pointer = std::unique_ptr<T, D>;
 } // namespace cl
-#endif 
+#endif
 #endif // #if CL_HPP_TARGET_OPENCL_VERSION >= 200
 #if !defined(CL_HPP_NO_STD_ARRAY)
 #include <array>
 namespace cl {
-    template < class T, size_type N >
-    using array = std::array<T, N>;
+template<class T, size_type N>
+using array = std::array<T, N>;
 } // namespace cl
 #endif // #if !defined(CL_HPP_NO_STD_ARRAY)
 
@@ -597,73 +595,81 @@ namespace cl {
 // use of the old size_t interface class
 #if defined(CL_HPP_ENABLE_SIZE_T_COMPATIBILITY)
 namespace cl {
-    namespace compatibility {
-        /*! \brief class used to interface between C++ and
+namespace compatibility {
+/*! \brief class used to interface between C++ and
         *  OpenCL C calls that require arrays of size_t values, whose
         *  size is known statically.
         */
-        template <int N>
-        class size_t
+template<int N>
+class size_t
+{
+private:
+    size_type data_[N];
+
+public:
+    //! \brief Initialize size_t to all 0s
+    size_t()
+    {
+        for (int i = 0; i < N; ++i)
         {
-        private:
-            size_type data_[N];
+            data_[i] = 0;
+        }
+    }
 
-        public:
-            //! \brief Initialize size_t to all 0s
-            size_t()
-            {
-                for (int i = 0; i < N; ++i) {
-                    data_[i] = 0;
-                }
-            }
+    size_t(const array<size_type, N>& rhs)
+    {
+        for (int i = 0; i < N; ++i)
+        {
+            data_[i] = rhs[i];
+        }
+    }
 
-            size_t(const array<size_type, N> &rhs)
-            {
-                for (int i = 0; i < N; ++i) {
-                    data_[i] = rhs[i];
-                }
-            }
+    size_type& operator[](int index)
+    {
+        return data_[index];
+    }
 
-            size_type& operator[](int index)
-            {
-                return data_[index];
-            }
+    const size_type& operator[](int index) const
+    {
+        return data_[index];
+    }
 
-            const size_type& operator[](int index) const
-            {
-                return data_[index];
-            }
+    //! \brief Conversion operator to T*.
+    operator size_type*()
+    {
+        return data_;
+    }
 
-            //! \brief Conversion operator to T*.
-            operator size_type* ()             { return data_; }
+    //! \brief Conversion operator to const T*.
+    operator const size_type*() const
+    {
+        return data_;
+    }
 
-            //! \brief Conversion operator to const T*.
-            operator const size_type* () const { return data_; }
+    operator array<size_type, N>() const
+    {
+        array<size_type, N> ret;
 
-            operator array<size_type, N>() const
-            {
-                array<size_type, N> ret;
+        for (int i = 0; i < N; ++i)
+        {
+            ret[i] = data_[i];
+        }
+        return ret;
+    }
+};
+} // namespace compatibility
 
-                for (int i = 0; i < N; ++i) {
-                    ret[i] = data_[i];
-                }
-                return ret;
-            }
-        };
-    } // namespace compatibility
-
-    template<int N>
-    using size_t = compatibility::size_t<N>;
+template<int N>
+using size_t = compatibility::size_t<N>;
 } // namespace cl
 #endif // #if defined(CL_HPP_ENABLE_SIZE_T_COMPATIBILITY)
 
 // Helper alias to avoid confusing the macros
 namespace cl {
-    namespace detail {
-        using size_t_array = array<size_type, 3>;
-    } // namespace detail
+namespace detail {
+using size_t_array = array<size_type, 3>;
+} // namespace detail
 } // namespace cl
-
 
 /*! \namespace cl
  *
@@ -671,45 +677,50 @@ namespace cl {
  *
  */
 namespace cl {
-    class Memory;
+class Memory;
 
-#define CL_HPP_INIT_CL_EXT_FCN_PTR_(name) \
-    if (!pfn_##name) {    \
-    pfn_##name = (PFN_##name) \
-    clGetExtensionFunctionAddress(#name); \
-    if (!pfn_##name) {    \
-    } \
+#define CL_HPP_INIT_CL_EXT_FCN_PTR_(name)         \
+    if (!pfn_##name)                              \
+    {                                             \
+        pfn_##name = (PFN_##name)                 \
+            clGetExtensionFunctionAddress(#name); \
+        if (!pfn_##name)                          \
+        {                                         \
+        }                                         \
     }
 
-#define CL_HPP_INIT_CL_EXT_FCN_PTR_PLATFORM_(platform, name) \
-    if (!pfn_##name) {    \
-    pfn_##name = (PFN_##name) \
-    clGetExtensionFunctionAddressForPlatform(platform, #name); \
-    if (!pfn_##name) {    \
-    } \
+#define CL_HPP_INIT_CL_EXT_FCN_PTR_PLATFORM_(platform, name)           \
+    if (!pfn_##name)                                                   \
+    {                                                                  \
+        pfn_##name = (PFN_##name)                                      \
+            clGetExtensionFunctionAddressForPlatform(platform, #name); \
+        if (!pfn_##name)                                               \
+        {                                                              \
+        }                                                              \
     }
 
-    class Program;
-    class Device;
-    class Context;
-    class CommandQueue;
-    class DeviceCommandQueue;
-    class Memory;
-    class Buffer;
-    class Pipe;
+class Program;
+class Device;
+class Context;
+class CommandQueue;
+class DeviceCommandQueue;
+class Memory;
+class Buffer;
+class Pipe;
 
 #if defined(CL_HPP_ENABLE_EXCEPTIONS)
-    /*! \brief Exception class 
+/*! \brief Exception class 
      * 
      *  This may be thrown by API functions when CL_HPP_ENABLE_EXCEPTIONS is defined.
      */
-    class Error : public std::exception
-    {
-    private:
-        cl_int err_;
-        const char * errStr_;
-    public:
-        /*! \brief Create a new CL error exception for a given error code
+class Error : public std::exception
+{
+private:
+    cl_int err_;
+    const char* errStr_;
+
+public:
+    /*! \brief Create a new CL error exception for a given error code
          *  and corresponding message.
          * 
          *  \param err error code value.
@@ -718,200 +729,204 @@ namespace cl {
          *                handling of the exception has concluded.  If set, it
          *                will be returned by what().
          */
-        Error(cl_int err, const char * errStr = NULL) : err_(err), errStr_(errStr)
-        {}
+    Error(cl_int err, const char* errStr = NULL)
+        : err_(err), errStr_(errStr)
+    {
+    }
 
-        ~Error() throw() {}
+    ~Error() throw()
+    {
+    }
 
-        /*! \brief Get error string associated with exception
+    /*! \brief Get error string associated with exception
          *
          * \return A memory pointer to the error message string.
          */
-        virtual const char * what() const throw ()
+    virtual const char* what() const throw()
+    {
+        if (errStr_ == NULL)
         {
-            if (errStr_ == NULL) {
-                return "empty";
-            }
-            else {
-                return errStr_;
-            }
+            return "empty";
         }
+        else
+        {
+            return errStr_;
+        }
+    }
 
-        /*! \brief Get error code associated with exception
+    /*! \brief Get error code associated with exception
          *
          *  \return The error code.
          */
-        cl_int err(void) const { return err_; }
-    };
+    cl_int err(void) const
+    {
+        return err_;
+    }
+};
 #define CL_HPP_ERR_STR_(x) #x
 #else
 #define CL_HPP_ERR_STR_(x) NULL
 #endif // CL_HPP_ENABLE_EXCEPTIONS
 
-
-namespace detail
-{
+namespace detail {
 #if defined(CL_HPP_ENABLE_EXCEPTIONS)
-static inline cl_int errHandler (
+static inline cl_int errHandler(
     cl_int err,
-    const char * errStr = NULL)
+    const char* errStr = NULL)
 {
-    if (err != CL_SUCCESS) {
+    if (err != CL_SUCCESS)
+    {
         throw Error(err, errStr);
     }
     return err;
 }
 #else
-static inline cl_int errHandler (cl_int err, const char * errStr = NULL)
+static inline cl_int errHandler(cl_int err, const char* errStr = NULL)
 {
-    (void) errStr; // suppress unused variable warning
+    (void)errStr; // suppress unused variable warning
     return err;
 }
 #endif // CL_HPP_ENABLE_EXCEPTIONS
-}
-
-
+} // namespace detail
 
 //! \cond DOXYGEN_DETAIL
 #if !defined(CL_HPP_USER_OVERRIDE_ERROR_STRINGS)
-#define __GET_DEVICE_INFO_ERR               CL_HPP_ERR_STR_(clGetDeviceInfo)
-#define __GET_PLATFORM_INFO_ERR             CL_HPP_ERR_STR_(clGetPlatformInfo)
-#define __GET_DEVICE_IDS_ERR                CL_HPP_ERR_STR_(clGetDeviceIDs)
-#define __GET_PLATFORM_IDS_ERR              CL_HPP_ERR_STR_(clGetPlatformIDs)
-#define __GET_CONTEXT_INFO_ERR              CL_HPP_ERR_STR_(clGetContextInfo)
-#define __GET_EVENT_INFO_ERR                CL_HPP_ERR_STR_(clGetEventInfo)
-#define __GET_EVENT_PROFILE_INFO_ERR        CL_HPP_ERR_STR_(clGetEventProfileInfo)
-#define __GET_MEM_OBJECT_INFO_ERR           CL_HPP_ERR_STR_(clGetMemObjectInfo)
-#define __GET_IMAGE_INFO_ERR                CL_HPP_ERR_STR_(clGetImageInfo)
-#define __GET_SAMPLER_INFO_ERR              CL_HPP_ERR_STR_(clGetSamplerInfo)
-#define __GET_KERNEL_INFO_ERR               CL_HPP_ERR_STR_(clGetKernelInfo)
+#define __GET_DEVICE_INFO_ERR        CL_HPP_ERR_STR_(clGetDeviceInfo)
+#define __GET_PLATFORM_INFO_ERR      CL_HPP_ERR_STR_(clGetPlatformInfo)
+#define __GET_DEVICE_IDS_ERR         CL_HPP_ERR_STR_(clGetDeviceIDs)
+#define __GET_PLATFORM_IDS_ERR       CL_HPP_ERR_STR_(clGetPlatformIDs)
+#define __GET_CONTEXT_INFO_ERR       CL_HPP_ERR_STR_(clGetContextInfo)
+#define __GET_EVENT_INFO_ERR         CL_HPP_ERR_STR_(clGetEventInfo)
+#define __GET_EVENT_PROFILE_INFO_ERR CL_HPP_ERR_STR_(clGetEventProfileInfo)
+#define __GET_MEM_OBJECT_INFO_ERR    CL_HPP_ERR_STR_(clGetMemObjectInfo)
+#define __GET_IMAGE_INFO_ERR         CL_HPP_ERR_STR_(clGetImageInfo)
+#define __GET_SAMPLER_INFO_ERR       CL_HPP_ERR_STR_(clGetSamplerInfo)
+#define __GET_KERNEL_INFO_ERR        CL_HPP_ERR_STR_(clGetKernelInfo)
 #if CL_HPP_TARGET_OPENCL_VERSION >= 120
-#define __GET_KERNEL_ARG_INFO_ERR           CL_HPP_ERR_STR_(clGetKernelArgInfo)
+#define __GET_KERNEL_ARG_INFO_ERR CL_HPP_ERR_STR_(clGetKernelArgInfo)
 #endif // CL_HPP_TARGET_OPENCL_VERSION >= 120
-#define __GET_KERNEL_WORK_GROUP_INFO_ERR    CL_HPP_ERR_STR_(clGetKernelWorkGroupInfo)
-#define __GET_PROGRAM_INFO_ERR              CL_HPP_ERR_STR_(clGetProgramInfo)
-#define __GET_PROGRAM_BUILD_INFO_ERR        CL_HPP_ERR_STR_(clGetProgramBuildInfo)
-#define __GET_COMMAND_QUEUE_INFO_ERR        CL_HPP_ERR_STR_(clGetCommandQueueInfo)
+#define __GET_KERNEL_WORK_GROUP_INFO_ERR CL_HPP_ERR_STR_(clGetKernelWorkGroupInfo)
+#define __GET_PROGRAM_INFO_ERR           CL_HPP_ERR_STR_(clGetProgramInfo)
+#define __GET_PROGRAM_BUILD_INFO_ERR     CL_HPP_ERR_STR_(clGetProgramBuildInfo)
+#define __GET_COMMAND_QUEUE_INFO_ERR     CL_HPP_ERR_STR_(clGetCommandQueueInfo)
 
-#define __CREATE_CONTEXT_ERR                CL_HPP_ERR_STR_(clCreateContext)
-#define __CREATE_CONTEXT_FROM_TYPE_ERR      CL_HPP_ERR_STR_(clCreateContextFromType)
-#define __GET_SUPPORTED_IMAGE_FORMATS_ERR   CL_HPP_ERR_STR_(clGetSupportedImageFormats)
+#define __CREATE_CONTEXT_ERR              CL_HPP_ERR_STR_(clCreateContext)
+#define __CREATE_CONTEXT_FROM_TYPE_ERR    CL_HPP_ERR_STR_(clCreateContextFromType)
+#define __GET_SUPPORTED_IMAGE_FORMATS_ERR CL_HPP_ERR_STR_(clGetSupportedImageFormats)
 
-#define __CREATE_BUFFER_ERR                 CL_HPP_ERR_STR_(clCreateBuffer)
-#define __COPY_ERR                          CL_HPP_ERR_STR_(cl::copy)
-#define __CREATE_SUBBUFFER_ERR              CL_HPP_ERR_STR_(clCreateSubBuffer)
-#define __CREATE_GL_BUFFER_ERR              CL_HPP_ERR_STR_(clCreateFromGLBuffer)
-#define __CREATE_GL_RENDER_BUFFER_ERR       CL_HPP_ERR_STR_(clCreateFromGLBuffer)
-#define __GET_GL_OBJECT_INFO_ERR            CL_HPP_ERR_STR_(clGetGLObjectInfo)
+#define __CREATE_BUFFER_ERR           CL_HPP_ERR_STR_(clCreateBuffer)
+#define __COPY_ERR                    CL_HPP_ERR_STR_(cl::copy)
+#define __CREATE_SUBBUFFER_ERR        CL_HPP_ERR_STR_(clCreateSubBuffer)
+#define __CREATE_GL_BUFFER_ERR        CL_HPP_ERR_STR_(clCreateFromGLBuffer)
+#define __CREATE_GL_RENDER_BUFFER_ERR CL_HPP_ERR_STR_(clCreateFromGLBuffer)
+#define __GET_GL_OBJECT_INFO_ERR      CL_HPP_ERR_STR_(clGetGLObjectInfo)
 #if CL_HPP_TARGET_OPENCL_VERSION >= 120
-#define __CREATE_IMAGE_ERR                  CL_HPP_ERR_STR_(clCreateImage)
-#define __CREATE_GL_TEXTURE_ERR             CL_HPP_ERR_STR_(clCreateFromGLTexture)
-#define __IMAGE_DIMENSION_ERR               CL_HPP_ERR_STR_(Incorrect image dimensions)
+#define __CREATE_IMAGE_ERR      CL_HPP_ERR_STR_(clCreateImage)
+#define __CREATE_GL_TEXTURE_ERR CL_HPP_ERR_STR_(clCreateFromGLTexture)
+#define __IMAGE_DIMENSION_ERR   CL_HPP_ERR_STR_(Incorrect image dimensions)
 #endif // CL_HPP_TARGET_OPENCL_VERSION >= 120
 #define __SET_MEM_OBJECT_DESTRUCTOR_CALLBACK_ERR CL_HPP_ERR_STR_(clSetMemObjectDestructorCallback)
 
-#define __CREATE_USER_EVENT_ERR             CL_HPP_ERR_STR_(clCreateUserEvent)
-#define __SET_USER_EVENT_STATUS_ERR         CL_HPP_ERR_STR_(clSetUserEventStatus)
-#define __SET_EVENT_CALLBACK_ERR            CL_HPP_ERR_STR_(clSetEventCallback)
-#define __WAIT_FOR_EVENTS_ERR               CL_HPP_ERR_STR_(clWaitForEvents)
+#define __CREATE_USER_EVENT_ERR     CL_HPP_ERR_STR_(clCreateUserEvent)
+#define __SET_USER_EVENT_STATUS_ERR CL_HPP_ERR_STR_(clSetUserEventStatus)
+#define __SET_EVENT_CALLBACK_ERR    CL_HPP_ERR_STR_(clSetEventCallback)
+#define __WAIT_FOR_EVENTS_ERR       CL_HPP_ERR_STR_(clWaitForEvents)
 
-#define __CREATE_KERNEL_ERR                 CL_HPP_ERR_STR_(clCreateKernel)
-#define __SET_KERNEL_ARGS_ERR               CL_HPP_ERR_STR_(clSetKernelArg)
-#define __CREATE_PROGRAM_WITH_SOURCE_ERR    CL_HPP_ERR_STR_(clCreateProgramWithSource)
-#define __CREATE_PROGRAM_WITH_BINARY_ERR    CL_HPP_ERR_STR_(clCreateProgramWithBinary)
+#define __CREATE_KERNEL_ERR              CL_HPP_ERR_STR_(clCreateKernel)
+#define __SET_KERNEL_ARGS_ERR            CL_HPP_ERR_STR_(clSetKernelArg)
+#define __CREATE_PROGRAM_WITH_SOURCE_ERR CL_HPP_ERR_STR_(clCreateProgramWithSource)
+#define __CREATE_PROGRAM_WITH_BINARY_ERR CL_HPP_ERR_STR_(clCreateProgramWithBinary)
 #if CL_HPP_TARGET_OPENCL_VERSION >= 120
-#define __CREATE_PROGRAM_WITH_BUILT_IN_KERNELS_ERR    CL_HPP_ERR_STR_(clCreateProgramWithBuiltInKernels)
+#define __CREATE_PROGRAM_WITH_BUILT_IN_KERNELS_ERR CL_HPP_ERR_STR_(clCreateProgramWithBuiltInKernels)
 #endif // CL_HPP_TARGET_OPENCL_VERSION >= 120
-#define __BUILD_PROGRAM_ERR                 CL_HPP_ERR_STR_(clBuildProgram)
+#define __BUILD_PROGRAM_ERR CL_HPP_ERR_STR_(clBuildProgram)
 #if CL_HPP_TARGET_OPENCL_VERSION >= 120
-#define __COMPILE_PROGRAM_ERR               CL_HPP_ERR_STR_(clCompileProgram)
-#define __LINK_PROGRAM_ERR                  CL_HPP_ERR_STR_(clLinkProgram)
+#define __COMPILE_PROGRAM_ERR CL_HPP_ERR_STR_(clCompileProgram)
+#define __LINK_PROGRAM_ERR    CL_HPP_ERR_STR_(clLinkProgram)
 #endif // CL_HPP_TARGET_OPENCL_VERSION >= 120
-#define __CREATE_KERNELS_IN_PROGRAM_ERR     CL_HPP_ERR_STR_(clCreateKernelsInProgram)
+#define __CREATE_KERNELS_IN_PROGRAM_ERR CL_HPP_ERR_STR_(clCreateKernelsInProgram)
 
 #if CL_HPP_TARGET_OPENCL_VERSION >= 200
-#define __CREATE_COMMAND_QUEUE_WITH_PROPERTIES_ERR          CL_HPP_ERR_STR_(clCreateCommandQueueWithProperties)
-#define __CREATE_SAMPLER_WITH_PROPERTIES_ERR                CL_HPP_ERR_STR_(clCreateSamplerWithProperties)
+#define __CREATE_COMMAND_QUEUE_WITH_PROPERTIES_ERR CL_HPP_ERR_STR_(clCreateCommandQueueWithProperties)
+#define __CREATE_SAMPLER_WITH_PROPERTIES_ERR       CL_HPP_ERR_STR_(clCreateSamplerWithProperties)
 #endif // CL_HPP_TARGET_OPENCL_VERSION >= 200
-#define __SET_COMMAND_QUEUE_PROPERTY_ERR    CL_HPP_ERR_STR_(clSetCommandQueueProperty)
-#define __ENQUEUE_READ_BUFFER_ERR           CL_HPP_ERR_STR_(clEnqueueReadBuffer)
-#define __ENQUEUE_READ_BUFFER_RECT_ERR      CL_HPP_ERR_STR_(clEnqueueReadBufferRect)
-#define __ENQUEUE_WRITE_BUFFER_ERR          CL_HPP_ERR_STR_(clEnqueueWriteBuffer)
-#define __ENQUEUE_WRITE_BUFFER_RECT_ERR     CL_HPP_ERR_STR_(clEnqueueWriteBufferRect)
-#define __ENQEUE_COPY_BUFFER_ERR            CL_HPP_ERR_STR_(clEnqueueCopyBuffer)
-#define __ENQEUE_COPY_BUFFER_RECT_ERR       CL_HPP_ERR_STR_(clEnqueueCopyBufferRect)
-#define __ENQUEUE_FILL_BUFFER_ERR           CL_HPP_ERR_STR_(clEnqueueFillBuffer)
-#define __ENQUEUE_READ_IMAGE_ERR            CL_HPP_ERR_STR_(clEnqueueReadImage)
-#define __ENQUEUE_WRITE_IMAGE_ERR           CL_HPP_ERR_STR_(clEnqueueWriteImage)
-#define __ENQUEUE_COPY_IMAGE_ERR            CL_HPP_ERR_STR_(clEnqueueCopyImage)
-#define __ENQUEUE_FILL_IMAGE_ERR            CL_HPP_ERR_STR_(clEnqueueFillImage)
-#define __ENQUEUE_COPY_IMAGE_TO_BUFFER_ERR  CL_HPP_ERR_STR_(clEnqueueCopyImageToBuffer)
-#define __ENQUEUE_COPY_BUFFER_TO_IMAGE_ERR  CL_HPP_ERR_STR_(clEnqueueCopyBufferToImage)
-#define __ENQUEUE_MAP_BUFFER_ERR            CL_HPP_ERR_STR_(clEnqueueMapBuffer)
-#define __ENQUEUE_MAP_IMAGE_ERR             CL_HPP_ERR_STR_(clEnqueueMapImage)
-#define __ENQUEUE_UNMAP_MEM_OBJECT_ERR      CL_HPP_ERR_STR_(clEnqueueUnMapMemObject)
-#define __ENQUEUE_NDRANGE_KERNEL_ERR        CL_HPP_ERR_STR_(clEnqueueNDRangeKernel)
-#define __ENQUEUE_NATIVE_KERNEL             CL_HPP_ERR_STR_(clEnqueueNativeKernel)
+#define __SET_COMMAND_QUEUE_PROPERTY_ERR   CL_HPP_ERR_STR_(clSetCommandQueueProperty)
+#define __ENQUEUE_READ_BUFFER_ERR          CL_HPP_ERR_STR_(clEnqueueReadBuffer)
+#define __ENQUEUE_READ_BUFFER_RECT_ERR     CL_HPP_ERR_STR_(clEnqueueReadBufferRect)
+#define __ENQUEUE_WRITE_BUFFER_ERR         CL_HPP_ERR_STR_(clEnqueueWriteBuffer)
+#define __ENQUEUE_WRITE_BUFFER_RECT_ERR    CL_HPP_ERR_STR_(clEnqueueWriteBufferRect)
+#define __ENQEUE_COPY_BUFFER_ERR           CL_HPP_ERR_STR_(clEnqueueCopyBuffer)
+#define __ENQEUE_COPY_BUFFER_RECT_ERR      CL_HPP_ERR_STR_(clEnqueueCopyBufferRect)
+#define __ENQUEUE_FILL_BUFFER_ERR          CL_HPP_ERR_STR_(clEnqueueFillBuffer)
+#define __ENQUEUE_READ_IMAGE_ERR           CL_HPP_ERR_STR_(clEnqueueReadImage)
+#define __ENQUEUE_WRITE_IMAGE_ERR          CL_HPP_ERR_STR_(clEnqueueWriteImage)
+#define __ENQUEUE_COPY_IMAGE_ERR           CL_HPP_ERR_STR_(clEnqueueCopyImage)
+#define __ENQUEUE_FILL_IMAGE_ERR           CL_HPP_ERR_STR_(clEnqueueFillImage)
+#define __ENQUEUE_COPY_IMAGE_TO_BUFFER_ERR CL_HPP_ERR_STR_(clEnqueueCopyImageToBuffer)
+#define __ENQUEUE_COPY_BUFFER_TO_IMAGE_ERR CL_HPP_ERR_STR_(clEnqueueCopyBufferToImage)
+#define __ENQUEUE_MAP_BUFFER_ERR           CL_HPP_ERR_STR_(clEnqueueMapBuffer)
+#define __ENQUEUE_MAP_IMAGE_ERR            CL_HPP_ERR_STR_(clEnqueueMapImage)
+#define __ENQUEUE_UNMAP_MEM_OBJECT_ERR     CL_HPP_ERR_STR_(clEnqueueUnMapMemObject)
+#define __ENQUEUE_NDRANGE_KERNEL_ERR       CL_HPP_ERR_STR_(clEnqueueNDRangeKernel)
+#define __ENQUEUE_NATIVE_KERNEL            CL_HPP_ERR_STR_(clEnqueueNativeKernel)
 #if CL_HPP_TARGET_OPENCL_VERSION >= 120
-#define __ENQUEUE_MIGRATE_MEM_OBJECTS_ERR   CL_HPP_ERR_STR_(clEnqueueMigrateMemObjects)
+#define __ENQUEUE_MIGRATE_MEM_OBJECTS_ERR CL_HPP_ERR_STR_(clEnqueueMigrateMemObjects)
 #endif // CL_HPP_TARGET_OPENCL_VERSION >= 120
 
-#define __ENQUEUE_ACQUIRE_GL_ERR            CL_HPP_ERR_STR_(clEnqueueAcquireGLObjects)
-#define __ENQUEUE_RELEASE_GL_ERR            CL_HPP_ERR_STR_(clEnqueueReleaseGLObjects)
+#define __ENQUEUE_ACQUIRE_GL_ERR CL_HPP_ERR_STR_(clEnqueueAcquireGLObjects)
+#define __ENQUEUE_RELEASE_GL_ERR CL_HPP_ERR_STR_(clEnqueueReleaseGLObjects)
 
-#define __CREATE_PIPE_ERR             CL_HPP_ERR_STR_(clCreatePipe)
-#define __GET_PIPE_INFO_ERR           CL_HPP_ERR_STR_(clGetPipeInfo)
+#define __CREATE_PIPE_ERR   CL_HPP_ERR_STR_(clCreatePipe)
+#define __GET_PIPE_INFO_ERR CL_HPP_ERR_STR_(clGetPipeInfo)
 
-
-#define __RETAIN_ERR                        CL_HPP_ERR_STR_(Retain Object)
-#define __RELEASE_ERR                       CL_HPP_ERR_STR_(Release Object)
-#define __FLUSH_ERR                         CL_HPP_ERR_STR_(clFlush)
-#define __FINISH_ERR                        CL_HPP_ERR_STR_(clFinish)
-#define __VECTOR_CAPACITY_ERR               CL_HPP_ERR_STR_(Vector capacity error)
+#define __RETAIN_ERR          CL_HPP_ERR_STR_(Retain Object)
+#define __RELEASE_ERR         CL_HPP_ERR_STR_(Release Object)
+#define __FLUSH_ERR           CL_HPP_ERR_STR_(clFlush)
+#define __FINISH_ERR          CL_HPP_ERR_STR_(clFinish)
+#define __VECTOR_CAPACITY_ERR CL_HPP_ERR_STR_(Vector capacity error)
 
 /**
  * CL 1.2 version that uses device fission.
  */
 #if CL_HPP_TARGET_OPENCL_VERSION >= 120
-#define __CREATE_SUB_DEVICES_ERR            CL_HPP_ERR_STR_(clCreateSubDevices)
+#define __CREATE_SUB_DEVICES_ERR CL_HPP_ERR_STR_(clCreateSubDevices)
 #else
-#define __CREATE_SUB_DEVICES_ERR            CL_HPP_ERR_STR_(clCreateSubDevicesEXT)
+#define __CREATE_SUB_DEVICES_ERR CL_HPP_ERR_STR_(clCreateSubDevicesEXT)
 #endif // CL_HPP_TARGET_OPENCL_VERSION >= 120
 
 /**
  * Deprecated APIs for 1.2
  */
 #if defined(CL_USE_DEPRECATED_OPENCL_1_1_APIS)
-#define __ENQUEUE_MARKER_ERR                CL_HPP_ERR_STR_(clEnqueueMarker)
-#define __ENQUEUE_WAIT_FOR_EVENTS_ERR       CL_HPP_ERR_STR_(clEnqueueWaitForEvents)
-#define __ENQUEUE_BARRIER_ERR               CL_HPP_ERR_STR_(clEnqueueBarrier)
-#define __UNLOAD_COMPILER_ERR               CL_HPP_ERR_STR_(clUnloadCompiler)
-#define __CREATE_GL_TEXTURE_2D_ERR          CL_HPP_ERR_STR_(clCreateFromGLTexture2D)
-#define __CREATE_GL_TEXTURE_3D_ERR          CL_HPP_ERR_STR_(clCreateFromGLTexture3D)
-#define __CREATE_IMAGE2D_ERR                CL_HPP_ERR_STR_(clCreateImage2D)
-#define __CREATE_IMAGE3D_ERR                CL_HPP_ERR_STR_(clCreateImage3D)
+#define __ENQUEUE_MARKER_ERR          CL_HPP_ERR_STR_(clEnqueueMarker)
+#define __ENQUEUE_WAIT_FOR_EVENTS_ERR CL_HPP_ERR_STR_(clEnqueueWaitForEvents)
+#define __ENQUEUE_BARRIER_ERR         CL_HPP_ERR_STR_(clEnqueueBarrier)
+#define __UNLOAD_COMPILER_ERR         CL_HPP_ERR_STR_(clUnloadCompiler)
+#define __CREATE_GL_TEXTURE_2D_ERR    CL_HPP_ERR_STR_(clCreateFromGLTexture2D)
+#define __CREATE_GL_TEXTURE_3D_ERR    CL_HPP_ERR_STR_(clCreateFromGLTexture3D)
+#define __CREATE_IMAGE2D_ERR          CL_HPP_ERR_STR_(clCreateImage2D)
+#define __CREATE_IMAGE3D_ERR          CL_HPP_ERR_STR_(clCreateImage3D)
 #endif // #if defined(CL_USE_DEPRECATED_OPENCL_1_1_APIS)
 
 /**
  * Deprecated APIs for 2.0
  */
 #if defined(CL_USE_DEPRECATED_OPENCL_1_2_APIS)
-#define __CREATE_COMMAND_QUEUE_ERR          CL_HPP_ERR_STR_(clCreateCommandQueue)
-#define __ENQUEUE_TASK_ERR                  CL_HPP_ERR_STR_(clEnqueueTask)
-#define __CREATE_SAMPLER_ERR                CL_HPP_ERR_STR_(clCreateSampler)
+#define __CREATE_COMMAND_QUEUE_ERR CL_HPP_ERR_STR_(clCreateCommandQueue)
+#define __ENQUEUE_TASK_ERR         CL_HPP_ERR_STR_(clEnqueueTask)
+#define __CREATE_SAMPLER_ERR       CL_HPP_ERR_STR_(clCreateSampler)
 #endif // #if defined(CL_USE_DEPRECATED_OPENCL_1_1_APIS)
 
 /**
  * CL 1.2 marker and barrier commands
  */
 #if CL_HPP_TARGET_OPENCL_VERSION >= 120
-#define __ENQUEUE_MARKER_WAIT_LIST_ERR                CL_HPP_ERR_STR_(clEnqueueMarkerWithWaitList)
-#define __ENQUEUE_BARRIER_WAIT_LIST_ERR               CL_HPP_ERR_STR_(clEnqueueBarrierWithWaitList)
+#define __ENQUEUE_MARKER_WAIT_LIST_ERR  CL_HPP_ERR_STR_(clEnqueueMarkerWithWaitList)
+#define __ENQUEUE_BARRIER_WAIT_LIST_ERR CL_HPP_ERR_STR_(clEnqueueBarrierWithWaitList)
 #endif // CL_HPP_TARGET_OPENCL_VERSION >= 120
 
 #endif // CL_HPP_USER_OVERRIDE_ERROR_STRINGS
 //! \endcond
-
 
 namespace detail {
 
@@ -927,13 +942,15 @@ inline cl_int getInfoHelper(Functor f, cl_uint name, T* param, long)
 
 // Specialized for getInfo<CL_PROGRAM_BINARIES>
 // Assumes that the output vector was correctly resized on the way in
-template <typename Func>
-inline cl_int getInfoHelper(Func f, cl_uint name, vector<vector<unsigned char>>* param, int)
+template<typename Func>
+inline cl_int getInfoHelper(Func f, cl_uint name, vector<vector<unsigned char> >* param, int)
 {
-    if (name != CL_PROGRAM_BINARIES) {
+    if (name != CL_PROGRAM_BINARIES)
+    {
         return CL_INVALID_VALUE;
     }
-    if (param) {
+    if (param)
+    {
         // Create array of pointers, calculate total size and pass pointer array in
         size_type numBinaries = param->size();
         vector<unsigned char*> binariesPointers(numBinaries);
@@ -945,22 +962,23 @@ inline cl_int getInfoHelper(Func f, cl_uint name, vector<vector<unsigned char>>*
 
         cl_int err = f(name, numBinaries * sizeof(unsigned char*), binariesPointers.data(), NULL);
 
-        if (err != CL_SUCCESS) {
+        if (err != CL_SUCCESS)
+        {
             return err;
         }
     }
-
 
     return CL_SUCCESS;
 }
 
 // Specialized getInfoHelper for vector params
-template <typename Func, typename T>
+template<typename Func, typename T>
 inline cl_int getInfoHelper(Func f, cl_uint name, vector<T>* param, long)
 {
     size_type required;
     cl_int err = f(name, 0, NULL, &required);
-    if (err != CL_SUCCESS) {
+    if (err != CL_SUCCESS)
+    {
         return err;
     }
     const size_type elements = required / sizeof(T);
@@ -968,10 +986,12 @@ inline cl_int getInfoHelper(Func f, cl_uint name, vector<T>* param, long)
     // Temporary to avoid changing param on an error
     vector<T> localData(elements);
     err = f(name, required, localData.data(), NULL);
-    if (err != CL_SUCCESS) {
+    if (err != CL_SUCCESS)
+    {
         return err;
     }
-    if (param) {
+    if (param)
+    {
         *param = std::move(localData);
     }
 
@@ -984,13 +1004,14 @@ inline cl_int getInfoHelper(Func f, cl_uint name, vector<T>* param, long)
  * does not work, because when using a derived type (e.g. Context) the generic
  * template will provide a better match.
  */
-template <typename Func, typename T>
+template<typename Func, typename T>
 inline cl_int getInfoHelper(
     Func f, cl_uint name, vector<T>* param, int, typename T::cl_type = 0)
 {
     size_type required;
     cl_int err = f(name, 0, NULL, &required);
-    if (err != CL_SUCCESS) {
+    if (err != CL_SUCCESS)
+    {
         return err;
     }
 
@@ -998,17 +1019,20 @@ inline cl_int getInfoHelper(
 
     vector<typename T::cl_type> value(elements);
     err = f(name, required, value.data(), NULL);
-    if (err != CL_SUCCESS) {
+    if (err != CL_SUCCESS)
+    {
         return err;
     }
 
-    if (param) {
+    if (param)
+    {
         // Assign to convert CL type to T for each element
         param->resize(elements);
 
         // Assign to param, constructing with retain behaviour
         // to correctly capture each underlying CL object
-        for (size_type i = 0; i < elements; i++) {
+        for (size_type i = 0; i < elements; i++)
+        {
             (*param)[i] = T(value[i], true);
         }
     }
@@ -1016,40 +1040,46 @@ inline cl_int getInfoHelper(
 }
 
 // Specialized GetInfoHelper for string params
-template <typename Func>
+template<typename Func>
 inline cl_int getInfoHelper(Func f, cl_uint name, string* param, long)
 {
     size_type required;
     cl_int err = f(name, 0, NULL, &required);
-    if (err != CL_SUCCESS) {
+    if (err != CL_SUCCESS)
+    {
         return err;
     }
 
     // std::string has a constant data member
     // a char vector does not
-    if (required > 0) {
+    if (required > 0)
+    {
         vector<char> value(required);
         err = f(name, required, value.data(), NULL);
-        if (err != CL_SUCCESS) {
+        if (err != CL_SUCCESS)
+        {
             return err;
         }
-        if (param) {
+        if (param)
+        {
             param->assign(begin(value), prev(end(value)));
         }
     }
-    else if (param) {
+    else if (param)
+    {
         param->assign("");
     }
     return CL_SUCCESS;
 }
 
 // Specialized GetInfoHelper for clsize_t params
-template <typename Func, size_type N>
+template<typename Func, size_type N>
 inline cl_int getInfoHelper(Func f, cl_uint name, array<size_type, N>* param, long)
 {
     size_type required;
     cl_int err = f(name, 0, NULL, &required);
-    if (err != CL_SUCCESS) {
+    if (err != CL_SUCCESS)
+    {
         return err;
     }
 
@@ -1057,23 +1087,27 @@ inline cl_int getInfoHelper(Func f, cl_uint name, array<size_type, N>* param, lo
     vector<size_type> value(elements, 0);
 
     err = f(name, required, value.data(), NULL);
-    if (err != CL_SUCCESS) {
+    if (err != CL_SUCCESS)
+    {
         return err;
     }
-    
+
     // Bound the copy with N to prevent overruns
     // if passed N > than the amount copied
-    if (elements > N) {
+    if (elements > N)
+    {
         elements = N;
     }
-    for (size_type i = 0; i < elements; ++i) {
+    for (size_type i = 0; i < elements; ++i)
+    {
         (*param)[i] = value[i];
     }
 
     return CL_SUCCESS;
 }
 
-template<typename T> struct ReferenceHandler;
+template<typename T>
+struct ReferenceHandler;
 
 /* Specialization for reference-counted types. This depends on the
  * existence of Wrapper<T>::cl_type, and none of the other types having the
@@ -1086,227 +1120,233 @@ inline cl_int getInfoHelper(Func f, cl_uint name, T* param, int, typename T::cl_
 {
     typename T::cl_type value;
     cl_int err = f(name, sizeof(value), &value, NULL);
-    if (err != CL_SUCCESS) {
+    if (err != CL_SUCCESS)
+    {
         return err;
     }
     *param = value;
     if (value != NULL)
     {
         err = param->retain();
-        if (err != CL_SUCCESS) {
+        if (err != CL_SUCCESS)
+        {
             return err;
         }
     }
     return CL_SUCCESS;
 }
 
-#define CL_HPP_PARAM_NAME_INFO_1_0_(F) \
-    F(cl_platform_info, CL_PLATFORM_PROFILE, string) \
-    F(cl_platform_info, CL_PLATFORM_VERSION, string) \
-    F(cl_platform_info, CL_PLATFORM_NAME, string) \
-    F(cl_platform_info, CL_PLATFORM_VENDOR, string) \
-    F(cl_platform_info, CL_PLATFORM_EXTENSIONS, string) \
-    \
-    F(cl_device_info, CL_DEVICE_TYPE, cl_device_type) \
-    F(cl_device_info, CL_DEVICE_VENDOR_ID, cl_uint) \
-    F(cl_device_info, CL_DEVICE_MAX_COMPUTE_UNITS, cl_uint) \
-    F(cl_device_info, CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS, cl_uint) \
-    F(cl_device_info, CL_DEVICE_MAX_WORK_GROUP_SIZE, size_type) \
-    F(cl_device_info, CL_DEVICE_MAX_WORK_ITEM_SIZES, cl::vector<size_type>) \
-    F(cl_device_info, CL_DEVICE_PREFERRED_VECTOR_WIDTH_CHAR, cl_uint) \
-    F(cl_device_info, CL_DEVICE_PREFERRED_VECTOR_WIDTH_SHORT, cl_uint) \
-    F(cl_device_info, CL_DEVICE_PREFERRED_VECTOR_WIDTH_INT, cl_uint) \
-    F(cl_device_info, CL_DEVICE_PREFERRED_VECTOR_WIDTH_LONG, cl_uint) \
-    F(cl_device_info, CL_DEVICE_PREFERRED_VECTOR_WIDTH_FLOAT, cl_uint) \
-    F(cl_device_info, CL_DEVICE_PREFERRED_VECTOR_WIDTH_DOUBLE, cl_uint) \
-    F(cl_device_info, CL_DEVICE_MAX_CLOCK_FREQUENCY, cl_uint) \
-    F(cl_device_info, CL_DEVICE_ADDRESS_BITS, cl_uint) \
-    F(cl_device_info, CL_DEVICE_MAX_READ_IMAGE_ARGS, cl_uint) \
-    F(cl_device_info, CL_DEVICE_MAX_WRITE_IMAGE_ARGS, cl_uint) \
-    F(cl_device_info, CL_DEVICE_MAX_MEM_ALLOC_SIZE, cl_ulong) \
-    F(cl_device_info, CL_DEVICE_IMAGE2D_MAX_WIDTH, size_type) \
-    F(cl_device_info, CL_DEVICE_IMAGE2D_MAX_HEIGHT, size_type) \
-    F(cl_device_info, CL_DEVICE_IMAGE3D_MAX_WIDTH, size_type) \
-    F(cl_device_info, CL_DEVICE_IMAGE3D_MAX_HEIGHT, size_type) \
-    F(cl_device_info, CL_DEVICE_IMAGE3D_MAX_DEPTH, size_type) \
-    F(cl_device_info, CL_DEVICE_IMAGE_SUPPORT, cl_bool) \
-    F(cl_device_info, CL_DEVICE_MAX_PARAMETER_SIZE, size_type) \
-    F(cl_device_info, CL_DEVICE_MAX_SAMPLERS, cl_uint) \
-    F(cl_device_info, CL_DEVICE_MEM_BASE_ADDR_ALIGN, cl_uint) \
-    F(cl_device_info, CL_DEVICE_MIN_DATA_TYPE_ALIGN_SIZE, cl_uint) \
-    F(cl_device_info, CL_DEVICE_SINGLE_FP_CONFIG, cl_device_fp_config) \
-    F(cl_device_info, CL_DEVICE_GLOBAL_MEM_CACHE_TYPE, cl_device_mem_cache_type) \
-    F(cl_device_info, CL_DEVICE_GLOBAL_MEM_CACHELINE_SIZE, cl_uint)\
-    F(cl_device_info, CL_DEVICE_GLOBAL_MEM_CACHE_SIZE, cl_ulong) \
-    F(cl_device_info, CL_DEVICE_GLOBAL_MEM_SIZE, cl_ulong) \
-    F(cl_device_info, CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE, cl_ulong) \
-    F(cl_device_info, CL_DEVICE_MAX_CONSTANT_ARGS, cl_uint) \
-    F(cl_device_info, CL_DEVICE_LOCAL_MEM_TYPE, cl_device_local_mem_type) \
-    F(cl_device_info, CL_DEVICE_LOCAL_MEM_SIZE, cl_ulong) \
-    F(cl_device_info, CL_DEVICE_ERROR_CORRECTION_SUPPORT, cl_bool) \
-    F(cl_device_info, CL_DEVICE_PROFILING_TIMER_RESOLUTION, size_type) \
-    F(cl_device_info, CL_DEVICE_ENDIAN_LITTLE, cl_bool) \
-    F(cl_device_info, CL_DEVICE_AVAILABLE, cl_bool) \
-    F(cl_device_info, CL_DEVICE_COMPILER_AVAILABLE, cl_bool) \
-    F(cl_device_info, CL_DEVICE_EXECUTION_CAPABILITIES, cl_device_exec_capabilities) \
-    F(cl_device_info, CL_DEVICE_PLATFORM, cl_platform_id) \
-    F(cl_device_info, CL_DEVICE_NAME, string) \
-    F(cl_device_info, CL_DEVICE_VENDOR, string) \
-    F(cl_device_info, CL_DRIVER_VERSION, string) \
-    F(cl_device_info, CL_DEVICE_PROFILE, string) \
-    F(cl_device_info, CL_DEVICE_VERSION, string) \
-    F(cl_device_info, CL_DEVICE_EXTENSIONS, string) \
-    \
-    F(cl_context_info, CL_CONTEXT_REFERENCE_COUNT, cl_uint) \
-    F(cl_context_info, CL_CONTEXT_DEVICES, cl::vector<Device>) \
-    F(cl_context_info, CL_CONTEXT_PROPERTIES, cl::vector<cl_context_properties>) \
-    \
-    F(cl_event_info, CL_EVENT_COMMAND_QUEUE, cl::CommandQueue) \
-    F(cl_event_info, CL_EVENT_COMMAND_TYPE, cl_command_type) \
-    F(cl_event_info, CL_EVENT_REFERENCE_COUNT, cl_uint) \
-    F(cl_event_info, CL_EVENT_COMMAND_EXECUTION_STATUS, cl_int) \
-    \
-    F(cl_profiling_info, CL_PROFILING_COMMAND_QUEUED, cl_ulong) \
-    F(cl_profiling_info, CL_PROFILING_COMMAND_SUBMIT, cl_ulong) \
-    F(cl_profiling_info, CL_PROFILING_COMMAND_START, cl_ulong) \
-    F(cl_profiling_info, CL_PROFILING_COMMAND_END, cl_ulong) \
-    \
-    F(cl_mem_info, CL_MEM_TYPE, cl_mem_object_type) \
-    F(cl_mem_info, CL_MEM_FLAGS, cl_mem_flags) \
-    F(cl_mem_info, CL_MEM_SIZE, size_type) \
-    F(cl_mem_info, CL_MEM_HOST_PTR, void*) \
-    F(cl_mem_info, CL_MEM_MAP_COUNT, cl_uint) \
-    F(cl_mem_info, CL_MEM_REFERENCE_COUNT, cl_uint) \
-    F(cl_mem_info, CL_MEM_CONTEXT, cl::Context) \
-    \
-    F(cl_image_info, CL_IMAGE_FORMAT, cl_image_format) \
-    F(cl_image_info, CL_IMAGE_ELEMENT_SIZE, size_type) \
-    F(cl_image_info, CL_IMAGE_ROW_PITCH, size_type) \
-    F(cl_image_info, CL_IMAGE_SLICE_PITCH, size_type) \
-    F(cl_image_info, CL_IMAGE_WIDTH, size_type) \
-    F(cl_image_info, CL_IMAGE_HEIGHT, size_type) \
-    F(cl_image_info, CL_IMAGE_DEPTH, size_type) \
-    \
-    F(cl_sampler_info, CL_SAMPLER_REFERENCE_COUNT, cl_uint) \
-    F(cl_sampler_info, CL_SAMPLER_CONTEXT, cl::Context) \
-    F(cl_sampler_info, CL_SAMPLER_NORMALIZED_COORDS, cl_bool) \
-    F(cl_sampler_info, CL_SAMPLER_ADDRESSING_MODE, cl_addressing_mode) \
-    F(cl_sampler_info, CL_SAMPLER_FILTER_MODE, cl_filter_mode) \
-    \
-    F(cl_program_info, CL_PROGRAM_REFERENCE_COUNT, cl_uint) \
-    F(cl_program_info, CL_PROGRAM_CONTEXT, cl::Context) \
-    F(cl_program_info, CL_PROGRAM_NUM_DEVICES, cl_uint) \
-    F(cl_program_info, CL_PROGRAM_DEVICES, cl::vector<Device>) \
-    F(cl_program_info, CL_PROGRAM_SOURCE, string) \
-    F(cl_program_info, CL_PROGRAM_BINARY_SIZES, cl::vector<size_type>) \
-    F(cl_program_info, CL_PROGRAM_BINARIES, cl::vector<cl::vector<unsigned char>>) \
-    \
-    F(cl_program_build_info, CL_PROGRAM_BUILD_STATUS, cl_build_status) \
-    F(cl_program_build_info, CL_PROGRAM_BUILD_OPTIONS, string) \
-    F(cl_program_build_info, CL_PROGRAM_BUILD_LOG, string) \
-    \
-    F(cl_kernel_info, CL_KERNEL_FUNCTION_NAME, string) \
-    F(cl_kernel_info, CL_KERNEL_NUM_ARGS, cl_uint) \
-    F(cl_kernel_info, CL_KERNEL_REFERENCE_COUNT, cl_uint) \
-    F(cl_kernel_info, CL_KERNEL_CONTEXT, cl::Context) \
-    F(cl_kernel_info, CL_KERNEL_PROGRAM, cl::Program) \
-    \
-    F(cl_kernel_work_group_info, CL_KERNEL_WORK_GROUP_SIZE, size_type) \
+#define CL_HPP_PARAM_NAME_INFO_1_0_(F)                                                        \
+    F(cl_platform_info, CL_PLATFORM_PROFILE, string)                                          \
+    F(cl_platform_info, CL_PLATFORM_VERSION, string)                                          \
+    F(cl_platform_info, CL_PLATFORM_NAME, string)                                             \
+    F(cl_platform_info, CL_PLATFORM_VENDOR, string)                                           \
+    F(cl_platform_info, CL_PLATFORM_EXTENSIONS, string)                                       \
+                                                                                              \
+    F(cl_device_info, CL_DEVICE_TYPE, cl_device_type)                                         \
+    F(cl_device_info, CL_DEVICE_VENDOR_ID, cl_uint)                                           \
+    F(cl_device_info, CL_DEVICE_MAX_COMPUTE_UNITS, cl_uint)                                   \
+    F(cl_device_info, CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS, cl_uint)                            \
+    F(cl_device_info, CL_DEVICE_MAX_WORK_GROUP_SIZE, size_type)                               \
+    F(cl_device_info, CL_DEVICE_MAX_WORK_ITEM_SIZES, cl::vector<size_type>)                   \
+    F(cl_device_info, CL_DEVICE_PREFERRED_VECTOR_WIDTH_CHAR, cl_uint)                         \
+    F(cl_device_info, CL_DEVICE_PREFERRED_VECTOR_WIDTH_SHORT, cl_uint)                        \
+    F(cl_device_info, CL_DEVICE_PREFERRED_VECTOR_WIDTH_INT, cl_uint)                          \
+    F(cl_device_info, CL_DEVICE_PREFERRED_VECTOR_WIDTH_LONG, cl_uint)                         \
+    F(cl_device_info, CL_DEVICE_PREFERRED_VECTOR_WIDTH_FLOAT, cl_uint)                        \
+    F(cl_device_info, CL_DEVICE_PREFERRED_VECTOR_WIDTH_DOUBLE, cl_uint)                       \
+    F(cl_device_info, CL_DEVICE_MAX_CLOCK_FREQUENCY, cl_uint)                                 \
+    F(cl_device_info, CL_DEVICE_ADDRESS_BITS, cl_uint)                                        \
+    F(cl_device_info, CL_DEVICE_MAX_READ_IMAGE_ARGS, cl_uint)                                 \
+    F(cl_device_info, CL_DEVICE_MAX_WRITE_IMAGE_ARGS, cl_uint)                                \
+    F(cl_device_info, CL_DEVICE_MAX_MEM_ALLOC_SIZE, cl_ulong)                                 \
+    F(cl_device_info, CL_DEVICE_IMAGE2D_MAX_WIDTH, size_type)                                 \
+    F(cl_device_info, CL_DEVICE_IMAGE2D_MAX_HEIGHT, size_type)                                \
+    F(cl_device_info, CL_DEVICE_IMAGE3D_MAX_WIDTH, size_type)                                 \
+    F(cl_device_info, CL_DEVICE_IMAGE3D_MAX_HEIGHT, size_type)                                \
+    F(cl_device_info, CL_DEVICE_IMAGE3D_MAX_DEPTH, size_type)                                 \
+    F(cl_device_info, CL_DEVICE_IMAGE_SUPPORT, cl_bool)                                       \
+    F(cl_device_info, CL_DEVICE_MAX_PARAMETER_SIZE, size_type)                                \
+    F(cl_device_info, CL_DEVICE_MAX_SAMPLERS, cl_uint)                                        \
+    F(cl_device_info, CL_DEVICE_MEM_BASE_ADDR_ALIGN, cl_uint)                                 \
+    F(cl_device_info, CL_DEVICE_MIN_DATA_TYPE_ALIGN_SIZE, cl_uint)                            \
+    F(cl_device_info, CL_DEVICE_SINGLE_FP_CONFIG, cl_device_fp_config)                        \
+    F(cl_device_info, CL_DEVICE_GLOBAL_MEM_CACHE_TYPE, cl_device_mem_cache_type)              \
+    F(cl_device_info, CL_DEVICE_GLOBAL_MEM_CACHELINE_SIZE, cl_uint)                           \
+    F(cl_device_info, CL_DEVICE_GLOBAL_MEM_CACHE_SIZE, cl_ulong)                              \
+    F(cl_device_info, CL_DEVICE_GLOBAL_MEM_SIZE, cl_ulong)                                    \
+    F(cl_device_info, CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE, cl_ulong)                           \
+    F(cl_device_info, CL_DEVICE_MAX_CONSTANT_ARGS, cl_uint)                                   \
+    F(cl_device_info, CL_DEVICE_LOCAL_MEM_TYPE, cl_device_local_mem_type)                     \
+    F(cl_device_info, CL_DEVICE_LOCAL_MEM_SIZE, cl_ulong)                                     \
+    F(cl_device_info, CL_DEVICE_ERROR_CORRECTION_SUPPORT, cl_bool)                            \
+    F(cl_device_info, CL_DEVICE_PROFILING_TIMER_RESOLUTION, size_type)                        \
+    F(cl_device_info, CL_DEVICE_ENDIAN_LITTLE, cl_bool)                                       \
+    F(cl_device_info, CL_DEVICE_AVAILABLE, cl_bool)                                           \
+    F(cl_device_info, CL_DEVICE_COMPILER_AVAILABLE, cl_bool)                                  \
+    F(cl_device_info, CL_DEVICE_EXECUTION_CAPABILITIES, cl_device_exec_capabilities)          \
+    F(cl_device_info, CL_DEVICE_PLATFORM, cl_platform_id)                                     \
+    F(cl_device_info, CL_DEVICE_NAME, string)                                                 \
+    F(cl_device_info, CL_DEVICE_VENDOR, string)                                               \
+    F(cl_device_info, CL_DRIVER_VERSION, string)                                              \
+    F(cl_device_info, CL_DEVICE_PROFILE, string)                                              \
+    F(cl_device_info, CL_DEVICE_VERSION, string)                                              \
+    F(cl_device_info, CL_DEVICE_EXTENSIONS, string)                                           \
+                                                                                              \
+    F(cl_context_info, CL_CONTEXT_REFERENCE_COUNT, cl_uint)                                   \
+    F(cl_context_info, CL_CONTEXT_DEVICES, cl::vector<Device>)                                \
+    F(cl_context_info, CL_CONTEXT_PROPERTIES, cl::vector<cl_context_properties>)              \
+                                                                                              \
+    F(cl_event_info, CL_EVENT_COMMAND_QUEUE, cl::CommandQueue)                                \
+    F(cl_event_info, CL_EVENT_COMMAND_TYPE, cl_command_type)                                  \
+    F(cl_event_info, CL_EVENT_REFERENCE_COUNT, cl_uint)                                       \
+    F(cl_event_info, CL_EVENT_COMMAND_EXECUTION_STATUS, cl_int)                               \
+                                                                                              \
+    F(cl_profiling_info, CL_PROFILING_COMMAND_QUEUED, cl_ulong)                               \
+    F(cl_profiling_info, CL_PROFILING_COMMAND_SUBMIT, cl_ulong)                               \
+    F(cl_profiling_info, CL_PROFILING_COMMAND_START, cl_ulong)                                \
+    F(cl_profiling_info, CL_PROFILING_COMMAND_END, cl_ulong)                                  \
+                                                                                              \
+    F(cl_mem_info, CL_MEM_TYPE, cl_mem_object_type)                                           \
+    F(cl_mem_info, CL_MEM_FLAGS, cl_mem_flags)                                                \
+    F(cl_mem_info, CL_MEM_SIZE, size_type)                                                    \
+    F(cl_mem_info, CL_MEM_HOST_PTR, void*)                                                    \
+    F(cl_mem_info, CL_MEM_MAP_COUNT, cl_uint)                                                 \
+    F(cl_mem_info, CL_MEM_REFERENCE_COUNT, cl_uint)                                           \
+    F(cl_mem_info, CL_MEM_CONTEXT, cl::Context)                                               \
+                                                                                              \
+    F(cl_image_info, CL_IMAGE_FORMAT, cl_image_format)                                        \
+    F(cl_image_info, CL_IMAGE_ELEMENT_SIZE, size_type)                                        \
+    F(cl_image_info, CL_IMAGE_ROW_PITCH, size_type)                                           \
+    F(cl_image_info, CL_IMAGE_SLICE_PITCH, size_type)                                         \
+    F(cl_image_info, CL_IMAGE_WIDTH, size_type)                                               \
+    F(cl_image_info, CL_IMAGE_HEIGHT, size_type)                                              \
+    F(cl_image_info, CL_IMAGE_DEPTH, size_type)                                               \
+                                                                                              \
+    F(cl_sampler_info, CL_SAMPLER_REFERENCE_COUNT, cl_uint)                                   \
+    F(cl_sampler_info, CL_SAMPLER_CONTEXT, cl::Context)                                       \
+    F(cl_sampler_info, CL_SAMPLER_NORMALIZED_COORDS, cl_bool)                                 \
+    F(cl_sampler_info, CL_SAMPLER_ADDRESSING_MODE, cl_addressing_mode)                        \
+    F(cl_sampler_info, CL_SAMPLER_FILTER_MODE, cl_filter_mode)                                \
+                                                                                              \
+    F(cl_program_info, CL_PROGRAM_REFERENCE_COUNT, cl_uint)                                   \
+    F(cl_program_info, CL_PROGRAM_CONTEXT, cl::Context)                                       \
+    F(cl_program_info, CL_PROGRAM_NUM_DEVICES, cl_uint)                                       \
+    F(cl_program_info, CL_PROGRAM_DEVICES, cl::vector<Device>)                                \
+    F(cl_program_info, CL_PROGRAM_SOURCE, string)                                             \
+    F(cl_program_info, CL_PROGRAM_BINARY_SIZES, cl::vector<size_type>)                        \
+    F(cl_program_info, CL_PROGRAM_BINARIES, cl::vector<cl::vector<unsigned char> >)           \
+                                                                                              \
+    F(cl_program_build_info, CL_PROGRAM_BUILD_STATUS, cl_build_status)                        \
+    F(cl_program_build_info, CL_PROGRAM_BUILD_OPTIONS, string)                                \
+    F(cl_program_build_info, CL_PROGRAM_BUILD_LOG, string)                                    \
+                                                                                              \
+    F(cl_kernel_info, CL_KERNEL_FUNCTION_NAME, string)                                        \
+    F(cl_kernel_info, CL_KERNEL_NUM_ARGS, cl_uint)                                            \
+    F(cl_kernel_info, CL_KERNEL_REFERENCE_COUNT, cl_uint)                                     \
+    F(cl_kernel_info, CL_KERNEL_CONTEXT, cl::Context)                                         \
+    F(cl_kernel_info, CL_KERNEL_PROGRAM, cl::Program)                                         \
+                                                                                              \
+    F(cl_kernel_work_group_info, CL_KERNEL_WORK_GROUP_SIZE, size_type)                        \
     F(cl_kernel_work_group_info, CL_KERNEL_COMPILE_WORK_GROUP_SIZE, cl::detail::size_t_array) \
-    F(cl_kernel_work_group_info, CL_KERNEL_LOCAL_MEM_SIZE, cl_ulong) \
-    \
-    F(cl_command_queue_info, CL_QUEUE_CONTEXT, cl::Context) \
-    F(cl_command_queue_info, CL_QUEUE_DEVICE, cl::Device) \
-    F(cl_command_queue_info, CL_QUEUE_REFERENCE_COUNT, cl_uint) \
+    F(cl_kernel_work_group_info, CL_KERNEL_LOCAL_MEM_SIZE, cl_ulong)                          \
+                                                                                              \
+    F(cl_command_queue_info, CL_QUEUE_CONTEXT, cl::Context)                                   \
+    F(cl_command_queue_info, CL_QUEUE_DEVICE, cl::Device)                                     \
+    F(cl_command_queue_info, CL_QUEUE_REFERENCE_COUNT, cl_uint)                               \
     F(cl_command_queue_info, CL_QUEUE_PROPERTIES, cl_command_queue_properties)
 
-
-#define CL_HPP_PARAM_NAME_INFO_1_1_(F) \
-    F(cl_context_info, CL_CONTEXT_NUM_DEVICES, cl_uint)\
-    F(cl_device_info, CL_DEVICE_PREFERRED_VECTOR_WIDTH_HALF, cl_uint) \
-    F(cl_device_info, CL_DEVICE_NATIVE_VECTOR_WIDTH_CHAR, cl_uint) \
-    F(cl_device_info, CL_DEVICE_NATIVE_VECTOR_WIDTH_SHORT, cl_uint) \
-    F(cl_device_info, CL_DEVICE_NATIVE_VECTOR_WIDTH_INT, cl_uint) \
-    F(cl_device_info, CL_DEVICE_NATIVE_VECTOR_WIDTH_LONG, cl_uint) \
-    F(cl_device_info, CL_DEVICE_NATIVE_VECTOR_WIDTH_FLOAT, cl_uint) \
-    F(cl_device_info, CL_DEVICE_NATIVE_VECTOR_WIDTH_DOUBLE, cl_uint) \
-    F(cl_device_info, CL_DEVICE_NATIVE_VECTOR_WIDTH_HALF, cl_uint) \
-    F(cl_device_info, CL_DEVICE_DOUBLE_FP_CONFIG, cl_device_fp_config) \
-    F(cl_device_info, CL_DEVICE_HALF_FP_CONFIG, cl_device_fp_config) \
-    F(cl_device_info, CL_DEVICE_OPENCL_C_VERSION, string) \
-    \
-    F(cl_mem_info, CL_MEM_ASSOCIATED_MEMOBJECT, cl::Memory) \
-    F(cl_mem_info, CL_MEM_OFFSET, size_type) \
-    \
+#define CL_HPP_PARAM_NAME_INFO_1_1_(F)                                                    \
+    F(cl_context_info, CL_CONTEXT_NUM_DEVICES, cl_uint)                                   \
+    F(cl_device_info, CL_DEVICE_PREFERRED_VECTOR_WIDTH_HALF, cl_uint)                     \
+    F(cl_device_info, CL_DEVICE_NATIVE_VECTOR_WIDTH_CHAR, cl_uint)                        \
+    F(cl_device_info, CL_DEVICE_NATIVE_VECTOR_WIDTH_SHORT, cl_uint)                       \
+    F(cl_device_info, CL_DEVICE_NATIVE_VECTOR_WIDTH_INT, cl_uint)                         \
+    F(cl_device_info, CL_DEVICE_NATIVE_VECTOR_WIDTH_LONG, cl_uint)                        \
+    F(cl_device_info, CL_DEVICE_NATIVE_VECTOR_WIDTH_FLOAT, cl_uint)                       \
+    F(cl_device_info, CL_DEVICE_NATIVE_VECTOR_WIDTH_DOUBLE, cl_uint)                      \
+    F(cl_device_info, CL_DEVICE_NATIVE_VECTOR_WIDTH_HALF, cl_uint)                        \
+    F(cl_device_info, CL_DEVICE_DOUBLE_FP_CONFIG, cl_device_fp_config)                    \
+    F(cl_device_info, CL_DEVICE_HALF_FP_CONFIG, cl_device_fp_config)                      \
+    F(cl_device_info, CL_DEVICE_OPENCL_C_VERSION, string)                                 \
+                                                                                          \
+    F(cl_mem_info, CL_MEM_ASSOCIATED_MEMOBJECT, cl::Memory)                               \
+    F(cl_mem_info, CL_MEM_OFFSET, size_type)                                              \
+                                                                                          \
     F(cl_kernel_work_group_info, CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE, size_type) \
-    F(cl_kernel_work_group_info, CL_KERNEL_PRIVATE_MEM_SIZE, cl_ulong) \
-    \
+    F(cl_kernel_work_group_info, CL_KERNEL_PRIVATE_MEM_SIZE, cl_ulong)                    \
+                                                                                          \
     F(cl_event_info, CL_EVENT_CONTEXT, cl::Context)
 
-#define CL_HPP_PARAM_NAME_INFO_1_2_(F) \
-    F(cl_program_info, CL_PROGRAM_NUM_KERNELS, size_type) \
-    F(cl_program_info, CL_PROGRAM_KERNEL_NAMES, string) \
-    \
-    F(cl_program_build_info, CL_PROGRAM_BINARY_TYPE, cl_program_binary_type) \
-    \
-    F(cl_kernel_info, CL_KERNEL_ATTRIBUTES, string) \
-    \
-    F(cl_kernel_arg_info, CL_KERNEL_ARG_ADDRESS_QUALIFIER, cl_kernel_arg_address_qualifier) \
-    F(cl_kernel_arg_info, CL_KERNEL_ARG_ACCESS_QUALIFIER, cl_kernel_arg_access_qualifier) \
-    F(cl_kernel_arg_info, CL_KERNEL_ARG_TYPE_NAME, string) \
-    F(cl_kernel_arg_info, CL_KERNEL_ARG_NAME, string) \
-    F(cl_kernel_arg_info, CL_KERNEL_ARG_TYPE_QUALIFIER, cl_kernel_arg_type_qualifier) \
-    \
-    F(cl_device_info, CL_DEVICE_PARENT_DEVICE, cl::Device) \
+#define CL_HPP_PARAM_NAME_INFO_1_2_(F)                                                          \
+    F(cl_program_info, CL_PROGRAM_NUM_KERNELS, size_type)                                       \
+    F(cl_program_info, CL_PROGRAM_KERNEL_NAMES, string)                                         \
+                                                                                                \
+    F(cl_program_build_info, CL_PROGRAM_BINARY_TYPE, cl_program_binary_type)                    \
+                                                                                                \
+    F(cl_kernel_info, CL_KERNEL_ATTRIBUTES, string)                                             \
+                                                                                                \
+    F(cl_kernel_arg_info, CL_KERNEL_ARG_ADDRESS_QUALIFIER, cl_kernel_arg_address_qualifier)     \
+    F(cl_kernel_arg_info, CL_KERNEL_ARG_ACCESS_QUALIFIER, cl_kernel_arg_access_qualifier)       \
+    F(cl_kernel_arg_info, CL_KERNEL_ARG_TYPE_NAME, string)                                      \
+    F(cl_kernel_arg_info, CL_KERNEL_ARG_NAME, string)                                           \
+    F(cl_kernel_arg_info, CL_KERNEL_ARG_TYPE_QUALIFIER, cl_kernel_arg_type_qualifier)           \
+                                                                                                \
+    F(cl_device_info, CL_DEVICE_PARENT_DEVICE, cl::Device)                                      \
     F(cl_device_info, CL_DEVICE_PARTITION_PROPERTIES, cl::vector<cl_device_partition_property>) \
-    F(cl_device_info, CL_DEVICE_PARTITION_TYPE, cl::vector<cl_device_partition_property>)  \
-    F(cl_device_info, CL_DEVICE_REFERENCE_COUNT, cl_uint) \
-    F(cl_device_info, CL_DEVICE_PREFERRED_INTEROP_USER_SYNC, size_type) \
-    F(cl_device_info, CL_DEVICE_PARTITION_AFFINITY_DOMAIN, cl_device_affinity_domain) \
-    F(cl_device_info, CL_DEVICE_BUILT_IN_KERNELS, string) \
-    \
-    F(cl_image_info, CL_IMAGE_ARRAY_SIZE, size_type) \
-    F(cl_image_info, CL_IMAGE_NUM_MIP_LEVELS, cl_uint) \
+    F(cl_device_info, CL_DEVICE_PARTITION_TYPE, cl::vector<cl_device_partition_property>)       \
+    F(cl_device_info, CL_DEVICE_REFERENCE_COUNT, cl_uint)                                       \
+    F(cl_device_info, CL_DEVICE_PREFERRED_INTEROP_USER_SYNC, size_type)                         \
+    F(cl_device_info, CL_DEVICE_PARTITION_AFFINITY_DOMAIN, cl_device_affinity_domain)           \
+    F(cl_device_info, CL_DEVICE_BUILT_IN_KERNELS, string)                                       \
+                                                                                                \
+    F(cl_image_info, CL_IMAGE_ARRAY_SIZE, size_type)                                            \
+    F(cl_image_info, CL_IMAGE_NUM_MIP_LEVELS, cl_uint)                                          \
     F(cl_image_info, CL_IMAGE_NUM_SAMPLES, cl_uint)
 
-#define CL_HPP_PARAM_NAME_INFO_2_0_(F) \
-    F(cl_device_info, CL_DEVICE_QUEUE_ON_HOST_PROPERTIES, cl_command_queue_properties) \
+#define CL_HPP_PARAM_NAME_INFO_2_0_(F)                                                   \
+    F(cl_device_info, CL_DEVICE_QUEUE_ON_HOST_PROPERTIES, cl_command_queue_properties)   \
     F(cl_device_info, CL_DEVICE_QUEUE_ON_DEVICE_PROPERTIES, cl_command_queue_properties) \
-    F(cl_device_info, CL_DEVICE_QUEUE_ON_DEVICE_PREFERRED_SIZE, cl_uint) \
-    F(cl_device_info, CL_DEVICE_QUEUE_ON_DEVICE_MAX_SIZE, cl_uint) \
-    F(cl_device_info, CL_DEVICE_MAX_ON_DEVICE_QUEUES, cl_uint) \
-    F(cl_device_info, CL_DEVICE_MAX_ON_DEVICE_EVENTS, cl_uint) \
-    F(cl_device_info, CL_DEVICE_MAX_PIPE_ARGS, cl_uint) \
-    F(cl_device_info, CL_DEVICE_PIPE_MAX_ACTIVE_RESERVATIONS, cl_uint) \
-    F(cl_device_info, CL_DEVICE_PIPE_MAX_PACKET_SIZE, cl_uint) \
-    F(cl_device_info, CL_DEVICE_SVM_CAPABILITIES, cl_device_svm_capabilities) \
-    F(cl_device_info, CL_DEVICE_PREFERRED_PLATFORM_ATOMIC_ALIGNMENT, cl_uint) \
-    F(cl_device_info, CL_DEVICE_PREFERRED_GLOBAL_ATOMIC_ALIGNMENT, cl_uint) \
-    F(cl_device_info, CL_DEVICE_PREFERRED_LOCAL_ATOMIC_ALIGNMENT, cl_uint) \
-    F(cl_command_queue_info, CL_QUEUE_SIZE, cl_uint) \
-    F(cl_mem_info, CL_MEM_USES_SVM_POINTER, cl_bool) \
-    F(cl_program_build_info, CL_PROGRAM_BUILD_GLOBAL_VARIABLE_TOTAL_SIZE, size_type) \
-    F(cl_pipe_info, CL_PIPE_PACKET_SIZE, cl_uint) \
+    F(cl_device_info, CL_DEVICE_QUEUE_ON_DEVICE_PREFERRED_SIZE, cl_uint)                 \
+    F(cl_device_info, CL_DEVICE_QUEUE_ON_DEVICE_MAX_SIZE, cl_uint)                       \
+    F(cl_device_info, CL_DEVICE_MAX_ON_DEVICE_QUEUES, cl_uint)                           \
+    F(cl_device_info, CL_DEVICE_MAX_ON_DEVICE_EVENTS, cl_uint)                           \
+    F(cl_device_info, CL_DEVICE_MAX_PIPE_ARGS, cl_uint)                                  \
+    F(cl_device_info, CL_DEVICE_PIPE_MAX_ACTIVE_RESERVATIONS, cl_uint)                   \
+    F(cl_device_info, CL_DEVICE_PIPE_MAX_PACKET_SIZE, cl_uint)                           \
+    F(cl_device_info, CL_DEVICE_SVM_CAPABILITIES, cl_device_svm_capabilities)            \
+    F(cl_device_info, CL_DEVICE_PREFERRED_PLATFORM_ATOMIC_ALIGNMENT, cl_uint)            \
+    F(cl_device_info, CL_DEVICE_PREFERRED_GLOBAL_ATOMIC_ALIGNMENT, cl_uint)              \
+    F(cl_device_info, CL_DEVICE_PREFERRED_LOCAL_ATOMIC_ALIGNMENT, cl_uint)               \
+    F(cl_command_queue_info, CL_QUEUE_SIZE, cl_uint)                                     \
+    F(cl_mem_info, CL_MEM_USES_SVM_POINTER, cl_bool)                                     \
+    F(cl_program_build_info, CL_PROGRAM_BUILD_GLOBAL_VARIABLE_TOTAL_SIZE, size_type)     \
+    F(cl_pipe_info, CL_PIPE_PACKET_SIZE, cl_uint)                                        \
     F(cl_pipe_info, CL_PIPE_MAX_PACKETS, cl_uint)
 
-#define CL_HPP_PARAM_NAME_DEVICE_FISSION_(F) \
-    F(cl_device_info, CL_DEVICE_PARENT_DEVICE_EXT, cl_device_id) \
-    F(cl_device_info, CL_DEVICE_PARTITION_TYPES_EXT, cl::vector<cl_device_partition_property_ext>) \
+#define CL_HPP_PARAM_NAME_DEVICE_FISSION_(F)                                                        \
+    F(cl_device_info, CL_DEVICE_PARENT_DEVICE_EXT, cl_device_id)                                    \
+    F(cl_device_info, CL_DEVICE_PARTITION_TYPES_EXT, cl::vector<cl_device_partition_property_ext>)  \
     F(cl_device_info, CL_DEVICE_AFFINITY_DOMAINS_EXT, cl::vector<cl_device_partition_property_ext>) \
-    F(cl_device_info, CL_DEVICE_REFERENCE_COUNT_EXT , cl_uint) \
+    F(cl_device_info, CL_DEVICE_REFERENCE_COUNT_EXT, cl_uint)                                       \
     F(cl_device_info, CL_DEVICE_PARTITION_STYLE_EXT, cl::vector<cl_device_partition_property_ext>)
 
-template <typename enum_type, cl_int Name>
-struct param_traits {};
+template<typename enum_type, cl_int Name>
+struct param_traits
+{
+};
 
 #define CL_HPP_DECLARE_PARAM_TRAITS_(token, param_name, T) \
-struct token;                                        \
-template<>                                           \
-struct param_traits<detail:: token,param_name>       \
-{                                                    \
-    enum { value = param_name };                     \
-    typedef T param_type;                            \
-};
+    struct token;                                          \
+    template<>                                             \
+    struct param_traits<detail::token, param_name>         \
+    {                                                      \
+        enum                                               \
+        {                                                  \
+            value = param_name                             \
+        };                                                 \
+        typedef T param_type;                              \
+    };
 
 CL_HPP_PARAM_NAME_INFO_1_0_(CL_HPP_DECLARE_PARAM_TRAITS_)
 #if CL_HPP_TARGET_OPENCL_VERSION >= 110
@@ -1318,7 +1358,6 @@ CL_HPP_PARAM_NAME_INFO_1_2_(CL_HPP_DECLARE_PARAM_TRAITS_)
 #if CL_HPP_TARGET_OPENCL_VERSION >= 200
 CL_HPP_PARAM_NAME_INFO_2_0_(CL_HPP_DECLARE_PARAM_TRAITS_)
 #endif // CL_HPP_TARGET_OPENCL_VERSION >= 110
-
 
 // Flags deprecated in OpenCL 2.0
 #define CL_HPP_PARAM_NAME_INFO_1_0_DEPRECATED_IN_2_0_(F) \
@@ -1409,57 +1448,64 @@ CL_HPP_DECLARE_PARAM_TRAITS_(cl_device_info, CL_DEVICE_INTEGRATED_MEMORY_NV, cl_
 
 // Convenience functions
 
-template <typename Func, typename T>
+template<typename Func, typename T>
 inline cl_int
 getInfo(Func f, cl_uint name, T* param)
 {
     return getInfoHelper(f, name, param, 0);
 }
 
-template <typename Func, typename Arg0>
+template<typename Func, typename Arg0>
 struct GetInfoFunctor0
 {
-    Func f_; const Arg0& arg0_;
-    cl_int operator ()(
+    Func f_;
+    const Arg0& arg0_;
+    cl_int operator()(
         cl_uint param, size_type size, void* value, size_type* size_ret)
-    { return f_(arg0_, param, size, value, size_ret); }
+    {
+        return f_(arg0_, param, size, value, size_ret);
+    }
 };
 
-template <typename Func, typename Arg0, typename Arg1>
+template<typename Func, typename Arg0, typename Arg1>
 struct GetInfoFunctor1
 {
-    Func f_; const Arg0& arg0_; const Arg1& arg1_;
-    cl_int operator ()(
+    Func f_;
+    const Arg0& arg0_;
+    const Arg1& arg1_;
+    cl_int operator()(
         cl_uint param, size_type size, void* value, size_type* size_ret)
-    { return f_(arg0_, arg1_, param, size, value, size_ret); }
+    {
+        return f_(arg0_, arg1_, param, size, value, size_ret);
+    }
 };
 
-template <typename Func, typename Arg0, typename T>
+template<typename Func, typename Arg0, typename T>
 inline cl_int
 getInfo(Func f, const Arg0& arg0, cl_uint name, T* param)
 {
-    GetInfoFunctor0<Func, Arg0> f0 = { f, arg0 };
+    GetInfoFunctor0<Func, Arg0> f0 = {f, arg0};
     return getInfoHelper(f0, name, param, 0);
 }
 
-template <typename Func, typename Arg0, typename Arg1, typename T>
+template<typename Func, typename Arg0, typename Arg1, typename T>
 inline cl_int
 getInfo(Func f, const Arg0& arg0, const Arg1& arg1, cl_uint name, T* param)
 {
-    GetInfoFunctor1<Func, Arg0, Arg1> f0 = { f, arg0, arg1 };
+    GetInfoFunctor1<Func, Arg0, Arg1> f0 = {f, arg0, arg1};
     return getInfoHelper(f0, name, param, 0);
 }
 
-
 template<typename T>
 struct ReferenceHandler
-{ };
+{
+};
 
 #if CL_HPP_TARGET_OPENCL_VERSION >= 120
 /**
  * OpenCL 1.2 devices do have retain/release.
  */
-template <>
+template<>
 struct ReferenceHandler<cl_device_id>
 {
     /**
@@ -1472,7 +1518,9 @@ struct ReferenceHandler<cl_device_id>
      *   CL_OUT_OF_HOST_MEMORY
      */
     static cl_int retain(cl_device_id device)
-    { return ::clRetainDevice(device); }
+    {
+        return ::clRetainDevice(device);
+    }
     /**
      * Retain the device.
      * \param device A valid device created using createSubDevices
@@ -1483,115 +1531,154 @@ struct ReferenceHandler<cl_device_id>
      *   CL_OUT_OF_HOST_MEMORY
      */
     static cl_int release(cl_device_id device)
-    { return ::clReleaseDevice(device); }
+    {
+        return ::clReleaseDevice(device);
+    }
 };
-#else // CL_HPP_TARGET_OPENCL_VERSION >= 120
+#else  // CL_HPP_TARGET_OPENCL_VERSION >= 120
 /**
  * OpenCL 1.1 devices do not have retain/release.
  */
-template <>
+template<>
 struct ReferenceHandler<cl_device_id>
 {
     // cl_device_id does not have retain().
     static cl_int retain(cl_device_id)
-    { return CL_SUCCESS; }
+    {
+        return CL_SUCCESS;
+    }
     // cl_device_id does not have release().
     static cl_int release(cl_device_id)
-    { return CL_SUCCESS; }
+    {
+        return CL_SUCCESS;
+    }
 };
 #endif // ! (CL_HPP_TARGET_OPENCL_VERSION >= 120)
 
-template <>
+template<>
 struct ReferenceHandler<cl_platform_id>
 {
     // cl_platform_id does not have retain().
     static cl_int retain(cl_platform_id)
-    { return CL_SUCCESS; }
+    {
+        return CL_SUCCESS;
+    }
     // cl_platform_id does not have release().
     static cl_int release(cl_platform_id)
-    { return CL_SUCCESS; }
+    {
+        return CL_SUCCESS;
+    }
 };
 
-template <>
+template<>
 struct ReferenceHandler<cl_context>
 {
     static cl_int retain(cl_context context)
-    { return ::clRetainContext(context); }
+    {
+        return ::clRetainContext(context);
+    }
     static cl_int release(cl_context context)
-    { return ::clReleaseContext(context); }
+    {
+        return ::clReleaseContext(context);
+    }
 };
 
-template <>
+template<>
 struct ReferenceHandler<cl_command_queue>
 {
     static cl_int retain(cl_command_queue queue)
-    { return ::clRetainCommandQueue(queue); }
+    {
+        return ::clRetainCommandQueue(queue);
+    }
     static cl_int release(cl_command_queue queue)
-    { return ::clReleaseCommandQueue(queue); }
+    {
+        return ::clReleaseCommandQueue(queue);
+    }
 };
 
-template <>
+template<>
 struct ReferenceHandler<cl_mem>
 {
     static cl_int retain(cl_mem memory)
-    { return ::clRetainMemObject(memory); }
+    {
+        return ::clRetainMemObject(memory);
+    }
     static cl_int release(cl_mem memory)
-    { return ::clReleaseMemObject(memory); }
+    {
+        return ::clReleaseMemObject(memory);
+    }
 };
 
-template <>
+template<>
 struct ReferenceHandler<cl_sampler>
 {
     static cl_int retain(cl_sampler sampler)
-    { return ::clRetainSampler(sampler); }
+    {
+        return ::clRetainSampler(sampler);
+    }
     static cl_int release(cl_sampler sampler)
-    { return ::clReleaseSampler(sampler); }
+    {
+        return ::clReleaseSampler(sampler);
+    }
 };
 
-template <>
+template<>
 struct ReferenceHandler<cl_program>
 {
     static cl_int retain(cl_program program)
-    { return ::clRetainProgram(program); }
+    {
+        return ::clRetainProgram(program);
+    }
     static cl_int release(cl_program program)
-    { return ::clReleaseProgram(program); }
+    {
+        return ::clReleaseProgram(program);
+    }
 };
 
-template <>
+template<>
 struct ReferenceHandler<cl_kernel>
 {
     static cl_int retain(cl_kernel kernel)
-    { return ::clRetainKernel(kernel); }
+    {
+        return ::clRetainKernel(kernel);
+    }
     static cl_int release(cl_kernel kernel)
-    { return ::clReleaseKernel(kernel); }
+    {
+        return ::clReleaseKernel(kernel);
+    }
 };
 
-template <>
+template<>
 struct ReferenceHandler<cl_event>
 {
     static cl_int retain(cl_event event)
-    { return ::clRetainEvent(event); }
+    {
+        return ::clRetainEvent(event);
+    }
     static cl_int release(cl_event event)
-    { return ::clReleaseEvent(event); }
+    {
+        return ::clReleaseEvent(event);
+    }
 };
-
 
 #if CL_HPP_TARGET_OPENCL_VERSION >= 120 && CL_HPP_MINIMUM_OPENCL_VERSION < 120
 // Extracts version number with major in the upper 16 bits, minor in the lower 16
-static cl_uint getVersion(const vector<char> &versionInfo)
+static cl_uint getVersion(const vector<char>& versionInfo)
 {
     int highVersion = 0;
     int lowVersion = 0;
     int index = 7;
-    while(versionInfo[index] != '.' ) {
+    while (versionInfo[index] != '.')
+    {
         highVersion *= 10;
-        highVersion += versionInfo[index]-'0';
+        highVersion += versionInfo[index] - '0';
         ++index;
     }
     ++index;
-    while(versionInfo[index] != ' ' &&  versionInfo[index] != '\0') {
+    while (versionInfo[index] != ' ' && versionInfo[index] != '\0')
+    {
         lowVersion *= 10;
-        lowVersion += versionInfo[index]-'0';
+        lowVersion += versionInfo[index] - '0';
         ++index;
     }
     return (highVersion << 16) | lowVersion;
@@ -1622,13 +1709,13 @@ static cl_uint getContextPlatformVersion(cl_context context)
     clGetContextInfo(context, CL_CONTEXT_DEVICES, 0, NULL, &size);
     if (size == 0)
         return 0;
-    vector<cl_device_id> devices(size/sizeof(cl_device_id));
+    vector<cl_device_id> devices(size / sizeof(cl_device_id));
     clGetContextInfo(context, CL_CONTEXT_DEVICES, size, devices.data(), NULL);
     return getDevicePlatformVersion(devices[0]);
 }
 #endif // CL_HPP_TARGET_OPENCL_VERSION >= 120 && CL_HPP_MINIMUM_OPENCL_VERSION < 120
 
-template <typename T>
+template<typename T>
 class Wrapper
 {
 public:
@@ -1638,12 +1725,17 @@ protected:
     cl_type object_;
 
 public:
-    Wrapper() : object_(NULL) { }
-    
-    Wrapper(const cl_type &obj, bool retainObject) : object_(obj) 
+    Wrapper()
+        : object_(NULL)
     {
-        if (retainObject) { 
-            detail::errHandler(retain(), __RETAIN_ERR); 
+    }
+
+    Wrapper(const cl_type& obj, bool retainObject)
+        : object_(obj)
+    {
+        if (retainObject)
+        {
+            detail::errHandler(retain(), __RETAIN_ERR);
         }
     }
 
@@ -1664,9 +1756,10 @@ public:
         rhs.object_ = NULL;
     }
 
-    Wrapper<cl_type>& operator = (const Wrapper<cl_type>& rhs)
+    Wrapper<cl_type>& operator=(const Wrapper<cl_type>& rhs)
     {
-        if (this != &rhs) {
+        if (this != &rhs)
+        {
             detail::errHandler(release(), __RELEASE_ERR);
             object_ = rhs.object_;
             detail::errHandler(retain(), __RETAIN_ERR);
@@ -1674,9 +1767,10 @@ public:
         return *this;
     }
 
-    Wrapper<cl_type>& operator = (Wrapper<cl_type>&& rhs)
+    Wrapper<cl_type>& operator=(Wrapper<cl_type>&& rhs)
     {
-        if (this != &rhs) {
+        if (this != &rhs)
+        {
             detail::errHandler(release(), __RELEASE_ERR);
             object_ = rhs.object_;
             rhs.object_ = NULL;
@@ -1684,21 +1778,32 @@ public:
         return *this;
     }
 
-    Wrapper<cl_type>& operator = (const cl_type &rhs)
+    Wrapper<cl_type>& operator=(const cl_type& rhs)
     {
         detail::errHandler(release(), __RELEASE_ERR);
         object_ = rhs;
         return *this;
     }
 
-    const cl_type& operator ()() const { return object_; }
+    const cl_type& operator()() const
+    {
+        return object_;
+    }
 
-    cl_type& operator ()() { return object_; }
+    cl_type& operator()()
+    {
+        return object_;
+    }
 
-    const cl_type get() const { return object_; }
+    const cl_type get() const
+    {
+        return object_;
+    }
 
-    cl_type get() { return object_; }
-
+    cl_type get()
+    {
+        return object_;
+    }
 
 protected:
     template<typename Func, typename U>
@@ -1706,26 +1811,30 @@ protected:
 
     cl_int retain() const
     {
-        if (object_ != nullptr) {
+        if (object_ != nullptr)
+        {
             return ReferenceHandler<cl_type>::retain(object_);
         }
-        else {
+        else
+        {
             return CL_SUCCESS;
         }
     }
 
     cl_int release() const
     {
-        if (object_ != nullptr) {
+        if (object_ != nullptr)
+        {
             return ReferenceHandler<cl_type>::release(object_);
         }
-        else {
+        else
+        {
             return CL_SUCCESS;
         }
     }
 };
 
-template <>
+template<>
 class Wrapper<cl_device_id>
 {
 public:
@@ -1740,13 +1849,15 @@ protected:
         bool retVal = false;
 #if CL_HPP_TARGET_OPENCL_VERSION >= 120
 #if CL_HPP_MINIMUM_OPENCL_VERSION < 120
-        if (device != NULL) {
+        if (device != NULL)
+        {
             int version = getDevicePlatformVersion(device);
-            if(version > ((1 << 16) + 1)) {
+            if (version > ((1 << 16) + 1))
+            {
                 retVal = true;
             }
         }
-#else // CL_HPP_MINIMUM_OPENCL_VERSION < 120
+#else  // CL_HPP_MINIMUM_OPENCL_VERSION < 120
         retVal = true;
 #endif // CL_HPP_MINIMUM_OPENCL_VERSION < 120
 #endif // CL_HPP_TARGET_OPENCL_VERSION >= 120
@@ -1754,17 +1865,19 @@ protected:
     }
 
 public:
-    Wrapper() : object_(NULL), referenceCountable_(false) 
-    { 
-    }
-    
-    Wrapper(const cl_type &obj, bool retainObject) : 
-        object_(obj), 
-        referenceCountable_(false) 
+    Wrapper()
+        : object_(NULL), referenceCountable_(false)
     {
-        referenceCountable_ = isReferenceCountable(obj); 
+    }
 
-        if (retainObject) {
+    Wrapper(const cl_type& obj, bool retainObject)
+        : object_(obj),
+          referenceCountable_(false)
+    {
+        referenceCountable_ = isReferenceCountable(obj);
+
+        if (retainObject)
+        {
             detail::errHandler(retain(), __RETAIN_ERR);
         }
     }
@@ -1773,11 +1886,11 @@ public:
     {
         release();
     }
-    
+
     Wrapper(const Wrapper<cl_type>& rhs)
     {
         object_ = rhs.object_;
-        referenceCountable_ = isReferenceCountable(object_); 
+        referenceCountable_ = isReferenceCountable(object_);
         detail::errHandler(retain(), __RETAIN_ERR);
     }
 
@@ -1789,9 +1902,10 @@ public:
         rhs.referenceCountable_ = false;
     }
 
-    Wrapper<cl_type>& operator = (const Wrapper<cl_type>& rhs)
+    Wrapper<cl_type>& operator=(const Wrapper<cl_type>& rhs)
     {
-        if (this != &rhs) {
+        if (this != &rhs)
+        {
             detail::errHandler(release(), __RELEASE_ERR);
             object_ = rhs.object_;
             referenceCountable_ = rhs.referenceCountable_;
@@ -1800,9 +1914,10 @@ public:
         return *this;
     }
 
-    Wrapper<cl_type>& operator = (Wrapper<cl_type>&& rhs)
+    Wrapper<cl_type>& operator=(Wrapper<cl_type>&& rhs)
     {
-        if (this != &rhs) {
+        if (this != &rhs)
+        {
             detail::errHandler(release(), __RELEASE_ERR);
             object_ = rhs.object_;
             referenceCountable_ = rhs.referenceCountable_;
@@ -1812,21 +1927,33 @@ public:
         return *this;
     }
 
-    Wrapper<cl_type>& operator = (const cl_type &rhs)
+    Wrapper<cl_type>& operator=(const cl_type& rhs)
     {
         detail::errHandler(release(), __RELEASE_ERR);
         object_ = rhs;
-        referenceCountable_ = isReferenceCountable(object_); 
+        referenceCountable_ = isReferenceCountable(object_);
         return *this;
     }
 
-    const cl_type& operator ()() const { return object_; }
+    const cl_type& operator()() const
+    {
+        return object_;
+    }
 
-    cl_type& operator ()() { return object_; }
+    cl_type& operator()()
+    {
+        return object_;
+    }
 
-    const cl_type get() const { return object_; }
+    const cl_type get() const
+    {
+        return object_;
+    }
 
-    cl_type get() { return object_; }
+    cl_type get()
+    {
+        return object_;
+    }
 
 protected:
     template<typename Func, typename U>
@@ -1837,33 +1964,37 @@ protected:
 
     cl_int retain() const
     {
-        if( object_ != nullptr && referenceCountable_ ) {
+        if (object_ != nullptr && referenceCountable_)
+        {
             return ReferenceHandler<cl_type>::retain(object_);
         }
-        else {
+        else
+        {
             return CL_SUCCESS;
         }
     }
 
     cl_int release() const
     {
-        if (object_ != nullptr && referenceCountable_) {
+        if (object_ != nullptr && referenceCountable_)
+        {
             return ReferenceHandler<cl_type>::release(object_);
         }
-        else {
+        else
+        {
             return CL_SUCCESS;
         }
     }
 };
 
-template <typename T>
-inline bool operator==(const Wrapper<T> &lhs, const Wrapper<T> &rhs)
+template<typename T>
+inline bool operator==(const Wrapper<T>& lhs, const Wrapper<T>& rhs)
 {
     return lhs() == rhs();
 }
 
-template <typename T>
-inline bool operator!=(const Wrapper<T> &lhs, const Wrapper<T> &rhs)
+template<typename T>
+inline bool operator!=(const Wrapper<T>& lhs, const Wrapper<T>& rhs)
 {
     return !operator==(lhs, rhs);
 }
@@ -1871,8 +2002,7 @@ inline bool operator!=(const Wrapper<T> &lhs, const Wrapper<T> &rhs)
 } // namespace detail
 //! \endcond
 
-
-using BuildLogType = vector<std::pair<cl::Device, typename detail::param_traits<detail::cl_program_build_info, CL_PROGRAM_BUILD_LOG>::param_type>>;
+using BuildLogType = vector<std::pair<cl::Device, typename detail::param_traits<detail::cl_program_build_info, CL_PROGRAM_BUILD_LOG>::param_type> >;
 #if defined(CL_HPP_ENABLE_EXCEPTIONS)
 /**
 * Exception class for build errors to carry build info
@@ -1881,8 +2011,10 @@ class BuildError : public Error
 {
 private:
     BuildLogType buildLogs;
+
 public:
-    BuildError(cl_int err, const char * errStr, const BuildLogType &vec) : Error(err, errStr), buildLogs(vec)
+    BuildError(cl_int err, const char* errStr, const BuildLogType& vec)
+        : Error(err, errStr), buildLogs(vec)
     {
     }
 
@@ -1892,32 +2024,32 @@ public:
     }
 };
 namespace detail {
-    static inline cl_int buildErrHandler(
-        cl_int err,
-        const char * errStr,
-        const BuildLogType &buildLogs)
+static inline cl_int buildErrHandler(
+    cl_int err,
+    const char* errStr,
+    const BuildLogType& buildLogs)
+{
+    if (err != CL_SUCCESS)
     {
-        if (err != CL_SUCCESS) {
-            throw BuildError(err, errStr, buildLogs);
-        }
-        return err;
+        throw BuildError(err, errStr, buildLogs);
     }
+    return err;
+}
 } // namespace detail
 
 #else
 namespace detail {
-    static inline cl_int buildErrHandler(
-        cl_int err,
-        const char * errStr,
-        const BuildLogType &buildLogs)
-    {
-        (void)buildLogs; // suppress unused variable warning
-        (void)errStr;
-        return err;
-    }
+static inline cl_int buildErrHandler(
+    cl_int err,
+    const char* errStr,
+    const BuildLogType& buildLogs)
+{
+    (void)buildLogs; // suppress unused variable warning
+    (void)errStr;
+    return err;
+}
 } // namespace detail
 #endif // #if defined(CL_HPP_ENABLE_EXCEPTIONS)
-
 
 /*! \stuct ImageFormat
  *  \brief Adds constructors and member functions for cl_image_format.
@@ -1927,7 +2059,9 @@ namespace detail {
 struct ImageFormat : public cl_image_format
 {
     //! \brief Default constructor - performs no initialization.
-    ImageFormat(){}
+    ImageFormat()
+    {
+    }
 
     //! \brief Initializing constructor.
     ImageFormat(cl_channel_order order, cl_channel_type type)
@@ -1937,11 +2071,12 @@ struct ImageFormat : public cl_image_format
     }
 
     //! \brief Assignment operator.
-    ImageFormat& operator = (const ImageFormat& rhs)
+    ImageFormat& operator=(const ImageFormat& rhs)
     {
-        if (this != &rhs) {
+        if (this != &rhs)
+        {
             this->image_channel_data_type = rhs.image_channel_data_type;
-            this->image_channel_order     = rhs.image_channel_order;
+            this->image_channel_order = rhs.image_channel_order;
         }
         return *this;
     }
@@ -1973,7 +2108,8 @@ private:
     * This sets @c default_. It does not throw
     * @c cl::Error.
     */
-    static void makeDefaultProvided(const Device &p) {
+    static void makeDefaultProvided(const Device& p)
+    {
         default_ = p;
     }
 
@@ -1985,31 +2121,38 @@ public:
     * the unit test framework.
     * This function is not thread safe.
     */
-    static void unitTestClearDefault() {
+    static void unitTestClearDefault()
+    {
         default_ = Device();
     }
 #endif // #ifdef CL_HPP_UNIT_TEST_ENABLE
 
     //! \brief Default constructor - initializes to NULL.
-    Device() : detail::Wrapper<cl_type>() { }
+    Device()
+        : detail::Wrapper<cl_type>()
+    {
+    }
 
     /*! \brief Constructor from cl_device_id.
      * 
      *  This simply copies the device ID value, which is an inexpensive operation.
      */
-    explicit Device(const cl_device_id &device, bool retainObject = false) : 
-        detail::Wrapper<cl_type>(device, retainObject) { }
+    explicit Device(const cl_device_id& device, bool retainObject = false)
+        : detail::Wrapper<cl_type>(device, retainObject)
+    {
+    }
 
     /*! \brief Returns the first device on the default context.
      *
      *  \see Context::getDefault()
      */
     static Device getDefault(
-        cl_int *errResult = NULL)
+        cl_int* errResult = NULL)
     {
         std::call_once(default_initialized_, makeDefault);
         detail::errHandler(default_error_);
-        if (errResult != NULL) {
+        if (errResult != NULL)
+        {
             *errResult = default_error_;
         }
         return default_;
@@ -2022,7 +2165,7 @@ public:
     * @return updated default device.
     *         Should be compared to the passed value to ensure that it was updated.
     */
-    static Device setDefault(const Device &default_device)
+    static Device setDefault(const Device& default_device)
     {
         std::call_once(default_initialized_, makeDefaultProvided, std::cref(default_device));
         detail::errHandler(default_error_);
@@ -2033,7 +2176,7 @@ public:
      * 
      *  This simply copies the device ID value, which is an inexpensive operation.
      */
-    Device& operator = (const cl_device_id& rhs)
+    Device& operator=(const cl_device_id& rhs)
     {
         detail::Wrapper<cl_type>::operator=(rhs);
         return *this;
@@ -2042,12 +2185,15 @@ public:
     /*! \brief Copy constructor to forward copy to the superclass correctly.
     * Required for MSVC.
     */
-    Device(const Device& dev) : detail::Wrapper<cl_type>(dev) {}
+    Device(const Device& dev)
+        : detail::Wrapper<cl_type>(dev)
+    {
+    }
 
     /*! \brief Copy assignment to forward copy to the superclass correctly.
     * Required for MSVC.
     */
-    Device& operator = (const Device &dev)
+    Device& operator=(const Device& dev)
     {
         detail::Wrapper<cl_type>::operator=(dev);
         return *this;
@@ -2056,19 +2202,21 @@ public:
     /*! \brief Move constructor to forward move to the superclass correctly.
     * Required for MSVC.
     */
-    Device(Device&& dev) CL_HPP_NOEXCEPT_ : detail::Wrapper<cl_type>(std::move(dev)) {}
+    Device(Device&& dev) CL_HPP_NOEXCEPT_ : detail::Wrapper<cl_type>(std::move(dev))
+    {
+    }
 
     /*! \brief Move assignment to forward move to the superclass correctly.
     * Required for MSVC.
     */
-    Device& operator = (Device &&dev)
+    Device& operator=(Device&& dev)
     {
         detail::Wrapper<cl_type>::operator=(std::move(dev));
         return *this;
     }
 
     //! \brief Wrapper for clGetDeviceInfo().
-    template <typename T>
+    template<typename T>
     cl_int getInfo(cl_device_info name, T* param) const
     {
         return detail::errHandler(
@@ -2077,14 +2225,15 @@ public:
     }
 
     //! \brief Wrapper for clGetDeviceInfo() that returns by value.
-    template <cl_int name> typename
-    detail::param_traits<detail::cl_device_info, name>::param_type
+    template<cl_int name>
+    typename detail::param_traits<detail::cl_device_info, name>::param_type
     getInfo(cl_int* err = NULL) const
     {
         typename detail::param_traits<
             detail::cl_device_info, name>::param_type param;
         cl_int result = getInfo(name, &param);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = result;
         }
         return param;
@@ -2096,30 +2245,34 @@ public:
 #if CL_HPP_TARGET_OPENCL_VERSION >= 120
     //! \brief Wrapper for clCreateSubDevices().
     cl_int createSubDevices(
-        const cl_device_partition_property * properties,
+        const cl_device_partition_property* properties,
         vector<Device>* devices)
     {
         cl_uint n = 0;
         cl_int err = clCreateSubDevices(object_, properties, 0, NULL, &n);
-        if (err != CL_SUCCESS) {
+        if (err != CL_SUCCESS)
+        {
             return detail::errHandler(err, __CREATE_SUB_DEVICES_ERR);
         }
 
         vector<cl_device_id> ids(n);
         err = clCreateSubDevices(object_, properties, n, ids.data(), NULL);
-        if (err != CL_SUCCESS) {
+        if (err != CL_SUCCESS)
+        {
             return detail::errHandler(err, __CREATE_SUB_DEVICES_ERR);
         }
 
-        // Cannot trivially assign because we need to capture intermediates 
+        // Cannot trivially assign because we need to capture intermediates
         // with safe construction
-        if (devices) {
+        if (devices)
+        {
             devices->resize(ids.size());
 
             // Assign to param, constructing with retain behaviour
             // to correctly capture each underlying CL object
-            for (size_type i = 0; i < ids.size(); i++) {
-                // We do not need to retain because this device is being created 
+            for (size_type i = 0; i < ids.size(); i++)
+            {
+                // We do not need to retain because this device is being created
                 // by the runtime
                 (*devices)[i] = Device(ids[i], false);
             }
@@ -2129,44 +2282,47 @@ public:
     }
 #elif defined(CL_HPP_USE_CL_DEVICE_FISSION)
 
-/**
+    /**
  * CL 1.1 version that uses device fission extension.
  */
     cl_int createSubDevices(
-        const cl_device_partition_property_ext * properties,
+        const cl_device_partition_property_ext* properties,
         vector<Device>* devices)
     {
-        typedef CL_API_ENTRY cl_int 
-            ( CL_API_CALL * PFN_clCreateSubDevicesEXT)(
-                cl_device_id /*in_device*/,
-                const cl_device_partition_property_ext * /* properties */,
-                cl_uint /*num_entries*/,
-                cl_device_id * /*out_devices*/,
-                cl_uint * /*num_devices*/ ) CL_EXT_SUFFIX__VERSION_1_1;
+        typedef CL_API_ENTRY cl_int(CL_API_CALL * PFN_clCreateSubDevicesEXT)(
+            cl_device_id /*in_device*/,
+            const cl_device_partition_property_ext* /* properties */,
+            cl_uint /*num_entries*/,
+            cl_device_id* /*out_devices*/,
+            cl_uint* /*num_devices*/) CL_EXT_SUFFIX__VERSION_1_1;
 
         static PFN_clCreateSubDevicesEXT pfn_clCreateSubDevicesEXT = NULL;
         CL_HPP_INIT_CL_EXT_FCN_PTR_(clCreateSubDevicesEXT);
 
         cl_uint n = 0;
         cl_int err = pfn_clCreateSubDevicesEXT(object_, properties, 0, NULL, &n);
-        if (err != CL_SUCCESS) {
+        if (err != CL_SUCCESS)
+        {
             return detail::errHandler(err, __CREATE_SUB_DEVICES_ERR);
         }
 
         vector<cl_device_id> ids(n);
         err = pfn_clCreateSubDevicesEXT(object_, properties, n, ids.data(), NULL);
-        if (err != CL_SUCCESS) {
+        if (err != CL_SUCCESS)
+        {
             return detail::errHandler(err, __CREATE_SUB_DEVICES_ERR);
         }
-        // Cannot trivially assign because we need to capture intermediates 
+        // Cannot trivially assign because we need to capture intermediates
         // with safe construction
-        if (devices) {
+        if (devices)
+        {
             devices->resize(ids.size());
 
             // Assign to param, constructing with retain behaviour
             // to correctly capture each underlying CL object
-            for (size_type i = 0; i < ids.size(); i++) {
-                // We do not need to retain because this device is being created 
+            for (size_type i = 0; i < ids.size(); i++)
+            {
+                // We do not need to retain because this device is being created
                 // by the runtime
                 (*devices)[i] = Device(ids[i], false);
             }
@@ -2199,7 +2355,8 @@ private:
     * This sets @c default_ and @c default_error_. It does not throw
     * @c cl::Error.
     */
-    static void makeDefault() {
+    static void makeDefault()
+    {
         /* Throwing an exception from a call_once invocation does not do
         * what we wish, so we catch it and save the error.
         */
@@ -2212,18 +2369,21 @@ private:
             cl_uint n = 0;
 
             cl_int err = ::clGetPlatformIDs(0, NULL, &n);
-            if (err != CL_SUCCESS) {
+            if (err != CL_SUCCESS)
+            {
                 default_error_ = err;
                 return;
             }
-            if (n == 0) {
+            if (n == 0)
+            {
                 default_error_ = CL_INVALID_PLATFORM;
                 return;
             }
 
             vector<cl_platform_id> ids(n);
             err = ::clGetPlatformIDs(n, ids.data(), NULL);
-            if (err != CL_SUCCESS) {
+            if (err != CL_SUCCESS)
+            {
                 default_error_ = err;
                 return;
             }
@@ -2231,7 +2391,8 @@ private:
             default_ = Platform(ids[0]);
         }
 #if defined(CL_HPP_ENABLE_EXCEPTIONS)
-        catch (cl::Error &e) {
+        catch (cl::Error& e)
+        {
             default_error_ = e.err();
         }
 #endif
@@ -2242,10 +2403,11 @@ private:
      * This sets @c default_. It does not throw
      * @c cl::Error.
      */
-    static void makeDefaultProvided(const Platform &p) {
-       default_ = p;
+    static void makeDefaultProvided(const Platform& p)
+    {
+        default_ = p;
     }
-    
+
 public:
 #ifdef CL_HPP_UNIT_TEST_ENABLE
     /*! \brief Reset the default.
@@ -2254,13 +2416,17 @@ public:
     * the unit test framework.
     * This function is not thread safe.
     */
-    static void unitTestClearDefault() {
+    static void unitTestClearDefault()
+    {
         default_ = Platform();
     }
 #endif // #ifdef CL_HPP_UNIT_TEST_ENABLE
 
     //! \brief Default constructor - initializes to NULL.
-    Platform() : detail::Wrapper<cl_type>()  { }
+    Platform()
+        : detail::Wrapper<cl_type>()
+    {
+    }
 
     /*! \brief Constructor from cl_platform_id.
      * 
@@ -2269,25 +2435,28 @@ public:
      *                     earlier versions.
      *  This simply copies the platform ID value, which is an inexpensive operation.
      */
-    explicit Platform(const cl_platform_id &platform, bool retainObject = false) : 
-        detail::Wrapper<cl_type>(platform, retainObject) { }
+    explicit Platform(const cl_platform_id& platform, bool retainObject = false)
+        : detail::Wrapper<cl_type>(platform, retainObject)
+    {
+    }
 
     /*! \brief Assignment operator from cl_platform_id.
      * 
      *  This simply copies the platform ID value, which is an inexpensive operation.
      */
-    Platform& operator = (const cl_platform_id& rhs)
+    Platform& operator=(const cl_platform_id& rhs)
     {
         detail::Wrapper<cl_type>::operator=(rhs);
         return *this;
     }
 
     static Platform getDefault(
-        cl_int *errResult = NULL)
+        cl_int* errResult = NULL)
     {
         std::call_once(default_initialized_, makeDefault);
         detail::errHandler(default_error_);
-        if (errResult != NULL) {
+        if (errResult != NULL)
+        {
             *errResult = default_error_;
         }
         return default_;
@@ -2300,7 +2469,7 @@ public:
      * @return updated default platform. 
      *         Should be compared to the passed value to ensure that it was updated.
      */
-    static Platform setDefault(const Platform &default_platform)
+    static Platform setDefault(const Platform& default_platform)
     {
         std::call_once(default_initialized_, makeDefaultProvided, std::cref(default_platform));
         detail::errHandler(default_error_);
@@ -2316,14 +2485,15 @@ public:
     }
 
     //! \brief Wrapper for clGetPlatformInfo() that returns by value.
-    template <cl_int name> typename
-    detail::param_traits<detail::cl_platform_info, name>::param_type
+    template<cl_int name>
+    typename detail::param_traits<detail::cl_platform_info, name>::param_type
     getInfo(cl_int* err = NULL) const
     {
         typename detail::param_traits<
             detail::cl_platform_info, name>::param_type param;
         cl_int result = getInfo(name, &param);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = result;
         }
         return param;
@@ -2338,30 +2508,35 @@ public:
         vector<Device>* devices) const
     {
         cl_uint n = 0;
-        if( devices == NULL ) {
+        if (devices == NULL)
+        {
             return detail::errHandler(CL_INVALID_ARG_VALUE, __GET_DEVICE_IDS_ERR);
         }
         cl_int err = ::clGetDeviceIDs(object_, type, 0, NULL, &n);
-        if (err != CL_SUCCESS) {
+        if (err != CL_SUCCESS)
+        {
             return detail::errHandler(err, __GET_DEVICE_IDS_ERR);
         }
 
         vector<cl_device_id> ids(n);
         err = ::clGetDeviceIDs(object_, type, n, ids.data(), NULL);
-        if (err != CL_SUCCESS) {
+        if (err != CL_SUCCESS)
+        {
             return detail::errHandler(err, __GET_DEVICE_IDS_ERR);
         }
 
-        // Cannot trivially assign because we need to capture intermediates 
+        // Cannot trivially assign because we need to capture intermediates
         // with safe construction
         // We must retain things we obtain from the API to avoid releasing
         // API-owned objects.
-        if (devices) {
+        if (devices)
+        {
             devices->resize(ids.size());
 
             // Assign to param, constructing with retain behaviour
             // to correctly capture each underlying CL object
-            for (size_type i = 0; i < ids.size(); i++) {
+            for (size_type i = 0; i < ids.size(); i++)
+            {
                 (*devices)[i] = Device(ids[i], true);
             }
         }
@@ -2369,7 +2544,7 @@ public:
     }
 
 #if defined(CL_HPP_USE_DX_INTEROP)
-   /*! \brief Get the list of available D3D10 devices.
+    /*! \brief Get the list of available D3D10 devices.
      *
      *  \param d3d_device_source.
      *
@@ -2394,20 +2569,21 @@ public:
      */
     cl_int getDevices(
         cl_d3d10_device_source_khr d3d_device_source,
-        void *                     d3d_object,
-        cl_d3d10_device_set_khr    d3d_device_set,
+        void* d3d_object,
+        cl_d3d10_device_set_khr d3d_device_set,
         vector<Device>* devices) const
     {
-        typedef CL_API_ENTRY cl_int (CL_API_CALL *PFN_clGetDeviceIDsFromD3D10KHR)(
-            cl_platform_id platform, 
-            cl_d3d10_device_source_khr d3d_device_source, 
-            void * d3d_object,
+        typedef CL_API_ENTRY cl_int(CL_API_CALL * PFN_clGetDeviceIDsFromD3D10KHR)(
+            cl_platform_id platform,
+            cl_d3d10_device_source_khr d3d_device_source,
+            void* d3d_object,
             cl_d3d10_device_set_khr d3d_device_set,
             cl_uint num_entries,
-            cl_device_id * devices,
+            cl_device_id* devices,
             cl_uint* num_devices);
 
-        if( devices == NULL ) {
+        if (devices == NULL)
+        {
             return detail::errHandler(CL_INVALID_ARG_VALUE, __GET_DEVICE_IDS_ERR);
         }
 
@@ -2416,40 +2592,44 @@ public:
 
         cl_uint n = 0;
         cl_int err = pfn_clGetDeviceIDsFromD3D10KHR(
-            object_, 
-            d3d_device_source, 
+            object_,
+            d3d_device_source,
             d3d_object,
-            d3d_device_set, 
-            0, 
-            NULL, 
+            d3d_device_set,
+            0,
+            NULL,
             &n);
-        if (err != CL_SUCCESS) {
+        if (err != CL_SUCCESS)
+        {
             return detail::errHandler(err, __GET_DEVICE_IDS_ERR);
         }
 
         vector<cl_device_id> ids(n);
         err = pfn_clGetDeviceIDsFromD3D10KHR(
-            object_, 
-            d3d_device_source, 
+            object_,
+            d3d_device_source,
             d3d_object,
             d3d_device_set,
-            n, 
-            ids.data(), 
+            n,
+            ids.data(),
             NULL);
-        if (err != CL_SUCCESS) {
+        if (err != CL_SUCCESS)
+        {
             return detail::errHandler(err, __GET_DEVICE_IDS_ERR);
         }
 
-        // Cannot trivially assign because we need to capture intermediates 
+        // Cannot trivially assign because we need to capture intermediates
         // with safe construction
         // We must retain things we obtain from the API to avoid releasing
         // API-owned objects.
-        if (devices) {
+        if (devices)
+        {
             devices->resize(ids.size());
 
             // Assign to param, constructing with retain behaviour
             // to correctly capture each underlying CL object
-            for (size_type i = 0; i < ids.size(); i++) {
+            for (size_type i = 0; i < ids.size(); i++)
+            {
                 (*devices)[i] = Device(ids[i], true);
             }
         }
@@ -2466,47 +2646,56 @@ public:
     {
         cl_uint n = 0;
 
-        if( platforms == NULL ) {
+        if (platforms == NULL)
+        {
             return detail::errHandler(CL_INVALID_ARG_VALUE, __GET_PLATFORM_IDS_ERR);
         }
 
         cl_int err = ::clGetPlatformIDs(0, NULL, &n);
-        if (err != CL_SUCCESS) {
+        if (err != CL_SUCCESS)
+        {
             return detail::errHandler(err, __GET_PLATFORM_IDS_ERR);
         }
 
         vector<cl_platform_id> ids(n);
         err = ::clGetPlatformIDs(n, ids.data(), NULL);
-        if (err != CL_SUCCESS) {
+        if (err != CL_SUCCESS)
+        {
             return detail::errHandler(err, __GET_PLATFORM_IDS_ERR);
         }
 
         // more than one gpu card
-        if (n > 1) {
+        if (n > 1)
+        {
             // first select nvidia gpu as discrete card, if multi gpu cards are available, x86_64 platform
             //const char* integrate_gpu = "Intel";
             const char* discrete_gpu = "NVIDIA";
-            for (cl_uint i = 0; i < n; ++i) {
+            for (cl_uint i = 0; i < n; ++i)
+            {
                 // get the length of platform name
                 size_t platform_name_length = 0;
                 err = clGetPlatformInfo(ids[i], CL_PLATFORM_NAME, 0, 0, &platform_name_length);
-                if (err != CL_SUCCESS) {
+                if (err != CL_SUCCESS)
+                {
                     return detail::errHandler(err, __GET_PLATFORM_INFO_ERR);
                 }
                 // get platform name
                 char* platform_name = new char[platform_name_length];
                 err = clGetPlatformInfo(ids[i], CL_PLATFORM_NAME, platform_name_length, platform_name, 0);
-                if (err != CL_SUCCESS) {
+                if (err != CL_SUCCESS)
+                {
                     delete[] platform_name;
                     return detail::errHandler(err, __GET_PLATFORM_INFO_ERR);
                 }
                 // if nvidia card is detected, set it as default ids[0]
-                if (strstr(platform_name, discrete_gpu)) {
-                    if (i == 0) {
+                if (strstr(platform_name, discrete_gpu))
+                {
+                    if (i == 0)
+                    {
                         delete[] platform_name;
                         break;
                     }
-                    // swap 
+                    // swap
                     cl_platform_id tmp = ids[0];
                     ids[0] = ids[i];
                     ids[i] = tmp;
@@ -2516,12 +2705,14 @@ public:
                 delete[] platform_name;
             }
         }
-     
-        if (platforms) {
+
+        if (platforms)
+        {
             platforms->resize(ids.size());
 
             // Platforms don't reference count
-            for (size_type i = 0; i < ids.size(); i++) {
+            for (size_type i = 0; i < ids.size(); i++)
+            {
                 (*platforms)[i] = Platform(ids[i]);
             }
         }
@@ -2533,11 +2724,12 @@ public:
      *  Wraps clGetPlatformIDs(), returning the first result.
      */
     static cl_int get(
-        Platform * platform)
+        Platform* platform)
     {
         cl_int err;
         Platform default_platform = Platform::getDefault(&err);
-        if (platform) {
+        if (platform)
+        {
             *platform = default_platform;
         }
         return err;
@@ -2552,16 +2744,17 @@ public:
      * Wraps clGetPlatformIDs(), returning the first result.
      */
     static Platform get(
-        cl_int * errResult = NULL)
+        cl_int* errResult = NULL)
     {
         cl_int err;
         Platform default_platform = Platform::getDefault(&err);
-        if (errResult) {
+        if (errResult)
+        {
             *errResult = err;
         }
         return default_platform;
-    }    
-    
+    }
+
 #if CL_HPP_TARGET_OPENCL_VERSION >= 120
     //! \brief Wrapper for clUnloadCompiler().
     cl_int
@@ -2570,12 +2763,11 @@ public:
         return ::clUnloadPlatformCompiler(object_);
     }
 #endif // CL_HPP_TARGET_OPENCL_VERSION >= 120
-}; // class Platform
+};     // class Platform
 
 CL_HPP_DEFINE_STATIC_MEMBER_ std::once_flag Platform::default_initialized_;
 CL_HPP_DEFINE_STATIC_MEMBER_ Platform Platform::default_;
 CL_HPP_DEFINE_STATIC_MEMBER_ cl_int Platform::default_error_ = CL_SUCCESS;
-
 
 /**
  * Deprecated APIs for 1.2
@@ -2602,7 +2794,7 @@ UnloadCompiler()
  *
  *  \see cl_context
  */
-class Context 
+class Context
     : public detail::Wrapper<cl_context>
 {
 private:
@@ -2615,7 +2807,8 @@ private:
      * This sets @c default_ and @c default_error_. It does not throw
      * @c cl::Error.
      */
-    static void makeDefault() {
+    static void makeDefault()
+    {
         /* Throwing an exception from a call_once invocation does not do
          * what we wish, so we catch it and save the error.
          */
@@ -2624,13 +2817,12 @@ private:
 #endif
         {
 #if !defined(__APPLE__) && !defined(__MACOS)
-            const Platform &p = Platform::getDefault();
+            const Platform& p = Platform::getDefault();
             cl_platform_id defaultPlatform = p();
             cl_context_properties properties[3] = {
-                CL_CONTEXT_PLATFORM, (cl_context_properties)defaultPlatform, 0
-            };
-#else // #if !defined(__APPLE__) && !defined(__MACOS)
-            cl_context_properties *properties = nullptr;
+                CL_CONTEXT_PLATFORM, (cl_context_properties)defaultPlatform, 0};
+#else  // #if !defined(__APPLE__) && !defined(__MACOS)
+            cl_context_properties* properties = nullptr;
 #endif // #if !defined(__APPLE__) && !defined(__MACOS)
 
             default_ = Context(
@@ -2641,22 +2833,23 @@ private:
                 &default_error_);
         }
 #if defined(CL_HPP_ENABLE_EXCEPTIONS)
-        catch (cl::Error &e) {
+        catch (cl::Error& e)
+        {
             default_error_ = e.err();
         }
 #endif
     }
-
 
     /*! \brief Create the default context from a provided Context.
      *
      * This sets @c default_. It does not throw
      * @c cl::Error.
      */
-    static void makeDefaultProvided(const Context &c) {
+    static void makeDefaultProvided(const Context& c)
+    {
         default_ = c;
     }
-    
+
 public:
 #ifdef CL_HPP_UNIT_TEST_ENABLE
     /*! \brief Reset the default.
@@ -2665,7 +2858,8 @@ public:
     * the unit test framework.
     * This function is not thread safe.
     */
-    static void unitTestClearDefault() {
+    static void unitTestClearDefault()
+    {
         default_ = Context();
     }
 #endif // #ifdef CL_HPP_UNIT_TEST_ENABLE
@@ -2677,11 +2871,12 @@ public:
     Context(
         const vector<Device>& devices,
         cl_context_properties* properties = NULL,
-        void (CL_CALLBACK * notifyFptr)(
-            const char *,
-            const void *,
+        void(CL_CALLBACK* notifyFptr)(
+            const char*,
+            const void*,
             size_type,
-            void *) = NULL,
+            void*)
+        = NULL,
         void* data = NULL,
         cl_int* err = NULL)
     {
@@ -2690,17 +2885,19 @@ public:
         size_type numDevices = devices.size();
         vector<cl_device_id> deviceIDs(numDevices);
 
-        for( size_type deviceIndex = 0; deviceIndex < numDevices; ++deviceIndex ) {
+        for (size_type deviceIndex = 0; deviceIndex < numDevices; ++deviceIndex)
+        {
             deviceIDs[deviceIndex] = (devices[deviceIndex])();
         }
 
         object_ = ::clCreateContext(
-            properties, (cl_uint) numDevices,
+            properties, (cl_uint)numDevices,
             deviceIDs.data(),
             notifyFptr, data, &error);
 
         detail::errHandler(error, __CREATE_CONTEXT_ERR);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = error;
         }
     }
@@ -2708,11 +2905,12 @@ public:
     Context(
         const Device& device,
         cl_context_properties* properties = NULL,
-        void (CL_CALLBACK * notifyFptr)(
-            const char *,
-            const void *,
+        void(CL_CALLBACK* notifyFptr)(
+            const char*,
+            const void*,
             size_type,
-            void *) = NULL,
+            void*)
+        = NULL,
         void* data = NULL,
         cl_int* err = NULL)
     {
@@ -2726,11 +2924,12 @@ public:
             notifyFptr, data, &error);
 
         detail::errHandler(error, __CREATE_CONTEXT_ERR);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = error;
         }
     }
-    
+
     /*! \brief Constructs a context including all or a subset of devices of a specified type.
      *
      *  Wraps clCreateContextFromType().
@@ -2738,26 +2937,30 @@ public:
     Context(
         cl_device_type type,
         cl_context_properties* properties = NULL,
-        void (CL_CALLBACK * notifyFptr)(
-            const char *,
-            const void *,
+        void(CL_CALLBACK* notifyFptr)(
+            const char*,
+            const void*,
             size_type,
-            void *) = NULL,
+            void*)
+        = NULL,
         void* data = NULL,
         cl_int* err = NULL)
     {
         cl_int error;
 
 #if !defined(__APPLE__) && !defined(__MACOS)
-        cl_context_properties prop[4] = {CL_CONTEXT_PLATFORM, 0, 0, 0 };
+        cl_context_properties prop[4] = {CL_CONTEXT_PLATFORM, 0, 0, 0};
 
-        if (properties == NULL) {
+        if (properties == NULL)
+        {
             // Get a valid platform ID as we cannot send in a blank one
             vector<Platform> platforms;
             error = Platform::get(&platforms);
-            if (error != CL_SUCCESS) {
+            if (error != CL_SUCCESS)
+            {
                 detail::errHandler(error, __CREATE_CONTEXT_FROM_TYPE_ERR);
-                if (err != NULL) {
+                if (err != NULL)
+                {
                     *err = error;
                 }
                 return;
@@ -2765,39 +2968,48 @@ public:
 
             // Check the platforms we found for a device of our specified type
             cl_context_properties platform_id = 0;
-            for (unsigned int i = 0; i < platforms.size(); i++) {
-
+            for (unsigned int i = 0; i < platforms.size(); i++)
+            {
                 vector<Device> devices;
 
 #if defined(CL_HPP_ENABLE_EXCEPTIONS)
-                try {
+                try
+                {
 #endif
 
                     error = platforms[i].getDevices(type, &devices);
 
 #if defined(CL_HPP_ENABLE_EXCEPTIONS)
-                } catch (Error) {}
-    // Catch if exceptions are enabled as we don't want to exit if first platform has no devices of type
-    // We do error checking next anyway, and can throw there if needed
+                }
+                catch (Error)
+                {
+                }
+                // Catch if exceptions are enabled as we don't want to exit if first platform has no devices of type
+                // We do error checking next anyway, and can throw there if needed
 #endif
 
                 // Only squash CL_SUCCESS and CL_DEVICE_NOT_FOUND
-                if (error != CL_SUCCESS && error != CL_DEVICE_NOT_FOUND) {
+                if (error != CL_SUCCESS && error != CL_DEVICE_NOT_FOUND)
+                {
                     detail::errHandler(error, __CREATE_CONTEXT_FROM_TYPE_ERR);
-                    if (err != NULL) {
+                    if (err != NULL)
+                    {
                         *err = error;
                     }
                 }
 
-                if (devices.size() > 0) {
+                if (devices.size() > 0)
+                {
                     platform_id = (cl_context_properties)platforms[i]();
                     break;
                 }
             }
 
-            if (platform_id == 0) {
+            if (platform_id == 0)
+            {
                 detail::errHandler(CL_DEVICE_NOT_FOUND, __CREATE_CONTEXT_FROM_TYPE_ERR);
-                if (err != NULL) {
+                if (err != NULL)
+                {
                     *err = CL_DEVICE_NOT_FOUND;
                 }
                 return;
@@ -2811,7 +3023,8 @@ public:
             properties, type, notifyFptr, data, &error);
 
         detail::errHandler(error, __CREATE_CONTEXT_FROM_TYPE_ERR);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = error;
         }
     }
@@ -2819,12 +3032,15 @@ public:
     /*! \brief Copy constructor to forward copy to the superclass correctly.
      * Required for MSVC.
      */
-    Context(const Context& ctx) : detail::Wrapper<cl_type>(ctx) {}
+    Context(const Context& ctx)
+        : detail::Wrapper<cl_type>(ctx)
+    {
+    }
 
     /*! \brief Copy assignment to forward copy to the superclass correctly.
      * Required for MSVC.
      */
-    Context& operator = (const Context &ctx)
+    Context& operator=(const Context& ctx)
     {
         detail::Wrapper<cl_type>::operator=(ctx);
         return *this;
@@ -2833,27 +3049,29 @@ public:
     /*! \brief Move constructor to forward move to the superclass correctly.
      * Required for MSVC.
      */
-    Context(Context&& ctx) CL_HPP_NOEXCEPT_ : detail::Wrapper<cl_type>(std::move(ctx)) {}
+    Context(Context&& ctx) CL_HPP_NOEXCEPT_ : detail::Wrapper<cl_type>(std::move(ctx))
+    {
+    }
 
     /*! \brief Move assignment to forward move to the superclass correctly.
      * Required for MSVC.
      */
-    Context& operator = (Context &&ctx)
+    Context& operator=(Context&& ctx)
     {
         detail::Wrapper<cl_type>::operator=(std::move(ctx));
         return *this;
     }
 
-
     /*! \brief Returns a singleton context including all devices of CL_DEVICE_TYPE_DEFAULT.
      *
      *  \note All calls to this function return the same cl_context as the first.
      */
-    static Context getDefault(cl_int * err = NULL) 
+    static Context getDefault(cl_int* err = NULL)
     {
         std::call_once(default_initialized_, makeDefault);
         detail::errHandler(default_error_);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = default_error_;
         }
         return default_;
@@ -2866,7 +3084,7 @@ public:
      * @return updated default context.
      *         Should be compared to the passed value to ensure that it was updated.
      */
-    static Context setDefault(const Context &default_context)
+    static Context setDefault(const Context& default_context)
     {
         std::call_once(default_initialized_, makeDefaultProvided, std::cref(default_context));
         detail::errHandler(default_error_);
@@ -2874,29 +3092,34 @@ public:
     }
 
     //! \brief Default constructor - initializes to NULL.
-    Context() : detail::Wrapper<cl_type>() { }
+    Context()
+        : detail::Wrapper<cl_type>()
+    {
+    }
 
     /*! \brief Constructor from cl_context - takes ownership.
      * 
      *  This effectively transfers ownership of a refcount on the cl_context
      *  into the new Context object.
      */
-    explicit Context(const cl_context& context, bool retainObject = false) : 
-        detail::Wrapper<cl_type>(context, retainObject) { }
+    explicit Context(const cl_context& context, bool retainObject = false)
+        : detail::Wrapper<cl_type>(context, retainObject)
+    {
+    }
 
     /*! \brief Assignment operator from cl_context - takes ownership.
      * 
      *  This effectively transfers ownership of a refcount on the rhs and calls
      *  clReleaseContext() on the value previously held by this instance.
      */
-    Context& operator = (const cl_context& rhs)
+    Context& operator=(const cl_context& rhs)
     {
         detail::Wrapper<cl_type>::operator=(rhs);
         return *this;
     }
 
     //! \brief Wrapper for clGetContextInfo().
-    template <typename T>
+    template<typename T>
     cl_int getInfo(cl_context_info name, T* param) const
     {
         return detail::errHandler(
@@ -2905,14 +3128,15 @@ public:
     }
 
     //! \brief Wrapper for clGetContextInfo() that returns by value.
-    template <cl_int name> typename
-    detail::param_traits<detail::cl_context_info, name>::param_type
+    template<cl_int name>
+    typename detail::param_traits<detail::cl_context_info, name>::param_type
     getInfo(cl_int* err = NULL) const
     {
         typename detail::param_traits<
             detail::cl_context_info, name>::param_type param;
         cl_int result = getInfo(name, &param);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = result;
         }
         return param;
@@ -2928,23 +3152,26 @@ public:
         vector<ImageFormat>* formats) const
     {
         cl_uint numEntries;
-        
-        if (!formats) {
+
+        if (!formats)
+        {
             return CL_SUCCESS;
         }
 
         cl_int err = ::clGetSupportedImageFormats(
-           object_, 
-           flags,
-           type, 
-           0, 
-           NULL, 
-           &numEntries);
-        if (err != CL_SUCCESS) {
+            object_,
+            flags,
+            type,
+            0,
+            NULL,
+            &numEntries);
+        if (err != CL_SUCCESS)
+        {
             return detail::errHandler(err, __GET_SUPPORTED_IMAGE_FORMATS_ERR);
         }
 
-        if (numEntries > 0) {
+        if (numEntries > 0)
+        {
             vector<ImageFormat> value(numEntries);
             err = ::clGetSupportedImageFormats(
                 object_,
@@ -2953,13 +3180,15 @@ public:
                 numEntries,
                 (cl_image_format*)value.data(),
                 NULL);
-            if (err != CL_SUCCESS) {
+            if (err != CL_SUCCESS)
+            {
                 return detail::errHandler(err, __GET_SUPPORTED_IMAGE_FORMATS_ERR);
             }
 
             formats->assign(begin(value), end(value));
         }
-        else {
+        else
+        {
             // If no values are being returned, ensure an empty vector comes back
             formats->clear();
         }
@@ -2982,16 +3211,19 @@ inline void Device::makeDefault()
         Context context = Context::getDefault(&error);
         detail::errHandler(error, __CREATE_CONTEXT_ERR);
 
-        if (error != CL_SUCCESS) {
+        if (error != CL_SUCCESS)
+        {
             default_error_ = error;
         }
-        else {
+        else
+        {
             default_ = context.getInfo<CL_CONTEXT_DEVICES>()[0];
             default_error_ = CL_SUCCESS;
         }
     }
 #if defined(CL_HPP_ENABLE_EXCEPTIONS)
-    catch (cl::Error &e) {
+    catch (cl::Error& e)
+    {
         default_error_ = e.err();
     }
 #endif
@@ -3013,7 +3245,10 @@ class Event : public detail::Wrapper<cl_event>
 {
 public:
     //! \brief Default constructor - initializes to NULL.
-    Event() : detail::Wrapper<cl_type>() { }
+    Event()
+        : detail::Wrapper<cl_type>()
+    {
+    }
 
     /*! \brief Constructor from cl_event - takes ownership.
      * 
@@ -3023,22 +3258,24 @@ public:
      *  This effectively transfers ownership of a refcount on the cl_event
      *  into the new Event object.
      */
-    explicit Event(const cl_event& event, bool retainObject = false) : 
-        detail::Wrapper<cl_type>(event, retainObject) { }
+    explicit Event(const cl_event& event, bool retainObject = false)
+        : detail::Wrapper<cl_type>(event, retainObject)
+    {
+    }
 
     /*! \brief Assignment operator from cl_event - takes ownership.
      *
      *  This effectively transfers ownership of a refcount on the rhs and calls
      *  clReleaseEvent() on the value previously held by this instance.
      */
-    Event& operator = (const cl_event& rhs)
+    Event& operator=(const cl_event& rhs)
     {
         detail::Wrapper<cl_type>::operator=(rhs);
         return *this;
     }
 
     //! \brief Wrapper for clGetEventInfo().
-    template <typename T>
+    template<typename T>
     cl_int getInfo(cl_event_info name, T* param) const
     {
         return detail::errHandler(
@@ -3047,37 +3284,39 @@ public:
     }
 
     //! \brief Wrapper for clGetEventInfo() that returns by value.
-    template <cl_int name> typename
-    detail::param_traits<detail::cl_event_info, name>::param_type
+    template<cl_int name>
+    typename detail::param_traits<detail::cl_event_info, name>::param_type
     getInfo(cl_int* err = NULL) const
     {
         typename detail::param_traits<
             detail::cl_event_info, name>::param_type param;
         cl_int result = getInfo(name, &param);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = result;
         }
         return param;
     }
 
     //! \brief Wrapper for clGetEventProfilingInfo().
-    template <typename T>
+    template<typename T>
     cl_int getProfilingInfo(cl_profiling_info name, T* param) const
     {
         return detail::errHandler(detail::getInfo(
-            &::clGetEventProfilingInfo, object_, name, param),
-            __GET_EVENT_PROFILE_INFO_ERR);
+                                      &::clGetEventProfilingInfo, object_, name, param),
+                                  __GET_EVENT_PROFILE_INFO_ERR);
     }
 
     //! \brief Wrapper for clGetEventProfilingInfo() that returns by value.
-    template <cl_int name> typename
-    detail::param_traits<detail::cl_profiling_info, name>::param_type
+    template<cl_int name>
+    typename detail::param_traits<detail::cl_profiling_info, name>::param_type
     getProfilingInfo(cl_int* err = NULL) const
     {
         typename detail::param_traits<
             detail::cl_profiling_info, name>::param_type param;
         cl_int result = getProfilingInfo(name, &param);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = result;
         }
         return param;
@@ -3101,15 +3340,15 @@ public:
      */
     cl_int setCallback(
         cl_int type,
-        void (CL_CALLBACK * pfn_notify)(cl_event, cl_int, void *),		
-        void * user_data = NULL)
+        void(CL_CALLBACK* pfn_notify)(cl_event, cl_int, void*),
+        void* user_data = NULL)
     {
         return detail::errHandler(
             ::clSetEventCallback(
                 object_,
                 type,
                 pfn_notify,
-                user_data), 
+                user_data),
             __SET_EVENT_CALLBACK_ERR);
     }
 #endif // CL_HPP_TARGET_OPENCL_VERSION >= 110
@@ -3123,7 +3362,7 @@ public:
     {
         return detail::errHandler(
             ::clWaitForEvents(
-                (cl_uint) events.size(), (events.size() > 0) ? (cl_event*)&events.front() : NULL),
+                (cl_uint)events.size(), (events.size() > 0) ? (cl_event*)&events.front() : NULL),
             __WAIT_FOR_EVENTS_ERR);
     }
 };
@@ -3142,7 +3381,7 @@ public:
      */
     UserEvent(
         const Context& context,
-        cl_int * err = NULL)
+        cl_int* err = NULL)
     {
         cl_int error;
         object_ = ::clCreateUserEvent(
@@ -3150,13 +3389,17 @@ public:
             &error);
 
         detail::errHandler(error, __CREATE_USER_EVENT_ERR);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = error;
         }
     }
 
     //! \brief Default constructor - initializes to NULL.
-    UserEvent() : Event() { }
+    UserEvent()
+        : Event()
+    {
+    }
 
     /*! \brief Sets the execution status of a user event object.
      *
@@ -3165,7 +3408,7 @@ public:
     cl_int setStatus(cl_int status)
     {
         return detail::errHandler(
-            ::clSetUserEventStatus(object_,status), 
+            ::clSetUserEventStatus(object_, status),
             __SET_USER_EVENT_STATUS_ERR);
     }
 };
@@ -3180,7 +3423,7 @@ WaitForEvents(const vector<Event>& events)
 {
     return detail::errHandler(
         ::clWaitForEvents(
-            (cl_uint) events.size(), (events.size() > 0) ? (cl_event*)&events.front() : NULL),
+            (cl_uint)events.size(), (events.size() > 0) ? (cl_event*)&events.front() : NULL),
         __WAIT_FOR_EVENTS_ERR);
 }
 
@@ -3196,7 +3439,10 @@ class Memory : public detail::Wrapper<cl_mem>
 {
 public:
     //! \brief Default constructor - initializes to NULL.
-    Memory() : detail::Wrapper<cl_type>() { }
+    Memory()
+        : detail::Wrapper<cl_type>()
+    {
+    }
 
     /*! \brief Constructor from cl_mem - takes ownership.
      *
@@ -3209,15 +3455,17 @@ public:
      *
      *  See Memory for further details.
      */
-    explicit Memory(const cl_mem& memory, bool retainObject) :
-        detail::Wrapper<cl_type>(memory, retainObject) { }
+    explicit Memory(const cl_mem& memory, bool retainObject)
+        : detail::Wrapper<cl_type>(memory, retainObject)
+    {
+    }
 
     /*! \brief Assignment operator from cl_mem - takes ownership.
      *
      *  This effectively transfers ownership of a refcount on the rhs and calls
      *  clReleaseMemObject() on the value previously held by this instance.
      */
-    Memory& operator = (const cl_mem& rhs)
+    Memory& operator=(const cl_mem& rhs)
     {
         detail::Wrapper<cl_type>::operator=(rhs);
         return *this;
@@ -3226,12 +3474,15 @@ public:
     /*! \brief Copy constructor to forward copy to the superclass correctly.
      * Required for MSVC.
      */
-    Memory(const Memory& mem) : detail::Wrapper<cl_type>(mem) {}
+    Memory(const Memory& mem)
+        : detail::Wrapper<cl_type>(mem)
+    {
+    }
 
     /*! \brief Copy assignment to forward copy to the superclass correctly.
      * Required for MSVC.
      */
-    Memory& operator = (const Memory &mem)
+    Memory& operator=(const Memory& mem)
     {
         detail::Wrapper<cl_type>::operator=(mem);
         return *this;
@@ -3240,20 +3491,21 @@ public:
     /*! \brief Move constructor to forward move to the superclass correctly.
      * Required for MSVC.
      */
-    Memory(Memory&& mem) CL_HPP_NOEXCEPT_ : detail::Wrapper<cl_type>(std::move(mem)) {}
+    Memory(Memory&& mem) CL_HPP_NOEXCEPT_ : detail::Wrapper<cl_type>(std::move(mem))
+    {
+    }
 
     /*! \brief Move assignment to forward move to the superclass correctly.
      * Required for MSVC.
      */
-    Memory& operator = (Memory &&mem)
+    Memory& operator=(Memory&& mem)
     {
         detail::Wrapper<cl_type>::operator=(std::move(mem));
         return *this;
     }
 
-
     //! \brief Wrapper for clGetMemObjectInfo().
-    template <typename T>
+    template<typename T>
     cl_int getInfo(cl_mem_info name, T* param) const
     {
         return detail::errHandler(
@@ -3262,14 +3514,15 @@ public:
     }
 
     //! \brief Wrapper for clGetMemObjectInfo() that returns by value.
-    template <cl_int name> typename
-    detail::param_traits<detail::cl_mem_info, name>::param_type
+    template<cl_int name>
+    typename detail::param_traits<detail::cl_mem_info, name>::param_type
     getInfo(cl_int* err = NULL) const
     {
         typename detail::param_traits<
             detail::cl_mem_info, name>::param_type param;
         cl_int result = getInfo(name, &param);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = result;
         }
         return param;
@@ -3290,43 +3543,40 @@ public:
      *  value - not the Memory class instance.
      */
     cl_int setDestructorCallback(
-        void (CL_CALLBACK * pfn_notify)(cl_mem, void *),		
-        void * user_data = NULL)
+        void(CL_CALLBACK* pfn_notify)(cl_mem, void*),
+        void* user_data = NULL)
     {
         return detail::errHandler(
             ::clSetMemObjectDestructorCallback(
                 object_,
                 pfn_notify,
-                user_data), 
+                user_data),
             __SET_MEM_OBJECT_DESTRUCTOR_CALLBACK_ERR);
     }
 #endif // CL_HPP_TARGET_OPENCL_VERSION >= 110
-
 };
 
 // Pre-declare copy functions
 class Buffer;
-template< typename IteratorType >
-cl_int copy( IteratorType startIterator, IteratorType endIterator, cl::Buffer &buffer );
-template< typename IteratorType >
-cl_int copy( const cl::Buffer &buffer, IteratorType startIterator, IteratorType endIterator );
-template< typename IteratorType >
-cl_int copy( const CommandQueue &queue, IteratorType startIterator, IteratorType endIterator, cl::Buffer &buffer );
-template< typename IteratorType >
-cl_int copy( const CommandQueue &queue, const cl::Buffer &buffer, IteratorType startIterator, IteratorType endIterator );
-
+template<typename IteratorType>
+cl_int copy(IteratorType startIterator, IteratorType endIterator, cl::Buffer& buffer);
+template<typename IteratorType>
+cl_int copy(const cl::Buffer& buffer, IteratorType startIterator, IteratorType endIterator);
+template<typename IteratorType>
+cl_int copy(const CommandQueue& queue, IteratorType startIterator, IteratorType endIterator, cl::Buffer& buffer);
+template<typename IteratorType>
+cl_int copy(const CommandQueue& queue, const cl::Buffer& buffer, IteratorType startIterator, IteratorType endIterator);
 
 #if CL_HPP_TARGET_OPENCL_VERSION >= 200
-namespace detail
+namespace detail {
+class SVMTraitNull
 {
-    class SVMTraitNull
+public:
+    static cl_svm_mem_flags getSVMMemFlags()
     {
-    public:
-        static cl_svm_mem_flags getSVMMemFlags()
-        {
-            return 0;
-        }
-    };
+        return 0;
+    }
+};
 } // namespace detail
 
 template<class Trait = detail::SVMTraitNull>
@@ -3335,8 +3585,7 @@ class SVMTraitReadWrite
 public:
     static cl_svm_mem_flags getSVMMemFlags()
     {
-        return CL_MEM_READ_WRITE |
-            Trait::getSVMMemFlags();
+        return CL_MEM_READ_WRITE | Trait::getSVMMemFlags();
     }
 };
 
@@ -3346,8 +3595,7 @@ class SVMTraitReadOnly
 public:
     static cl_svm_mem_flags getSVMMemFlags()
     {
-        return CL_MEM_READ_ONLY |
-            Trait::getSVMMemFlags();
+        return CL_MEM_READ_ONLY | Trait::getSVMMemFlags();
     }
 };
 
@@ -3357,12 +3605,11 @@ class SVMTraitWriteOnly
 public:
     static cl_svm_mem_flags getSVMMemFlags()
     {
-        return CL_MEM_WRITE_ONLY |
-            Trait::getSVMMemFlags();
+        return CL_MEM_WRITE_ONLY | Trait::getSVMMemFlags();
     }
 };
 
-template<class Trait = SVMTraitReadWrite<>>
+template<class Trait = SVMTraitReadWrite<> >
 class SVMTraitCoarse
 {
 public:
@@ -3372,27 +3619,23 @@ public:
     }
 };
 
-template<class Trait = SVMTraitReadWrite<>>
+template<class Trait = SVMTraitReadWrite<> >
 class SVMTraitFine
 {
 public:
     static cl_svm_mem_flags getSVMMemFlags()
     {
-        return CL_MEM_SVM_FINE_GRAIN_BUFFER |
-            Trait::getSVMMemFlags();
+        return CL_MEM_SVM_FINE_GRAIN_BUFFER | Trait::getSVMMemFlags();
     }
 };
 
-template<class Trait = SVMTraitReadWrite<>>
+template<class Trait = SVMTraitReadWrite<> >
 class SVMTraitAtomic
 {
 public:
     static cl_svm_mem_flags getSVMMemFlags()
     {
-        return
-            CL_MEM_SVM_FINE_GRAIN_BUFFER |
-            CL_MEM_SVM_ATOMICS |
-            Trait::getSVMMemFlags();
+        return CL_MEM_SVM_FINE_GRAIN_BUFFER | CL_MEM_SVM_ATOMICS | Trait::getSVMMemFlags();
     }
 };
 
@@ -3418,7 +3661,8 @@ inline cl_int enqueueMapSVM(
  * with the allocate_shared and allocate_ptr supplied operations.
  */
 template<typename T, class SVMTrait>
-class SVMAllocator {
+class SVMAllocator
+{
 private:
     Context context_;
 
@@ -3440,25 +3684,24 @@ public:
     template<typename U, typename V>
     friend class SVMAllocator;
 
-    SVMAllocator() :
-        context_(Context::getDefault())
+    SVMAllocator()
+        : context_(Context::getDefault())
     {
     }
 
-    explicit SVMAllocator(cl::Context context) :
-        context_(context)
+    explicit SVMAllocator(cl::Context context)
+        : context_(context)
     {
     }
 
-
-    SVMAllocator(const SVMAllocator &other) :
-        context_(other.context_)
+    SVMAllocator(const SVMAllocator& other)
+        : context_(other.context_)
     {
     }
 
     template<typename U>
-    SVMAllocator(const SVMAllocator<U, SVMTrait> &other) :
-        context_(other.context_)
+    SVMAllocator(const SVMAllocator<U, SVMTrait>& other)
+        : context_(other.context_)
     {
     }
 
@@ -3487,25 +3730,27 @@ public:
         typename cl::SVMAllocator<void, SVMTrait>::const_pointer = 0)
     {
         // Allocate memory with default alignment matching the size of the type
-        void* voidPointer =
-            clSVMAlloc(
+        void* voidPointer = clSVMAlloc(
             context_(),
             SVMTrait::getSVMMemFlags(),
-            size*sizeof(T),
+            size * sizeof(T),
             0);
         pointer retValue = reinterpret_cast<pointer>(
             voidPointer);
 #if defined(CL_HPP_ENABLE_EXCEPTIONS)
-        if (!retValue) {
+        if (!retValue)
+        {
             std::bad_alloc excep;
             throw excep;
         }
 #endif // #if defined(CL_HPP_ENABLE_EXCEPTIONS)
 
         // If allocation was coarse-grained then map it
-        if (!(SVMTrait::getSVMMemFlags() & CL_MEM_SVM_FINE_GRAIN_BUFFER)) {
-            cl_int err = enqueueMapSVM(retValue, CL_TRUE, CL_MAP_READ | CL_MAP_WRITE, size*sizeof(T));
-            if (err != CL_SUCCESS) {
+        if (!(SVMTrait::getSVMMemFlags() & CL_MEM_SVM_FINE_GRAIN_BUFFER))
+        {
+            cl_int err = enqueueMapSVM(retValue, CL_TRUE, CL_MAP_READ | CL_MAP_WRITE, size * sizeof(T));
+            if (err != CL_SUCCESS)
+            {
                 std::bad_alloc excep;
                 throw excep;
             }
@@ -3528,22 +3773,23 @@ public:
     {
         size_type maxSize = std::numeric_limits<size_type>::max() / sizeof(T);
 
-        for (Device &d : context_.getInfo<CL_CONTEXT_DEVICES>()) {
+        for (Device& d : context_.getInfo<CL_CONTEXT_DEVICES>())
+        {
             maxSize = std::min(
-                maxSize, 
+                maxSize,
                 static_cast<size_type>(d.getInfo<CL_DEVICE_MAX_MEM_ALLOC_SIZE>()));
         }
 
         return maxSize;
     }
 
-    template< class U, class... Args >
+    template<class U, class... Args>
     void construct(U* p, Args&&... args)
     {
-        new(p)T(args...);
+        new (p) T(args...);
     }
 
-    template< class U >
+    template<class U>
     void destroy(U* p)
     {
         p->~U();
@@ -3554,7 +3800,7 @@ public:
      */
     inline bool operator==(SVMAllocator const& rhs)
     {
-        return (context_==rhs.context_);
+        return (context_ == rhs.context_);
     }
 
     inline bool operator!=(SVMAllocator const& a)
@@ -3563,9 +3809,9 @@ public:
     }
 }; // class SVMAllocator        return cl::pointer<T>(tmp, detail::Deleter<T, Alloc>{alloc, copies});
 
-
 template<class SVMTrait>
-class SVMAllocator<void, SVMTrait> {
+class SVMAllocator<void, SVMTrait>
+{
 public:
     typedef void value_type;
     typedef value_type* pointer;
@@ -3582,27 +3828,29 @@ public:
 };
 
 #if !defined(CL_HPP_NO_STD_UNIQUE_PTR)
-namespace detail
+namespace detail {
+template<class Alloc>
+class Deleter
 {
-    template<class Alloc>
-    class Deleter {
-    private:
-        Alloc alloc_;
-        size_type copies_;
+private:
+    Alloc alloc_;
+    size_type copies_;
 
-    public:
-        typedef typename std::allocator_traits<Alloc>::pointer pointer;
+public:
+    typedef typename std::allocator_traits<Alloc>::pointer pointer;
 
-        Deleter(const Alloc &alloc, size_type copies) : alloc_{ alloc }, copies_{ copies }
-        {
-        }
+    Deleter(const Alloc& alloc, size_type copies)
+        : alloc_{alloc}, copies_{copies}
+    {
+    }
 
-        void operator()(pointer ptr) const {
-            Alloc tmpAlloc{ alloc_ };
-            std::allocator_traits<Alloc>::destroy(tmpAlloc, std::addressof(*ptr));
-            std::allocator_traits<Alloc>::deallocate(tmpAlloc, ptr, copies_);
-        }
-    };
+    void operator()(pointer ptr) const
+    {
+        Alloc tmpAlloc{alloc_};
+        std::allocator_traits<Alloc>::destroy(tmpAlloc, std::addressof(*ptr));
+        std::allocator_traits<Alloc>::deallocate(tmpAlloc, ptr, copies_);
+    }
+};
 } // namespace detail
 
 /**
@@ -3611,8 +3859,8 @@ namespace detail
  * This requirement is to ensure that the control block is not
  * allocated in memory inaccessible to the host.
  */
-template <class T, class Alloc, class... Args>
-cl::pointer<T, detail::Deleter<Alloc>> allocate_pointer(const Alloc &alloc_, Args&&... args)
+template<class T, class Alloc, class... Args>
+cl::pointer<T, detail::Deleter<Alloc> > allocate_pointer(const Alloc& alloc_, Args&&... args)
 {
     Alloc alloc(alloc_);
     static const size_type copies = 1;
@@ -3621,17 +3869,19 @@ cl::pointer<T, detail::Deleter<Alloc>> allocate_pointer(const Alloc &alloc_, Arg
     // object are dealt with separately such that we only provide a deleter
 
     T* tmp = std::allocator_traits<Alloc>::allocate(alloc, copies);
-    if (!tmp) {
+    if (!tmp)
+    {
         std::bad_alloc excep;
         throw excep;
     }
-    try {
+    try
+    {
         std::allocator_traits<Alloc>::construct(
             alloc,
             std::addressof(*tmp),
             std::forward<Args>(args)...);
 
-        return cl::pointer<T, detail::Deleter<Alloc>>(tmp, detail::Deleter<Alloc>{alloc, copies});
+        return cl::pointer<T, detail::Deleter<Alloc> >(tmp, detail::Deleter<Alloc>{alloc, copies});
     }
     catch (std::bad_alloc b)
     {
@@ -3640,15 +3890,15 @@ cl::pointer<T, detail::Deleter<Alloc>> allocate_pointer(const Alloc &alloc_, Arg
     }
 }
 
-template< class T, class SVMTrait, class... Args >
-cl::pointer<T, detail::Deleter<SVMAllocator<T, SVMTrait>>> allocate_svm(Args... args)
+template<class T, class SVMTrait, class... Args>
+cl::pointer<T, detail::Deleter<SVMAllocator<T, SVMTrait> > > allocate_svm(Args... args)
 {
     SVMAllocator<T, SVMTrait> alloc;
     return cl::allocate_pointer<T>(alloc, args...);
 }
 
-template< class T, class SVMTrait, class... Args >
-cl::pointer<T, detail::Deleter<SVMAllocator<T, SVMTrait>>> allocate_svm(const cl::Context &c, Args... args)
+template<class T, class SVMTrait, class... Args>
+cl::pointer<T, detail::Deleter<SVMAllocator<T, SVMTrait> > > allocate_svm(const cl::Context& c, Args... args)
 {
     SVMAllocator<T, SVMTrait> alloc(c);
     return cl::allocate_pointer<T>(alloc, args...);
@@ -3658,23 +3908,22 @@ cl::pointer<T, detail::Deleter<SVMAllocator<T, SVMTrait>>> allocate_svm(const cl
 /*! \brief Vector alias to simplify contruction of coarse-grained SVM containers.
  * 
  */
-template < class T >
-using coarse_svm_vector = vector<T, cl::SVMAllocator<int, cl::SVMTraitCoarse<>>>;
+template<class T>
+using coarse_svm_vector = vector<T, cl::SVMAllocator<int, cl::SVMTraitCoarse<> > >;
 
 /*! \brief Vector alias to simplify contruction of fine-grained SVM containers.
 *
 */
-template < class T >
-using fine_svm_vector = vector<T, cl::SVMAllocator<int, cl::SVMTraitFine<>>>;
+template<class T>
+using fine_svm_vector = vector<T, cl::SVMAllocator<int, cl::SVMTraitFine<> > >;
 
 /*! \brief Vector alias to simplify contruction of fine-grained SVM containers that support platform atomics.
 *
 */
-template < class T >
-using atomic_svm_vector = vector<T, cl::SVMAllocator<int, cl::SVMTraitAtomic<>>>;
+template<class T>
+using atomic_svm_vector = vector<T, cl::SVMAllocator<int, cl::SVMTraitAtomic<> > >;
 
 #endif // #if CL_HPP_TARGET_OPENCL_VERSION >= 200
-
 
 /*! \brief Class interface for Buffer Memory Objects.
  * 
@@ -3685,7 +3934,6 @@ using atomic_svm_vector = vector<T, cl::SVMAllocator<int, cl::SVMTraitAtomic<>>>
 class Buffer : public Memory
 {
 public:
-
     /*! \brief Constructs a Buffer in a specified context.
      *
      *  Wraps clCreateBuffer().
@@ -3704,7 +3952,8 @@ public:
         object_ = ::clCreateBuffer(context(), flags, size, host_ptr, &error);
 
         detail::errHandler(error, __CREATE_BUFFER_ERR);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = error;
         }
     }
@@ -3719,7 +3968,7 @@ public:
      *  \see Context::getDefault()
      */
     Buffer(
-         cl_mem_flags flags,
+        cl_mem_flags flags,
         size_type size,
         void* host_ptr = NULL,
         cl_int* err = NULL)
@@ -3731,7 +3980,8 @@ public:
         object_ = ::clCreateBuffer(context(), flags, size, host_ptr, &error);
 
         detail::errHandler(error, __CREATE_BUFFER_ERR);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = error;
         }
     }
@@ -3741,7 +3991,7 @@ public:
      * IteratorType must be random access.
      * If useHostPtr is specified iterators must represent contiguous data.
      */
-    template< typename IteratorType >
+    template<typename IteratorType>
     Buffer(
         IteratorType startIterator,
         IteratorType endIterator,
@@ -3753,35 +4003,44 @@ public:
         cl_int error;
 
         cl_mem_flags flags = 0;
-        if( readOnly ) {
+        if (readOnly)
+        {
             flags |= CL_MEM_READ_ONLY;
         }
-        else {
+        else
+        {
             flags |= CL_MEM_READ_WRITE;
         }
-        if( useHostPtr ) {
+        if (useHostPtr)
+        {
             flags |= CL_MEM_USE_HOST_PTR;
         }
-        
-        size_type size = sizeof(DataType)*(endIterator - startIterator);
+
+        size_type size = sizeof(DataType) * (endIterator - startIterator);
 
         Context context = Context::getDefault(err);
 
-        if( useHostPtr ) {
+        if (useHostPtr)
+        {
             object_ = ::clCreateBuffer(context(), flags, size, static_cast<DataType*>(&*startIterator), &error);
-        } else {
+        }
+        else
+        {
             object_ = ::clCreateBuffer(context(), flags, size, 0, &error);
         }
 
         detail::errHandler(error, __CREATE_BUFFER_ERR);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = error;
         }
 
-        if( !useHostPtr ) {
+        if (!useHostPtr)
+        {
             error = cl::copy(startIterator, endIterator, *this);
             detail::errHandler(error, __CREATE_BUFFER_ERR);
-            if (err != NULL) {
+            if (err != NULL)
+            {
                 *err = error;
             }
         }
@@ -3792,20 +4051,23 @@ public:
      * IteratorType must be random access.
      * If useHostPtr is specified iterators must represent contiguous data.
      */
-    template< typename IteratorType >
-    Buffer(const Context &context, IteratorType startIterator, IteratorType endIterator,
-        bool readOnly, bool useHostPtr = false, cl_int* err = NULL);
-    
+    template<typename IteratorType>
+    Buffer(const Context& context, IteratorType startIterator, IteratorType endIterator,
+           bool readOnly, bool useHostPtr = false, cl_int* err = NULL);
+
     /*!
     * \brief Construct a Buffer from a host container via iterators using a specified queue.
     * If useHostPtr is specified iterators must be random access.
     */
-    template< typename IteratorType >
-    Buffer(const CommandQueue &queue, IteratorType startIterator, IteratorType endIterator,
-        bool readOnly, bool useHostPtr = false, cl_int* err = NULL);
+    template<typename IteratorType>
+    Buffer(const CommandQueue& queue, IteratorType startIterator, IteratorType endIterator,
+           bool readOnly, bool useHostPtr = false, cl_int* err = NULL);
 
     //! \brief Default constructor - initializes to NULL.
-    Buffer() : Memory() { }
+    Buffer()
+        : Memory()
+    {
+    }
 
     /*! \brief Constructor from cl_mem - takes ownership.
      *
@@ -3814,14 +4076,16 @@ public:
      *
      *  See Memory for further details.
      */
-    explicit Buffer(const cl_mem& buffer, bool retainObject = false) :
-        Memory(buffer, retainObject) { }
+    explicit Buffer(const cl_mem& buffer, bool retainObject = false)
+        : Memory(buffer, retainObject)
+    {
+    }
 
     /*! \brief Assignment from cl_mem - performs shallow copy.
     *
     *  See Memory for further details.
     */
-    Buffer& operator = (const cl_mem& rhs)
+    Buffer& operator=(const cl_mem& rhs)
     {
         Memory::operator=(rhs);
         return *this;
@@ -3830,12 +4094,15 @@ public:
     /*! \brief Copy constructor to forward copy to the superclass correctly.
      * Required for MSVC.
      */
-    Buffer(const Buffer& buf) : Memory(buf) {}
+    Buffer(const Buffer& buf)
+        : Memory(buf)
+    {
+    }
 
     /*! \brief Copy assignment to forward copy to the superclass correctly.
      * Required for MSVC.
      */
-    Buffer& operator = (const Buffer &buf)
+    Buffer& operator=(const Buffer& buf)
     {
         Memory::operator=(buf);
         return *this;
@@ -3844,12 +4111,14 @@ public:
     /*! \brief Move constructor to forward move to the superclass correctly.
      * Required for MSVC.
      */
-    Buffer(Buffer&& buf) CL_HPP_NOEXCEPT_ : Memory(std::move(buf)) {}
+    Buffer(Buffer&& buf) CL_HPP_NOEXCEPT_ : Memory(std::move(buf))
+    {
+    }
 
     /*! \brief Move assignment to forward move to the superclass correctly.
      * Required for MSVC.
      */
-    Buffer& operator = (Buffer &&buf)
+    Buffer& operator=(Buffer&& buf)
     {
         Memory::operator=(std::move(buf));
         return *this;
@@ -3863,29 +4132,30 @@ public:
     Buffer createSubBuffer(
         cl_mem_flags flags,
         cl_buffer_create_type buffer_create_type,
-        const void * buffer_create_info,
-        cl_int * err = NULL)
+        const void* buffer_create_info,
+        cl_int* err = NULL)
     {
         Buffer result;
         cl_int error;
         result.object_ = ::clCreateSubBuffer(
-            object_, 
-            flags, 
-            buffer_create_type, 
-            buffer_create_info, 
+            object_,
+            flags,
+            buffer_create_type,
+            buffer_create_info,
             &error);
 
         detail::errHandler(error, __CREATE_SUBBUFFER_ERR);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = error;
         }
 
         return result;
-    }		
+    }
 #endif // CL_HPP_TARGET_OPENCL_VERSION >= 110
 };
 
-#if defined (CL_HPP_USE_DX_INTEROP)
+#if defined(CL_HPP_USE_DX_INTEROP)
 /*! \brief Class interface for creating OpenCL buffers from ID3D10Buffer's.
  *
  *  This is provided to facilitate interoperability with Direct3D.
@@ -3897,8 +4167,6 @@ public:
 class BufferD3D10 : public Buffer
 {
 public:
-   
-
     /*! \brief Constructs a BufferD3D10, in a specified context, from a
      *         given ID3D10Buffer.
      *
@@ -3908,18 +4176,21 @@ public:
         const Context& context,
         cl_mem_flags flags,
         ID3D10Buffer* bufobj,
-        cl_int * err = NULL) : pfn_clCreateFromD3D10BufferKHR(nullptr)
+        cl_int* err = NULL)
+        : pfn_clCreateFromD3D10BufferKHR(nullptr)
     {
-        typedef CL_API_ENTRY cl_mem (CL_API_CALL *PFN_clCreateFromD3D10BufferKHR)(
-            cl_context context, cl_mem_flags flags, ID3D10Buffer*  buffer,
-            cl_int* errcode_ret);
+        typedef CL_API_ENTRY cl_mem(CL_API_CALL * PFN_clCreateFromD3D10BufferKHR)(
+            cl_context context, cl_mem_flags flags, ID3D10Buffer * buffer,
+            cl_int * errcode_ret);
         PFN_clCreateFromD3D10BufferKHR pfn_clCreateFromD3D10BufferKHR;
 #if CL_HPP_TARGET_OPENCL_VERSION >= 120
         vector<cl_context_properties> props = context.getInfo<CL_CONTEXT_PROPERTIES>();
         cl_platform platform = -1;
-        for( int i = 0; i < props.size(); ++i ) {
-            if( props[i] == CL_CONTEXT_PLATFORM ) {
-                platform = props[i+1];
+        for (int i = 0; i < props.size(); ++i)
+        {
+            if (props[i] == CL_CONTEXT_PLATFORM)
+            {
+                platform = props[i + 1];
             }
         }
         CL_HPP_INIT_CL_EXT_FCN_PTR_PLATFORM_(platform, clCreateFromD3D10BufferKHR);
@@ -3935,13 +4206,17 @@ public:
             &error);
 
         detail::errHandler(error, __CREATE_GL_BUFFER_ERR);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = error;
         }
     }
 
     //! \brief Default constructor - initializes to NULL.
-    BufferD3D10() : Buffer() { }
+    BufferD3D10()
+        : Buffer()
+    {
+    }
 
     /*! \brief Constructor from cl_mem - takes ownership.
      *
@@ -3950,14 +4225,16 @@ public:
      *                     earlier versions.
      *  See Memory for further details.
      */
-    explicit BufferD3D10(const cl_mem& buffer, bool retainObject = false) : 
-        Buffer(buffer, retainObject) { }
+    explicit BufferD3D10(const cl_mem& buffer, bool retainObject = false)
+        : Buffer(buffer, retainObject)
+    {
+    }
 
     /*! \brief Assignment from cl_mem - performs shallow copy.
      *
      *  See Memory for further details.
      */
-    BufferD3D10& operator = (const cl_mem& rhs)
+    BufferD3D10& operator=(const cl_mem& rhs)
     {
         Buffer::operator=(rhs);
         return *this;
@@ -3966,13 +4243,15 @@ public:
     /*! \brief Copy constructor to forward copy to the superclass correctly.
      * Required for MSVC.
      */
-    BufferD3D10(const BufferD3D10& buf) : 
-        Buffer(buf) {}
+    BufferD3D10(const BufferD3D10& buf)
+        : Buffer(buf)
+    {
+    }
 
     /*! \brief Copy assignment to forward copy to the superclass correctly.
      * Required for MSVC.
      */
-    BufferD3D10& operator = (const BufferD3D10 &buf)
+    BufferD3D10& operator=(const BufferD3D10& buf)
     {
         Buffer::operator=(buf);
         return *this;
@@ -3981,12 +4260,14 @@ public:
     /*! \brief Move constructor to forward move to the superclass correctly.
      * Required for MSVC.
      */
-    BufferD3D10(BufferD3D10&& buf) CL_HPP_NOEXCEPT_ : Buffer(std::move(buf)) {}
+    BufferD3D10(BufferD3D10&& buf) CL_HPP_NOEXCEPT_ : Buffer(std::move(buf))
+    {
+    }
 
     /*! \brief Move assignment to forward move to the superclass correctly.
      * Required for MSVC.
      */
-    BufferD3D10& operator = (BufferD3D10 &&buf)
+    BufferD3D10& operator=(BufferD3D10&& buf)
     {
         Buffer::operator=(std::move(buf));
         return *this;
@@ -4014,7 +4295,7 @@ public:
         const Context& context,
         cl_mem_flags flags,
         cl_GLuint bufobj,
-        cl_int * err = NULL)
+        cl_int* err = NULL)
     {
         cl_int error;
         object_ = ::clCreateFromGLBuffer(
@@ -4024,13 +4305,17 @@ public:
             &error);
 
         detail::errHandler(error, __CREATE_GL_BUFFER_ERR);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = error;
         }
     }
 
     //! \brief Default constructor - initializes to NULL.
-    BufferGL() : Buffer() { }
+    BufferGL()
+        : Buffer()
+    {
+    }
 
     /*! \brief Constructor from cl_mem - takes ownership.
      *
@@ -4039,14 +4324,16 @@ public:
      *                     earlier versions.
      *  See Memory for further details.
      */
-    explicit BufferGL(const cl_mem& buffer, bool retainObject = false) :
-        Buffer(buffer, retainObject) { }
+    explicit BufferGL(const cl_mem& buffer, bool retainObject = false)
+        : Buffer(buffer, retainObject)
+    {
+    }
 
     /*! \brief Assignment from cl_mem - performs shallow copy.
      *
      *  See Memory for further details.
      */
-    BufferGL& operator = (const cl_mem& rhs)
+    BufferGL& operator=(const cl_mem& rhs)
     {
         Buffer::operator=(rhs);
         return *this;
@@ -4055,12 +4342,15 @@ public:
     /*! \brief Copy constructor to forward copy to the superclass correctly.
      * Required for MSVC.
      */
-    BufferGL(const BufferGL& buf) : Buffer(buf) {}
+    BufferGL(const BufferGL& buf)
+        : Buffer(buf)
+    {
+    }
 
     /*! \brief Copy assignment to forward copy to the superclass correctly.
      * Required for MSVC.
      */
-    BufferGL& operator = (const BufferGL &buf)
+    BufferGL& operator=(const BufferGL& buf)
     {
         Buffer::operator=(buf);
         return *this;
@@ -4069,12 +4359,14 @@ public:
     /*! \brief Move constructor to forward move to the superclass correctly.
      * Required for MSVC.
      */
-    BufferGL(BufferGL&& buf) CL_HPP_NOEXCEPT_ : Buffer(std::move(buf)) {}
+    BufferGL(BufferGL&& buf) CL_HPP_NOEXCEPT_ : Buffer(std::move(buf))
+    {
+    }
 
     /*! \brief Move assignment to forward move to the superclass correctly.
      * Required for MSVC.
      */
-    BufferGL& operator = (BufferGL &&buf)
+    BufferGL& operator=(BufferGL&& buf)
     {
         Buffer::operator=(std::move(buf));
         return *this;
@@ -4082,11 +4374,11 @@ public:
 
     //! \brief Wrapper for clGetGLObjectInfo().
     cl_int getObjectInfo(
-        cl_gl_object_type *type,
-        cl_GLuint * gl_object_name)
+        cl_gl_object_type* type,
+        cl_GLuint* gl_object_name)
     {
         return detail::errHandler(
-            ::clGetGLObjectInfo(object_,type,gl_object_name),
+            ::clGetGLObjectInfo(object_, type, gl_object_name),
             __GET_GL_OBJECT_INFO_ERR);
     }
 };
@@ -4111,7 +4403,7 @@ public:
         const Context& context,
         cl_mem_flags flags,
         cl_GLuint bufobj,
-        cl_int * err = NULL)
+        cl_int* err = NULL)
     {
         cl_int error;
         object_ = ::clCreateFromGLRenderbuffer(
@@ -4121,13 +4413,17 @@ public:
             &error);
 
         detail::errHandler(error, __CREATE_GL_RENDER_BUFFER_ERR);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = error;
         }
     }
 
     //! \brief Default constructor - initializes to NULL.
-    BufferRenderGL() : Buffer() { }
+    BufferRenderGL()
+        : Buffer()
+    {
+    }
 
     /*! \brief Constructor from cl_mem - takes ownership.
      *
@@ -4136,14 +4432,16 @@ public:
      *                     earlier versions.
      *  See Memory for further details.
      */
-    explicit BufferRenderGL(const cl_mem& buffer, bool retainObject = false) :
-        Buffer(buffer, retainObject) { }
+    explicit BufferRenderGL(const cl_mem& buffer, bool retainObject = false)
+        : Buffer(buffer, retainObject)
+    {
+    }
 
     /*! \brief Assignment from cl_mem - performs shallow copy.
      *
      *  See Memory for further details.
      */
-    BufferRenderGL& operator = (const cl_mem& rhs)
+    BufferRenderGL& operator=(const cl_mem& rhs)
     {
         Buffer::operator=(rhs);
         return *this;
@@ -4152,12 +4450,15 @@ public:
     /*! \brief Copy constructor to forward copy to the superclass correctly.
      * Required for MSVC.
      */
-    BufferRenderGL(const BufferRenderGL& buf) : Buffer(buf) {}
+    BufferRenderGL(const BufferRenderGL& buf)
+        : Buffer(buf)
+    {
+    }
 
     /*! \brief Copy assignment to forward copy to the superclass correctly.
      * Required for MSVC.
      */
-    BufferRenderGL& operator = (const BufferRenderGL &buf)
+    BufferRenderGL& operator=(const BufferRenderGL& buf)
     {
         Buffer::operator=(buf);
         return *this;
@@ -4166,12 +4467,14 @@ public:
     /*! \brief Move constructor to forward move to the superclass correctly.
      * Required for MSVC.
      */
-    BufferRenderGL(BufferRenderGL&& buf) CL_HPP_NOEXCEPT_ : Buffer(std::move(buf)) {}
+    BufferRenderGL(BufferRenderGL&& buf) CL_HPP_NOEXCEPT_ : Buffer(std::move(buf))
+    {
+    }
 
     /*! \brief Move assignment to forward move to the superclass correctly.
      * Required for MSVC.
      */
-    BufferRenderGL& operator = (BufferRenderGL &&buf)
+    BufferRenderGL& operator=(BufferRenderGL&& buf)
     {
         Buffer::operator=(std::move(buf));
         return *this;
@@ -4179,11 +4482,11 @@ public:
 
     //! \brief Wrapper for clGetGLObjectInfo().
     cl_int getObjectInfo(
-        cl_gl_object_type *type,
-        cl_GLuint * gl_object_name)
+        cl_gl_object_type* type,
+        cl_GLuint* gl_object_name)
     {
         return detail::errHandler(
-            ::clGetGLObjectInfo(object_,type,gl_object_name),
+            ::clGetGLObjectInfo(object_, type, gl_object_name),
             __GET_GL_OBJECT_INFO_ERR);
     }
 };
@@ -4198,7 +4501,10 @@ class Image : public Memory
 {
 protected:
     //! \brief Default constructor - initializes to NULL.
-    Image() : Memory() { }
+    Image()
+        : Memory()
+    {
+    }
 
     /*! \brief Constructor from cl_mem - takes ownership.
      *
@@ -4207,14 +4513,16 @@ protected:
      *                     earlier versions.
      *  See Memory for further details.
      */
-    explicit Image(const cl_mem& image, bool retainObject = false) :
-        Memory(image, retainObject) { }
+    explicit Image(const cl_mem& image, bool retainObject = false)
+        : Memory(image, retainObject)
+    {
+    }
 
     /*! \brief Assignment from cl_mem - performs shallow copy.
      *
      *  See Memory for further details.
      */
-    Image& operator = (const cl_mem& rhs)
+    Image& operator=(const cl_mem& rhs)
     {
         Memory::operator=(rhs);
         return *this;
@@ -4223,12 +4531,15 @@ protected:
     /*! \brief Copy constructor to forward copy to the superclass correctly.
      * Required for MSVC.
      */
-    Image(const Image& img) : Memory(img) {}
+    Image(const Image& img)
+        : Memory(img)
+    {
+    }
 
     /*! \brief Copy assignment to forward copy to the superclass correctly.
      * Required for MSVC.
      */
-    Image& operator = (const Image &img)
+    Image& operator=(const Image& img)
     {
         Memory::operator=(img);
         return *this;
@@ -4237,37 +4548,39 @@ protected:
     /*! \brief Move constructor to forward move to the superclass correctly.
      * Required for MSVC.
      */
-    Image(Image&& img) CL_HPP_NOEXCEPT_ : Memory(std::move(img)) {}
+    Image(Image&& img) CL_HPP_NOEXCEPT_ : Memory(std::move(img))
+    {
+    }
 
     /*! \brief Move assignment to forward move to the superclass correctly.
      * Required for MSVC.
      */
-    Image& operator = (Image &&img)
+    Image& operator=(Image&& img)
     {
         Memory::operator=(std::move(img));
         return *this;
     }
 
-
 public:
     //! \brief Wrapper for clGetImageInfo().
-    template <typename T>
+    template<typename T>
     cl_int getImageInfo(cl_image_info name, T* param) const
     {
         return detail::errHandler(
             detail::getInfo(&::clGetImageInfo, object_, name, param),
             __GET_IMAGE_INFO_ERR);
     }
-    
+
     //! \brief Wrapper for clGetImageInfo() that returns by value.
-    template <cl_int name> typename
-    detail::param_traits<detail::cl_image_info, name>::param_type
+    template<cl_int name>
+    typename detail::param_traits<detail::cl_image_info, name>::param_type
     getImageInfo(cl_int* err = NULL) const
     {
         typename detail::param_traits<
             detail::cl_image_info, name>::param_type param;
         cl_int result = getImageInfo(name, &param);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = result;
         }
         return param;
@@ -4297,28 +4610,29 @@ public:
         cl_int* err = NULL)
     {
         cl_int error;
-        cl_image_desc desc =
-        {
+        cl_image_desc desc = {
             CL_MEM_OBJECT_IMAGE1D,
             width,
-            0, 0, 0, 0, 0, 0, 0, 0
-        };
+            0, 0, 0, 0, 0, 0, 0, 0};
         object_ = ::clCreateImage(
-            context(), 
-            flags, 
-            &format, 
-            &desc, 
-            host_ptr, 
+            context(),
+            flags,
+            &format,
+            &desc,
+            host_ptr,
             &error);
 
         detail::errHandler(error, __CREATE_IMAGE_ERR);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = error;
         }
     }
 
     //! \brief Default constructor - initializes to NULL.
-    Image1D() { }
+    Image1D()
+    {
+    }
 
     /*! \brief Constructor from cl_mem - takes ownership.
      *
@@ -4327,14 +4641,16 @@ public:
      *                     earlier versions.
      *  See Memory for further details.
      */
-    explicit Image1D(const cl_mem& image1D, bool retainObject = false) :
-        Image(image1D, retainObject) { }
+    explicit Image1D(const cl_mem& image1D, bool retainObject = false)
+        : Image(image1D, retainObject)
+    {
+    }
 
     /*! \brief Assignment from cl_mem - performs shallow copy.
      *
      *  See Memory for further details.
      */
-    Image1D& operator = (const cl_mem& rhs)
+    Image1D& operator=(const cl_mem& rhs)
     {
         Image::operator=(rhs);
         return *this;
@@ -4343,12 +4659,15 @@ public:
     /*! \brief Copy constructor to forward copy to the superclass correctly.
      * Required for MSVC.
      */
-    Image1D(const Image1D& img) : Image(img) {}
+    Image1D(const Image1D& img)
+        : Image(img)
+    {
+    }
 
     /*! \brief Copy assignment to forward copy to the superclass correctly.
      * Required for MSVC.
      */
-    Image1D& operator = (const Image1D &img)
+    Image1D& operator=(const Image1D& img)
     {
         Image::operator=(img);
         return *this;
@@ -4357,17 +4676,18 @@ public:
     /*! \brief Move constructor to forward move to the superclass correctly.
      * Required for MSVC.
      */
-    Image1D(Image1D&& img) CL_HPP_NOEXCEPT_ : Image(std::move(img)) {}
+    Image1D(Image1D&& img) CL_HPP_NOEXCEPT_ : Image(std::move(img))
+    {
+    }
 
     /*! \brief Move assignment to forward move to the superclass correctly.
      * Required for MSVC.
      */
-    Image1D& operator = (Image1D &&img)
+    Image1D& operator=(Image1D&& img)
     {
         Image::operator=(std::move(img));
         return *this;
     }
-
 };
 
 /*! \class Image1DBuffer
@@ -4381,32 +4701,33 @@ public:
         cl_mem_flags flags,
         ImageFormat format,
         size_type width,
-        const Buffer &buffer,
+        const Buffer& buffer,
         cl_int* err = NULL)
     {
         cl_int error;
-        cl_image_desc desc =
-        {
+        cl_image_desc desc = {
             CL_MEM_OBJECT_IMAGE1D_BUFFER,
             width,
             0, 0, 0, 0, 0, 0, 0,
-            buffer()
-        };
+            buffer()};
         object_ = ::clCreateImage(
-            context(), 
-            flags, 
-            &format, 
-            &desc, 
-            NULL, 
+            context(),
+            flags,
+            &format,
+            &desc,
+            NULL,
             &error);
 
         detail::errHandler(error, __CREATE_IMAGE_ERR);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = error;
         }
     }
 
-    Image1DBuffer() { }
+    Image1DBuffer()
+    {
+    }
 
     /*! \brief Constructor from cl_mem - takes ownership.
      *
@@ -4415,10 +4736,12 @@ public:
      *                     earlier versions.
      *  See Memory for further details.
      */
-    explicit Image1DBuffer(const cl_mem& image1D, bool retainObject = false) :
-        Image(image1D, retainObject) { }
+    explicit Image1DBuffer(const cl_mem& image1D, bool retainObject = false)
+        : Image(image1D, retainObject)
+    {
+    }
 
-    Image1DBuffer& operator = (const cl_mem& rhs)
+    Image1DBuffer& operator=(const cl_mem& rhs)
     {
         Image::operator=(rhs);
         return *this;
@@ -4427,12 +4750,15 @@ public:
     /*! \brief Copy constructor to forward copy to the superclass correctly.
      * Required for MSVC.
      */
-    Image1DBuffer(const Image1DBuffer& img) : Image(img) {}
+    Image1DBuffer(const Image1DBuffer& img)
+        : Image(img)
+    {
+    }
 
     /*! \brief Copy assignment to forward copy to the superclass correctly.
      * Required for MSVC.
      */
-    Image1DBuffer& operator = (const Image1DBuffer &img)
+    Image1DBuffer& operator=(const Image1DBuffer& img)
     {
         Image::operator=(img);
         return *this;
@@ -4441,17 +4767,18 @@ public:
     /*! \brief Move constructor to forward move to the superclass correctly.
      * Required for MSVC.
      */
-    Image1DBuffer(Image1DBuffer&& img) CL_HPP_NOEXCEPT_ : Image(std::move(img)) {}
+    Image1DBuffer(Image1DBuffer&& img) CL_HPP_NOEXCEPT_ : Image(std::move(img))
+    {
+    }
 
     /*! \brief Move assignment to forward move to the superclass correctly.
      * Required for MSVC.
      */
-    Image1DBuffer& operator = (Image1DBuffer &&img)
+    Image1DBuffer& operator=(Image1DBuffer&& img)
     {
         Image::operator=(std::move(img));
         return *this;
     }
-
 };
 
 /*! \class Image1DArray
@@ -4471,31 +4798,32 @@ public:
         cl_int* err = NULL)
     {
         cl_int error;
-        cl_image_desc desc =
-        {
+        cl_image_desc desc = {
             CL_MEM_OBJECT_IMAGE1D_ARRAY,
             width,
-            0, 0,  // height, depth (unused)
+            0, 0, // height, depth (unused)
             arraySize,
             rowPitch,
-            0, 0, 0, 0
-        };
+            0, 0, 0, 0};
         object_ = ::clCreateImage(
-            context(), 
-            flags, 
-            &format, 
-            &desc, 
-            host_ptr, 
+            context(),
+            flags,
+            &format,
+            &desc,
+            host_ptr,
             &error);
 
         detail::errHandler(error, __CREATE_IMAGE_ERR);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = error;
         }
     }
 
-    Image1DArray() { }
-  
+    Image1DArray()
+    {
+    }
+
     /*! \brief Constructor from cl_mem - takes ownership.
      *
      * \param retainObject will cause the constructor to retain its cl object.
@@ -4503,11 +4831,12 @@ public:
      *                     earlier versions.
      *  See Memory for further details.
      */
-    explicit Image1DArray(const cl_mem& imageArray, bool retainObject = false) :
-        Image(imageArray, retainObject) { }
+    explicit Image1DArray(const cl_mem& imageArray, bool retainObject = false)
+        : Image(imageArray, retainObject)
+    {
+    }
 
-
-    Image1DArray& operator = (const cl_mem& rhs)
+    Image1DArray& operator=(const cl_mem& rhs)
     {
         Image::operator=(rhs);
         return *this;
@@ -4516,12 +4845,15 @@ public:
     /*! \brief Copy constructor to forward copy to the superclass correctly.
      * Required for MSVC.
      */
-    Image1DArray(const Image1DArray& img) : Image(img) {}
+    Image1DArray(const Image1DArray& img)
+        : Image(img)
+    {
+    }
 
     /*! \brief Copy assignment to forward copy to the superclass correctly.
      * Required for MSVC.
      */
-    Image1DArray& operator = (const Image1DArray &img)
+    Image1DArray& operator=(const Image1DArray& img)
     {
         Image::operator=(img);
         return *this;
@@ -4530,20 +4862,20 @@ public:
     /*! \brief Move constructor to forward move to the superclass correctly.
      * Required for MSVC.
      */
-    Image1DArray(Image1DArray&& img) CL_HPP_NOEXCEPT_ : Image(std::move(img)) {}
+    Image1DArray(Image1DArray&& img) CL_HPP_NOEXCEPT_ : Image(std::move(img))
+    {
+    }
 
     /*! \brief Move assignment to forward move to the superclass correctly.
      * Required for MSVC.
      */
-    Image1DArray& operator = (Image1DArray &&img)
+    Image1DArray& operator=(Image1DArray&& img)
     {
         Image::operator=(std::move(img));
         return *this;
     }
-
 };
 #endif // #if CL_HPP_TARGET_OPENCL_VERSION >= 120
-
 
 /*! \brief Class interface for 2D Image Memory objects.
  *
@@ -4586,15 +4918,13 @@ public:
 #if CL_HPP_TARGET_OPENCL_VERSION >= 120
         if (useCreateImage)
         {
-            cl_image_desc desc =
-            {
+            cl_image_desc desc = {
                 CL_MEM_OBJECT_IMAGE2D,
                 width,
                 height,
                 0, 0, // depth, array size (unused)
                 row_pitch,
-                0, 0, 0, 0
-            };
+                0, 0, 0, 0};
             object_ = ::clCreateImage(
                 context(),
                 flags,
@@ -4604,7 +4934,8 @@ public:
                 &error);
 
             detail::errHandler(error, __CREATE_IMAGE_ERR);
-            if (err != NULL) {
+            if (err != NULL)
+            {
                 *err = error;
             }
         }
@@ -4613,10 +4944,11 @@ public:
         if (!useCreateImage)
         {
             object_ = ::clCreateImage2D(
-                context(), flags,&format, width, height, row_pitch, host_ptr, &error);
+                context(), flags, &format, width, height, row_pitch, host_ptr, &error);
 
             detail::errHandler(error, __CREATE_IMAGE2D_ERR);
-            if (err != NULL) {
+            if (err != NULL)
+            {
                 *err = error;
             }
         }
@@ -4632,7 +4964,7 @@ public:
     Image2D(
         const Context& context,
         ImageFormat format,
-        const Buffer &sourceBuffer,
+        const Buffer& sourceBuffer,
         size_type width,
         size_type height,
         size_type row_pitch = 0,
@@ -4640,8 +4972,7 @@ public:
     {
         cl_int error;
 
-        cl_image_desc desc =
-        {
+        cl_image_desc desc = {
             CL_MEM_OBJECT_IMAGE2D,
             width,
             height,
@@ -4649,8 +4980,7 @@ public:
             row_pitch,
             0, 0, 0,
             // Use buffer as input to image
-            sourceBuffer()
-        };
+            sourceBuffer()};
         object_ = ::clCreateImage(
             context(),
             0, // flags inherited from buffer
@@ -4660,7 +4990,8 @@ public:
             &error);
 
         detail::errHandler(error, __CREATE_IMAGE_ERR);
-        if (err != nullptr) {
+        if (err != nullptr)
+        {
             *err = error;
         }
     }
@@ -4682,30 +5013,23 @@ public:
     Image2D(
         const Context& context,
         cl_channel_order order,
-        const Image &sourceImage,
+        const Image& sourceImage,
         cl_int* err = nullptr)
     {
         cl_int error;
 
         // Descriptor fields have to match source image
-        size_type sourceWidth = 
-            sourceImage.getImageInfo<CL_IMAGE_WIDTH>();
-        size_type sourceHeight = 
-            sourceImage.getImageInfo<CL_IMAGE_HEIGHT>();
-        size_type sourceRowPitch =
-            sourceImage.getImageInfo<CL_IMAGE_ROW_PITCH>();
-        cl_uint sourceNumMIPLevels =
-            sourceImage.getImageInfo<CL_IMAGE_NUM_MIP_LEVELS>();
-        cl_uint sourceNumSamples =
-            sourceImage.getImageInfo<CL_IMAGE_NUM_SAMPLES>();
-        cl_image_format sourceFormat =
-            sourceImage.getImageInfo<CL_IMAGE_FORMAT>();
+        size_type sourceWidth = sourceImage.getImageInfo<CL_IMAGE_WIDTH>();
+        size_type sourceHeight = sourceImage.getImageInfo<CL_IMAGE_HEIGHT>();
+        size_type sourceRowPitch = sourceImage.getImageInfo<CL_IMAGE_ROW_PITCH>();
+        cl_uint sourceNumMIPLevels = sourceImage.getImageInfo<CL_IMAGE_NUM_MIP_LEVELS>();
+        cl_uint sourceNumSamples = sourceImage.getImageInfo<CL_IMAGE_NUM_SAMPLES>();
+        cl_image_format sourceFormat = sourceImage.getImageInfo<CL_IMAGE_FORMAT>();
 
-        // Update only the channel order. 
+        // Update only the channel order.
         // Channel format inherited from source.
         sourceFormat.image_channel_order = order;
-        cl_image_desc desc =
-        {
+        cl_image_desc desc = {
             CL_MEM_OBJECT_IMAGE2D,
             sourceWidth,
             sourceHeight,
@@ -4715,8 +5039,7 @@ public:
             sourceNumMIPLevels,
             sourceNumSamples,
             // Use buffer as input to image
-            sourceImage()
-        };
+            sourceImage()};
         object_ = ::clCreateImage(
             context(),
             0, // flags should be inherited from mem_object
@@ -4726,14 +5049,17 @@ public:
             &error);
 
         detail::errHandler(error, __CREATE_IMAGE_ERR);
-        if (err != nullptr) {
+        if (err != nullptr)
+        {
             *err = error;
         }
     }
 #endif //#if CL_HPP_TARGET_OPENCL_VERSION >= 200
 
     //! \brief Default constructor - initializes to NULL.
-    Image2D() { }
+    Image2D()
+    {
+    }
 
     /*! \brief Constructor from cl_mem - takes ownership.
      *
@@ -4742,14 +5068,16 @@ public:
      *                     earlier versions.
      *  See Memory for further details.
      */
-    explicit Image2D(const cl_mem& image2D, bool retainObject = false) :
-        Image(image2D, retainObject) { }
+    explicit Image2D(const cl_mem& image2D, bool retainObject = false)
+        : Image(image2D, retainObject)
+    {
+    }
 
     /*! \brief Assignment from cl_mem - performs shallow copy.
      *
      *  See Memory for further details.
      */
-    Image2D& operator = (const cl_mem& rhs)
+    Image2D& operator=(const cl_mem& rhs)
     {
         Image::operator=(rhs);
         return *this;
@@ -4758,12 +5086,15 @@ public:
     /*! \brief Copy constructor to forward copy to the superclass correctly.
      * Required for MSVC.
      */
-    Image2D(const Image2D& img) : Image(img) {}
+    Image2D(const Image2D& img)
+        : Image(img)
+    {
+    }
 
     /*! \brief Copy assignment to forward copy to the superclass correctly.
      * Required for MSVC.
      */
-    Image2D& operator = (const Image2D &img)
+    Image2D& operator=(const Image2D& img)
     {
         Image::operator=(img);
         return *this;
@@ -4772,19 +5103,19 @@ public:
     /*! \brief Move constructor to forward move to the superclass correctly.
      * Required for MSVC.
      */
-    Image2D(Image2D&& img) CL_HPP_NOEXCEPT_ : Image(std::move(img)) {}
+    Image2D(Image2D&& img) CL_HPP_NOEXCEPT_ : Image(std::move(img))
+    {
+    }
 
     /*! \brief Move assignment to forward move to the superclass correctly.
      * Required for MSVC.
      */
-    Image2D& operator = (Image2D &&img)
+    Image2D& operator=(Image2D&& img)
     {
         Image::operator=(std::move(img));
         return *this;
     }
-
 };
-
 
 #if defined(CL_USE_DEPRECATED_OPENCL_1_1_APIS)
 /*! \brief Class interface for GL 2D Image Memory objects.
@@ -4796,7 +5127,7 @@ public:
  *  \see Memory
  *  \note Deprecated for OpenCL 1.2. Please use ImageGL instead.
  */
-class CL_EXT_PREFIX__VERSION_1_1_DEPRECATED Image2DGL : public Image2D 
+class CL_EXT_PREFIX__VERSION_1_1_DEPRECATED Image2DGL : public Image2D
 {
 public:
     /*! \brief Constructs an Image2DGL in a specified context, from a given
@@ -4808,9 +5139,9 @@ public:
         const Context& context,
         cl_mem_flags flags,
         cl_GLenum target,
-        cl_GLint  miplevel,
+        cl_GLint miplevel,
         cl_GLuint texobj,
-        cl_int * err = NULL)
+        cl_int* err = NULL)
     {
         cl_int error;
         object_ = ::clCreateFromGLTexture2D(
@@ -4822,14 +5153,17 @@ public:
             &error);
 
         detail::errHandler(error, __CREATE_GL_TEXTURE_2D_ERR);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = error;
         }
-
     }
-    
+
     //! \brief Default constructor - initializes to NULL.
-    Image2DGL() : Image2D() { }
+    Image2DGL()
+        : Image2D()
+    {
+    }
 
     /*! \brief Constructor from cl_mem - takes ownership.
      *
@@ -4838,14 +5172,16 @@ public:
      *                     earlier versions.
      *  See Memory for further details.
      */
-    explicit Image2DGL(const cl_mem& image, bool retainObject = false) : 
-        Image2D(image, retainObject) { }
+    explicit Image2DGL(const cl_mem& image, bool retainObject = false)
+        : Image2D(image, retainObject)
+    {
+    }
 
     /*! \brief Assignment from cl_mem - performs shallow copy.
      *c
      *  See Memory for further details.
      */
-    Image2DGL& operator = (const cl_mem& rhs)
+    Image2DGL& operator=(const cl_mem& rhs)
     {
         Image2D::operator=(rhs);
         return *this;
@@ -4854,12 +5190,15 @@ public:
     /*! \brief Copy constructor to forward copy to the superclass correctly.
      * Required for MSVC.
      */
-    Image2DGL(const Image2DGL& img) : Image2D(img) {}
+    Image2DGL(const Image2DGL& img)
+        : Image2D(img)
+    {
+    }
 
     /*! \brief Copy assignment to forward copy to the superclass correctly.
      * Required for MSVC.
      */
-    Image2DGL& operator = (const Image2DGL &img)
+    Image2DGL& operator=(const Image2DGL& img)
     {
         Image2D::operator=(img);
         return *this;
@@ -4868,12 +5207,14 @@ public:
     /*! \brief Move constructor to forward move to the superclass correctly.
      * Required for MSVC.
      */
-    Image2DGL(Image2DGL&& img) CL_HPP_NOEXCEPT_ : Image2D(std::move(img)) {}
+    Image2DGL(Image2DGL&& img) CL_HPP_NOEXCEPT_ : Image2D(std::move(img))
+    {
+    }
 
     /*! \brief Move assignment to forward move to the superclass correctly.
      * Required for MSVC.
      */
-    Image2DGL& operator = (Image2DGL &&img)
+    Image2DGL& operator=(Image2DGL&& img)
     {
         Image2D::operator=(std::move(img));
         return *this;
@@ -4902,33 +5243,34 @@ public:
         cl_int* err = NULL)
     {
         cl_int error;
-        cl_image_desc desc =
-        {
+        cl_image_desc desc = {
             CL_MEM_OBJECT_IMAGE2D_ARRAY,
             width,
             height,
-            0,       // depth (unused)
+            0, // depth (unused)
             arraySize,
             rowPitch,
             slicePitch,
-            0, 0, 0
-        };
+            0, 0, 0};
         object_ = ::clCreateImage(
-            context(), 
-            flags, 
-            &format, 
-            &desc, 
-            host_ptr, 
+            context(),
+            flags,
+            &format,
+            &desc,
+            host_ptr,
             &error);
 
         detail::errHandler(error, __CREATE_IMAGE_ERR);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = error;
         }
     }
 
-    Image2DArray() { }
-    
+    Image2DArray()
+    {
+    }
+
     /*! \brief Constructor from cl_mem - takes ownership.
      *
      * \param retainObject will cause the constructor to retain its cl object.
@@ -4936,9 +5278,12 @@ public:
      *                     earlier versions.
      *  See Memory for further details.
      */
-    explicit Image2DArray(const cl_mem& imageArray, bool retainObject = false) : Image(imageArray, retainObject) { }
+    explicit Image2DArray(const cl_mem& imageArray, bool retainObject = false)
+        : Image(imageArray, retainObject)
+    {
+    }
 
-    Image2DArray& operator = (const cl_mem& rhs)
+    Image2DArray& operator=(const cl_mem& rhs)
     {
         Image::operator=(rhs);
         return *this;
@@ -4947,12 +5292,15 @@ public:
     /*! \brief Copy constructor to forward copy to the superclass correctly.
      * Required for MSVC.
      */
-    Image2DArray(const Image2DArray& img) : Image(img) {}
+    Image2DArray(const Image2DArray& img)
+        : Image(img)
+    {
+    }
 
     /*! \brief Copy assignment to forward copy to the superclass correctly.
      * Required for MSVC.
      */
-    Image2DArray& operator = (const Image2DArray &img)
+    Image2DArray& operator=(const Image2DArray& img)
     {
         Image::operator=(img);
         return *this;
@@ -4961,12 +5309,14 @@ public:
     /*! \brief Move constructor to forward move to the superclass correctly.
      * Required for MSVC.
      */
-    Image2DArray(Image2DArray&& img) CL_HPP_NOEXCEPT_ : Image(std::move(img)) {}
+    Image2DArray(Image2DArray&& img) CL_HPP_NOEXCEPT_ : Image(std::move(img))
+    {
+    }
 
     /*! \brief Move assignment to forward move to the superclass correctly.
      * Required for MSVC.
      */
-    Image2DArray& operator = (Image2DArray &&img)
+    Image2DArray& operator=(Image2DArray&& img)
     {
         Image::operator=(std::move(img));
         return *this;
@@ -5017,31 +5367,30 @@ public:
 #if CL_HPP_TARGET_OPENCL_VERSION >= 120
         if (useCreateImage)
         {
-            cl_image_desc desc =
-            {
+            cl_image_desc desc = {
                 CL_MEM_OBJECT_IMAGE3D,
                 width,
                 height,
                 depth,
-                0,      // array size (unused)
+                0, // array size (unused)
                 row_pitch,
                 slice_pitch,
-                0, 0, 0
-            };
+                0, 0, 0};
             object_ = ::clCreateImage(
-                context(), 
-                flags, 
-                &format, 
-                &desc, 
-                host_ptr, 
+                context(),
+                flags,
+                &format,
+                &desc,
+                host_ptr,
                 &error);
 
             detail::errHandler(error, __CREATE_IMAGE_ERR);
-            if (err != NULL) {
+            if (err != NULL)
+            {
                 *err = error;
             }
         }
-#endif  // CL_HPP_TARGET_OPENCL_VERSION >= 120
+#endif // CL_HPP_TARGET_OPENCL_VERSION >= 120
 #if CL_HPP_MINIMUM_OPENCL_VERSION < 120
         if (!useCreateImage)
         {
@@ -5050,7 +5399,8 @@ public:
                 slice_pitch, host_ptr, &error);
 
             detail::errHandler(error, __CREATE_IMAGE3D_ERR);
-            if (err != NULL) {
+            if (err != NULL)
+            {
                 *err = error;
             }
         }
@@ -5058,7 +5408,10 @@ public:
     }
 
     //! \brief Default constructor - initializes to NULL.
-    Image3D() : Image() { }
+    Image3D()
+        : Image()
+    {
+    }
 
     /*! \brief Constructor from cl_mem - takes ownership.
      *
@@ -5067,14 +5420,16 @@ public:
      *                     earlier versions.
      *  See Memory for further details.
      */
-    explicit Image3D(const cl_mem& image3D, bool retainObject = false) : 
-        Image(image3D, retainObject) { }
+    explicit Image3D(const cl_mem& image3D, bool retainObject = false)
+        : Image(image3D, retainObject)
+    {
+    }
 
     /*! \brief Assignment from cl_mem - performs shallow copy.
      *
      *  See Memory for further details.
      */
-    Image3D& operator = (const cl_mem& rhs)
+    Image3D& operator=(const cl_mem& rhs)
     {
         Image::operator=(rhs);
         return *this;
@@ -5083,12 +5438,15 @@ public:
     /*! \brief Copy constructor to forward copy to the superclass correctly.
      * Required for MSVC.
      */
-    Image3D(const Image3D& img) : Image(img) {}
+    Image3D(const Image3D& img)
+        : Image(img)
+    {
+    }
 
     /*! \brief Copy assignment to forward copy to the superclass correctly.
      * Required for MSVC.
      */
-    Image3D& operator = (const Image3D &img)
+    Image3D& operator=(const Image3D& img)
     {
         Image::operator=(img);
         return *this;
@@ -5097,12 +5455,14 @@ public:
     /*! \brief Move constructor to forward move to the superclass correctly.
      * Required for MSVC.
      */
-    Image3D(Image3D&& img) CL_HPP_NOEXCEPT_ : Image(std::move(img)) {}
+    Image3D(Image3D&& img) CL_HPP_NOEXCEPT_ : Image(std::move(img))
+    {
+    }
 
     /*! \brief Move assignment to forward move to the superclass correctly.
      * Required for MSVC.
      */
-    Image3D& operator = (Image3D &&img)
+    Image3D& operator=(Image3D&& img)
     {
         Image::operator=(std::move(img));
         return *this;
@@ -5130,9 +5490,9 @@ public:
         const Context& context,
         cl_mem_flags flags,
         cl_GLenum target,
-        cl_GLint  miplevel,
+        cl_GLint miplevel,
         cl_GLuint texobj,
-        cl_int * err = NULL)
+        cl_int* err = NULL)
     {
         cl_int error;
         object_ = ::clCreateFromGLTexture3D(
@@ -5144,13 +5504,17 @@ public:
             &error);
 
         detail::errHandler(error, __CREATE_GL_TEXTURE_3D_ERR);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = error;
         }
     }
 
     //! \brief Default constructor - initializes to NULL.
-    Image3DGL() : Image3D() { }
+    Image3DGL()
+        : Image3D()
+    {
+    }
 
     /*! \brief Constructor from cl_mem - takes ownership.
      *
@@ -5159,14 +5523,16 @@ public:
      *                     earlier versions.
      *  See Memory for further details.
      */
-    explicit Image3DGL(const cl_mem& image, bool retainObject = false) : 
-        Image3D(image, retainObject) { }
+    explicit Image3DGL(const cl_mem& image, bool retainObject = false)
+        : Image3D(image, retainObject)
+    {
+    }
 
     /*! \brief Assignment from cl_mem - performs shallow copy.
      *
      *  See Memory for further details.
      */
-    Image3DGL& operator = (const cl_mem& rhs)
+    Image3DGL& operator=(const cl_mem& rhs)
     {
         Image3D::operator=(rhs);
         return *this;
@@ -5175,12 +5541,15 @@ public:
     /*! \brief Copy constructor to forward copy to the superclass correctly.
      * Required for MSVC.
      */
-    Image3DGL(const Image3DGL& img) : Image3D(img) {}
+    Image3DGL(const Image3DGL& img)
+        : Image3D(img)
+    {
+    }
 
     /*! \brief Copy assignment to forward copy to the superclass correctly.
      * Required for MSVC.
      */
-    Image3DGL& operator = (const Image3DGL &img)
+    Image3DGL& operator=(const Image3DGL& img)
     {
         Image3D::operator=(img);
         return *this;
@@ -5189,12 +5558,14 @@ public:
     /*! \brief Move constructor to forward move to the superclass correctly.
      * Required for MSVC.
      */
-    Image3DGL(Image3DGL&& img) CL_HPP_NOEXCEPT_ : Image3D(std::move(img)) {}
+    Image3DGL(Image3DGL&& img) CL_HPP_NOEXCEPT_ : Image3D(std::move(img))
+    {
+    }
 
     /*! \brief Move assignment to forward move to the superclass correctly.
      * Required for MSVC.
      */
-    Image3DGL& operator = (Image3DGL &&img)
+    Image3DGL& operator=(Image3DGL&& img)
     {
         Image3D::operator=(std::move(img));
         return *this;
@@ -5216,27 +5587,31 @@ public:
         const Context& context,
         cl_mem_flags flags,
         cl_GLenum target,
-        cl_GLint  miplevel,
+        cl_GLint miplevel,
         cl_GLuint texobj,
-        cl_int * err = NULL)
+        cl_int* err = NULL)
     {
         cl_int error;
         object_ = ::clCreateFromGLTexture(
-            context(), 
-            flags, 
+            context(),
+            flags,
             target,
             miplevel,
             texobj,
             &error);
 
         detail::errHandler(error, __CREATE_GL_TEXTURE_ERR);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = error;
         }
     }
 
-    ImageGL() : Image() { }
-    
+    ImageGL()
+        : Image()
+    {
+    }
+
     /*! \brief Constructor from cl_mem - takes ownership.
      *
      * \param retainObject will cause the constructor to retain its cl object.
@@ -5244,10 +5619,12 @@ public:
      *                     earlier versions.
      *  See Memory for further details.
      */
-    explicit ImageGL(const cl_mem& image, bool retainObject = false) : 
-        Image(image, retainObject) { }
+    explicit ImageGL(const cl_mem& image, bool retainObject = false)
+        : Image(image, retainObject)
+    {
+    }
 
-    ImageGL& operator = (const cl_mem& rhs)
+    ImageGL& operator=(const cl_mem& rhs)
     {
         Image::operator=(rhs);
         return *this;
@@ -5256,12 +5633,15 @@ public:
     /*! \brief Copy constructor to forward copy to the superclass correctly.
      * Required for MSVC.
      */
-    ImageGL(const ImageGL& img) : Image(img) {}
+    ImageGL(const ImageGL& img)
+        : Image(img)
+    {
+    }
 
     /*! \brief Copy assignment to forward copy to the superclass correctly.
      * Required for MSVC.
      */
-    ImageGL& operator = (const ImageGL &img)
+    ImageGL& operator=(const ImageGL& img)
     {
         Image::operator=(img);
         return *this;
@@ -5270,20 +5650,20 @@ public:
     /*! \brief Move constructor to forward move to the superclass correctly.
      * Required for MSVC.
      */
-    ImageGL(ImageGL&& img) CL_HPP_NOEXCEPT_ : Image(std::move(img)) {}
+    ImageGL(ImageGL&& img) CL_HPP_NOEXCEPT_ : Image(std::move(img))
+    {
+    }
 
     /*! \brief Move assignment to forward move to the superclass correctly.
      * Required for MSVC.
      */
-    ImageGL& operator = (ImageGL &&img)
+    ImageGL& operator=(ImageGL&& img)
     {
         Image::operator=(std::move(img));
         return *this;
     }
 };
 #endif // CL_HPP_TARGET_OPENCL_VERSION >= 120
-
-
 
 #if CL_HPP_TARGET_OPENCL_VERSION >= 200
 /*! \brief Class interface for Pipe Memory Objects.
@@ -5295,7 +5675,6 @@ public:
 class Pipe : public Memory
 {
 public:
-
     /*! \brief Constructs a Pipe in a specified context.
      *
      * Wraps clCreatePipe().
@@ -5317,7 +5696,8 @@ public:
         object_ = ::clCreatePipe(context(), flags, packet_size, max_packets, nullptr, &error);
 
         detail::errHandler(error, __CREATE_PIPE_ERR);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = error;
         }
     }
@@ -5343,13 +5723,17 @@ public:
         object_ = ::clCreatePipe(context(), flags, packet_size, max_packets, nullptr, &error);
 
         detail::errHandler(error, __CREATE_PIPE_ERR);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = error;
         }
     }
 
     //! \brief Default constructor - initializes to NULL.
-    Pipe() : Memory() { }
+    Pipe()
+        : Memory()
+    {
+    }
 
     /*! \brief Constructor from cl_mem - takes ownership.
      *
@@ -5358,14 +5742,16 @@ public:
      *
      *  See Memory for further details.
      */
-    explicit Pipe(const cl_mem& pipe, bool retainObject = false) :
-        Memory(pipe, retainObject) { }
+    explicit Pipe(const cl_mem& pipe, bool retainObject = false)
+        : Memory(pipe, retainObject)
+    {
+    }
 
     /*! \brief Assignment from cl_mem - performs shallow copy.
      *
      *  See Memory for further details.
      */
-    Pipe& operator = (const cl_mem& rhs)
+    Pipe& operator=(const cl_mem& rhs)
     {
         Memory::operator=(rhs);
         return *this;
@@ -5374,12 +5760,15 @@ public:
     /*! \brief Copy constructor to forward copy to the superclass correctly.
      * Required for MSVC.
      */
-    Pipe(const Pipe& pipe) : Memory(pipe) {}
+    Pipe(const Pipe& pipe)
+        : Memory(pipe)
+    {
+    }
 
     /*! \brief Copy assignment to forward copy to the superclass correctly.
      * Required for MSVC.
      */
-    Pipe& operator = (const Pipe &pipe)
+    Pipe& operator=(const Pipe& pipe)
     {
         Memory::operator=(pipe);
         return *this;
@@ -5388,19 +5777,21 @@ public:
     /*! \brief Move constructor to forward move to the superclass correctly.
      * Required for MSVC.
      */
-    Pipe(Pipe&& pipe) CL_HPP_NOEXCEPT_ : Memory(std::move(pipe)) {}
+    Pipe(Pipe&& pipe) CL_HPP_NOEXCEPT_ : Memory(std::move(pipe))
+    {
+    }
 
     /*! \brief Move assignment to forward move to the superclass correctly.
      * Required for MSVC.
      */
-    Pipe& operator = (Pipe &&pipe)
+    Pipe& operator=(Pipe&& pipe)
     {
         Memory::operator=(std::move(pipe));
         return *this;
     }
 
     //! \brief Wrapper for clGetMemObjectInfo().
-    template <typename T>
+    template<typename T>
     cl_int getInfo(cl_pipe_info name, T* param) const
     {
         return detail::errHandler(
@@ -5409,21 +5800,21 @@ public:
     }
 
     //! \brief Wrapper for clGetMemObjectInfo() that returns by value.
-    template <cl_int name> typename
-        detail::param_traits<detail::cl_pipe_info, name>::param_type
-        getInfo(cl_int* err = NULL) const
+    template<cl_int name>
+    typename detail::param_traits<detail::cl_pipe_info, name>::param_type
+    getInfo(cl_int* err = NULL) const
     {
         typename detail::param_traits<
             detail::cl_pipe_info, name>::param_type param;
         cl_int result = getInfo(name, &param);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = result;
         }
         return param;
     }
-}; // class Pipe
+};     // class Pipe
 #endif // CL_HPP_TARGET_OPENCL_VERSION >= 200
-
 
 /*! \brief Class interface for cl_sampler.
  *
@@ -5437,7 +5828,9 @@ class Sampler : public detail::Wrapper<cl_sampler>
 {
 public:
     //! \brief Default constructor - initializes to NULL.
-    Sampler() { }
+    Sampler()
+    {
+    }
 
     /*! \brief Constructs a Sampler in a specified context.
      *
@@ -5457,14 +5850,15 @@ public:
             CL_SAMPLER_NORMALIZED_COORDS, normalized_coords,
             CL_SAMPLER_ADDRESSING_MODE, addressing_mode,
             CL_SAMPLER_FILTER_MODE, filter_mode,
-            0 };
+            0};
         object_ = ::clCreateSamplerWithProperties(
             context(),
             sampler_properties,
             &error);
 
         detail::errHandler(error, __CREATE_SAMPLER_WITH_PROPERTIES_ERR);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = error;
         }
 #else
@@ -5476,10 +5870,11 @@ public:
             &error);
 
         detail::errHandler(error, __CREATE_SAMPLER_ERR);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = error;
         }
-#endif        
+#endif
     }
 
     /*! \brief Constructor from cl_sampler - takes ownership.
@@ -5490,15 +5885,17 @@ public:
      *  This effectively transfers ownership of a refcount on the cl_sampler
      *  into the new Sampler object.
      */
-    explicit Sampler(const cl_sampler& sampler, bool retainObject = false) : 
-        detail::Wrapper<cl_type>(sampler, retainObject) { }
+    explicit Sampler(const cl_sampler& sampler, bool retainObject = false)
+        : detail::Wrapper<cl_type>(sampler, retainObject)
+    {
+    }
 
     /*! \brief Assignment operator from cl_sampler - takes ownership.
      *
      *  This effectively transfers ownership of a refcount on the rhs and calls
      *  clReleaseSampler() on the value previously held by this instance.
      */
-    Sampler& operator = (const cl_sampler& rhs)
+    Sampler& operator=(const cl_sampler& rhs)
     {
         detail::Wrapper<cl_type>::operator=(rhs);
         return *this;
@@ -5507,12 +5904,15 @@ public:
     /*! \brief Copy constructor to forward copy to the superclass correctly.
      * Required for MSVC.
      */
-    Sampler(const Sampler& sam) : detail::Wrapper<cl_type>(sam) {}
+    Sampler(const Sampler& sam)
+        : detail::Wrapper<cl_type>(sam)
+    {
+    }
 
     /*! \brief Copy assignment to forward copy to the superclass correctly.
      * Required for MSVC.
      */
-    Sampler& operator = (const Sampler &sam)
+    Sampler& operator=(const Sampler& sam)
     {
         detail::Wrapper<cl_type>::operator=(sam);
         return *this;
@@ -5521,19 +5921,21 @@ public:
     /*! \brief Move constructor to forward move to the superclass correctly.
      * Required for MSVC.
      */
-    Sampler(Sampler&& sam) CL_HPP_NOEXCEPT_ : detail::Wrapper<cl_type>(std::move(sam)) {}
+    Sampler(Sampler&& sam) CL_HPP_NOEXCEPT_ : detail::Wrapper<cl_type>(std::move(sam))
+    {
+    }
 
     /*! \brief Move assignment to forward move to the superclass correctly.
      * Required for MSVC.
      */
-    Sampler& operator = (Sampler &&sam)
+    Sampler& operator=(Sampler&& sam)
     {
         detail::Wrapper<cl_type>::operator=(std::move(sam));
         return *this;
     }
 
     //! \brief Wrapper for clGetSamplerInfo().
-    template <typename T>
+    template<typename T>
     cl_int getInfo(cl_sampler_info name, T* param) const
     {
         return detail::errHandler(
@@ -5542,14 +5944,15 @@ public:
     }
 
     //! \brief Wrapper for clGetSamplerInfo() that returns by value.
-    template <cl_int name> typename
-    detail::param_traits<detail::cl_sampler_info, name>::param_type
+    template<cl_int name>
+    typename detail::param_traits<detail::cl_sampler_info, name>::param_type
     getInfo(cl_int* err = NULL) const
     {
         typename detail::param_traits<
             detail::cl_sampler_info, name>::param_type param;
         cl_int result = getInfo(name, &param);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = result;
         }
         return param;
@@ -5609,28 +6012,29 @@ public:
      *  
      *  \returns a pointer to the size of the first dimension.
      */
-    operator const size_type*() const { 
-        return sizes_; 
+    operator const size_type*() const
+    {
+        return sizes_;
     }
 
     //! \brief Queries the number of dimensions in the range.
-    size_type dimensions() const 
-    { 
-        return dimensions_; 
+    size_type dimensions() const
+    {
+        return dimensions_;
     }
 
     //! \brief Returns the size of the object in bytes based on the
     // runtime number of dimensions
     size_type size() const
     {
-        return dimensions_*sizeof(size_type);
+        return dimensions_ * sizeof(size_type);
     }
 
     size_type* get()
     {
         return sizes_;
     }
-    
+
     const size_type* get() const
     {
         return sizes_;
@@ -5648,37 +6052,55 @@ struct LocalSpaceArg
 
 namespace detail {
 
-template <typename T, class Enable = void>
+template<typename T, class Enable = void>
 struct KernelArgumentHandler;
 
 // Enable for objects that are not subclasses of memory
 // Pointers, constants etc
-template <typename T>
+template<typename T>
 struct KernelArgumentHandler<T, typename std::enable_if<!std::is_base_of<cl::Memory, T>::value>::type>
 {
-    static size_type size(const T&) { return sizeof(T); }
-    static const T* ptr(const T& value) { return &value; }
+    static size_type size(const T&)
+    {
+        return sizeof(T);
+    }
+    static const T* ptr(const T& value)
+    {
+        return &value;
+    }
 };
 
 // Enable for subclasses of memory where we want to get a reference to the cl_mem out
 // and pass that in for safety
-template <typename T>
+template<typename T>
 struct KernelArgumentHandler<T, typename std::enable_if<std::is_base_of<cl::Memory, T>::value>::type>
 {
-    static size_type size(const T&) { return sizeof(cl_mem); }
-    static const cl_mem* ptr(const T& value) { return &(value()); }
+    static size_type size(const T&)
+    {
+        return sizeof(cl_mem);
+    }
+    static const cl_mem* ptr(const T& value)
+    {
+        return &(value());
+    }
 };
 
 // Specialization for DeviceCommandQueue defined later
 
-template <>
+template<>
 struct KernelArgumentHandler<LocalSpaceArg, void>
 {
-    static size_type size(const LocalSpaceArg& value) { return value.size_; }
-    static const void* ptr(const LocalSpaceArg&) { return NULL; }
+    static size_type size(const LocalSpaceArg& value)
+    {
+        return value.size_;
+    }
+    static const void* ptr(const LocalSpaceArg&)
+    {
+        return NULL;
+    }
 };
 
-} 
+} // namespace detail
 //! \endcond
 
 /*! Local
@@ -5687,7 +6109,7 @@ struct KernelArgumentHandler<LocalSpaceArg, void>
 inline LocalSpaceArg
 Local(size_type size)
 {
-    LocalSpaceArg ret = { size };
+    LocalSpaceArg ret = {size};
     return ret;
 }
 
@@ -5705,7 +6127,9 @@ public:
     inline Kernel(const Program& program, const char* name, cl_int* err = NULL);
 
     //! \brief Default constructor - initializes to NULL.
-    Kernel() { }
+    Kernel()
+    {
+    }
 
     /*! \brief Constructor from cl_kernel - takes ownership.
      * 
@@ -5715,15 +6139,17 @@ public:
      *  This effectively transfers ownership of a refcount on the cl_kernel
      *  into the new Kernel object.
      */
-    explicit Kernel(const cl_kernel& kernel, bool retainObject = false) : 
-        detail::Wrapper<cl_type>(kernel, retainObject) { }
+    explicit Kernel(const cl_kernel& kernel, bool retainObject = false)
+        : detail::Wrapper<cl_type>(kernel, retainObject)
+    {
+    }
 
     /*! \brief Assignment operator from cl_kernel - takes ownership.
      *
      *  This effectively transfers ownership of a refcount on the rhs and calls
      *  clReleaseKernel() on the value previously held by this instance.
      */
-    Kernel& operator = (const cl_kernel& rhs)
+    Kernel& operator=(const cl_kernel& rhs)
     {
         detail::Wrapper<cl_type>::operator=(rhs);
         return *this;
@@ -5732,12 +6158,15 @@ public:
     /*! \brief Copy constructor to forward copy to the superclass correctly.
      * Required for MSVC.
      */
-    Kernel(const Kernel& kernel) : detail::Wrapper<cl_type>(kernel) {}
+    Kernel(const Kernel& kernel)
+        : detail::Wrapper<cl_type>(kernel)
+    {
+    }
 
     /*! \brief Copy assignment to forward copy to the superclass correctly.
      * Required for MSVC.
      */
-    Kernel& operator = (const Kernel &kernel)
+    Kernel& operator=(const Kernel& kernel)
     {
         detail::Wrapper<cl_type>::operator=(kernel);
         return *this;
@@ -5746,18 +6175,20 @@ public:
     /*! \brief Move constructor to forward move to the superclass correctly.
      * Required for MSVC.
      */
-    Kernel(Kernel&& kernel) CL_HPP_NOEXCEPT_ : detail::Wrapper<cl_type>(std::move(kernel)) {}
+    Kernel(Kernel&& kernel) CL_HPP_NOEXCEPT_ : detail::Wrapper<cl_type>(std::move(kernel))
+    {
+    }
 
     /*! \brief Move assignment to forward move to the superclass correctly.
      * Required for MSVC.
      */
-    Kernel& operator = (Kernel &&kernel)
+    Kernel& operator=(Kernel&& kernel)
     {
         detail::Wrapper<cl_type>::operator=(std::move(kernel));
         return *this;
     }
 
-    template <typename T>
+    template<typename T>
     cl_int getInfo(cl_kernel_info name, T* param) const
     {
         return detail::errHandler(
@@ -5765,21 +6196,22 @@ public:
             __GET_KERNEL_INFO_ERR);
     }
 
-    template <cl_int name> typename
-    detail::param_traits<detail::cl_kernel_info, name>::param_type
+    template<cl_int name>
+    typename detail::param_traits<detail::cl_kernel_info, name>::param_type
     getInfo(cl_int* err = NULL) const
     {
         typename detail::param_traits<
             detail::cl_kernel_info, name>::param_type param;
         cl_int result = getInfo(name, &param);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = result;
         }
         return param;
     }
 
 #if CL_HPP_TARGET_OPENCL_VERSION >= 120
-    template <typename T>
+    template<typename T>
     cl_int getArgInfo(cl_uint argIndex, cl_kernel_arg_info name, T* param) const
     {
         return detail::errHandler(
@@ -5787,46 +6219,48 @@ public:
             __GET_KERNEL_ARG_INFO_ERR);
     }
 
-    template <cl_int name> typename
-    detail::param_traits<detail::cl_kernel_arg_info, name>::param_type
+    template<cl_int name>
+    typename detail::param_traits<detail::cl_kernel_arg_info, name>::param_type
     getArgInfo(cl_uint argIndex, cl_int* err = NULL) const
     {
         typename detail::param_traits<
             detail::cl_kernel_arg_info, name>::param_type param;
         cl_int result = getArgInfo(argIndex, name, &param);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = result;
         }
         return param;
     }
 #endif // CL_HPP_TARGET_OPENCL_VERSION >= 120
 
-    template <typename T>
+    template<typename T>
     cl_int getWorkGroupInfo(
         const Device& device, cl_kernel_work_group_info name, T* param) const
     {
         return detail::errHandler(
             detail::getInfo(
                 &::clGetKernelWorkGroupInfo, object_, device(), name, param),
-                __GET_KERNEL_WORK_GROUP_INFO_ERR);
+            __GET_KERNEL_WORK_GROUP_INFO_ERR);
     }
 
-    template <cl_int name> typename
-    detail::param_traits<detail::cl_kernel_work_group_info, name>::param_type
-        getWorkGroupInfo(const Device& device, cl_int* err = NULL) const
+    template<cl_int name>
+    typename detail::param_traits<detail::cl_kernel_work_group_info, name>::param_type
+    getWorkGroupInfo(const Device& device, cl_int* err = NULL) const
     {
         typename detail::param_traits<
-        detail::cl_kernel_work_group_info, name>::param_type param;
+            detail::cl_kernel_work_group_info, name>::param_type param;
         cl_int result = getWorkGroupInfo(device, name, &param);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = result;
         }
         return param;
     }
-    
+
 #if CL_HPP_TARGET_OPENCL_VERSION >= 200
 #if defined(CL_HPP_USE_CL_SUB_GROUPS_KHR)
-    cl_int getSubGroupInfo(const cl::Device &dev, cl_kernel_sub_group_info name, const cl::NDRange &range, size_type* param) const
+    cl_int getSubGroupInfo(const cl::Device& dev, cl_kernel_sub_group_info name, const cl::NDRange& range, size_type* param) const
     {
         typedef clGetKernelSubGroupInfoKHR_fn PFN_clGetKernelSubGroupInfoKHR;
         static PFN_clGetKernelSubGroupInfoKHR pfn_clGetKernelSubGroupInfoKHR = NULL;
@@ -5837,12 +6271,13 @@ public:
             __GET_KERNEL_ARG_INFO_ERR);
     }
 
-    template <cl_int name>
-        size_type getSubGroupInfo(const cl::Device &dev, const cl::NDRange &range, cl_int* err = NULL) const
+    template<cl_int name>
+    size_type getSubGroupInfo(const cl::Device& dev, const cl::NDRange& range, cl_int* err = NULL) const
     {
         size_type param;
         cl_int result = getSubGroupInfo(dev, name, range, &param);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = result;
         }
         return param;
@@ -5854,7 +6289,7 @@ public:
     /*! \brief setArg overload taking a shared_ptr type
      */
     template<typename T, class D>
-    cl_int setArg(cl_uint index, const cl::pointer<T, D> &argPtr)
+    cl_int setArg(cl_uint index, const cl::pointer<T, D>& argPtr)
     {
         return detail::errHandler(
             ::clSetKernelArgSVMPointer(object_, index, argPtr.get()),
@@ -5864,7 +6299,7 @@ public:
     /*! \brief setArg overload taking a vector type.
      */
     template<typename T, class Alloc>
-    cl_int setArg(cl_uint index, const cl::vector<T, Alloc> &argPtr)
+    cl_int setArg(cl_uint index, const cl::vector<T, Alloc>& argPtr)
     {
         return detail::errHandler(
             ::clSetKernelArgSVMPointer(object_, index, argPtr.data()),
@@ -5875,7 +6310,7 @@ public:
      */
     template<typename T>
     typename std::enable_if<std::is_pointer<T>::value, cl_int>::type
-        setArg(cl_uint index, const T argPtr)
+    setArg(cl_uint index, const T argPtr)
     {
         return detail::errHandler(
             ::clSetKernelArgSVMPointer(object_, index, argPtr),
@@ -5885,9 +6320,9 @@ public:
 
     /*! \brief setArg overload taking a POD type
      */
-    template <typename T>
+    template<typename T>
     typename std::enable_if<!std::is_pointer<T>::value, cl_int>::type
-        setArg(cl_uint index, const T &value)
+    setArg(cl_uint index, const T& value)
     {
         return detail::errHandler(
             ::clSetKernelArg(
@@ -5910,13 +6345,13 @@ public:
      * Specify a vector of SVM pointers that the kernel may access in 
      * addition to its arguments.
      */
-    cl_int setSVMPointers(const vector<void*> &pointerList)
+    cl_int setSVMPointers(const vector<void*>& pointerList)
     {
         return detail::errHandler(
             ::clSetKernelExecInfo(
                 object_,
                 CL_KERNEL_EXEC_INFO_SVM_PTRS,
-                sizeof(void*)*pointerList.size(),
+                sizeof(void*) * pointerList.size(),
                 pointerList.data()));
     }
 
@@ -5925,13 +6360,13 @@ public:
      * addition to its arguments.
      */
     template<int ArrayLength>
-    cl_int setSVMPointers(const std::array<void*, ArrayLength> &pointerList)
+    cl_int setSVMPointers(const std::array<void*, ArrayLength>& pointerList)
     {
         return detail::errHandler(
             ::clSetKernelExecInfo(
                 object_,
                 CL_KERNEL_EXEC_INFO_SVM_PTRS,
-                sizeof(void*)*pointerList.size(),
+                sizeof(void*) * pointerList.size(),
                 pointerList.data()));
     }
 
@@ -5954,13 +6389,11 @@ public:
                 object_,
                 CL_KERNEL_EXEC_INFO_SVM_FINE_GRAIN_SYSTEM,
                 sizeof(cl_bool),
-                &svmEnabled_
-                )
-            );
+                &svmEnabled_));
     }
-    
+
     template<int index, int ArrayLength, class D, typename T0, typename... Ts>
-    void setSVMPointersHelper(std::array<void*, ArrayLength> &pointerList, const pointer<T0, D> &t0, Ts... ts)
+    void setSVMPointersHelper(std::array<void*, ArrayLength>& pointerList, const pointer<T0, D>& t0, Ts... ts)
     {
         pointerList[index] = static_cast<void*>(t0.get());
         setSVMPointersHelper<index + 1, Ts...>(ts...);
@@ -5968,37 +6401,37 @@ public:
 
     template<int index, int ArrayLength, typename T0, typename... Ts>
     typename std::enable_if<std::is_pointer<T0>::value, void>::type
-    setSVMPointersHelper(std::array<void*, ArrayLength> &pointerList, T0 t0, Ts... ts)
+    setSVMPointersHelper(std::array<void*, ArrayLength>& pointerList, T0 t0, Ts... ts)
     {
         pointerList[index] = static_cast<void*>(t0);
         setSVMPointersHelper<index + 1, Ts...>(ts...);
     }
-    
+
     template<int index, int ArrayLength, typename T0, class D>
-    void setSVMPointersHelper(std::array<void*, ArrayLength> &pointerList, const pointer<T0, D> &t0)
+    void setSVMPointersHelper(std::array<void*, ArrayLength>& pointerList, const pointer<T0, D>& t0)
     {
         pointerList[index] = static_cast<void*>(t0.get());
     }
 
     template<int index, int ArrayLength, typename T0>
     typename std::enable_if<std::is_pointer<T0>::value, void>::type
-    setSVMPointersHelper(std::array<void*, ArrayLength> &pointerList, T0 t0)
+    setSVMPointersHelper(std::array<void*, ArrayLength>& pointerList, T0 t0)
     {
         pointerList[index] = static_cast<void*>(t0);
     }
 
     template<typename T0, typename... Ts>
-    cl_int setSVMPointers(const T0 &t0, Ts... ts)
+    cl_int setSVMPointers(const T0& t0, Ts... ts)
     {
         std::array<void*, 1 + sizeof...(Ts)> pointerList;
 
         setSVMPointersHelper<0, 1 + sizeof...(Ts)>(pointerList, t0, ts...);
         return detail::errHandler(
             ::clSetKernelExecInfo(
-            object_,
-            CL_KERNEL_EXEC_INFO_SVM_PTRS,
-            sizeof(void*)*(1 + sizeof...(Ts)),
-            pointerList.data()));
+                object_,
+                CL_KERNEL_EXEC_INFO_SVM_PTRS,
+                sizeof(void*) * (1 + sizeof...(Ts)),
+                pointerList.data()));
     }
 #endif // #if CL_HPP_TARGET_OPENCL_VERSION >= 200
 };
@@ -6010,13 +6443,13 @@ class Program : public detail::Wrapper<cl_program>
 {
 public:
 #if !defined(CL_HPP_ENABLE_PROGRAM_CONSTRUCTION_FROM_ARRAY_COMPATIBILITY)
-    typedef vector<vector<unsigned char>> Binaries;
+    typedef vector<vector<unsigned char> > Binaries;
     typedef vector<string> Sources;
-#else // #if !defined(CL_HPP_ENABLE_PROGRAM_CONSTRUCTION_FROM_ARRAY_COMPATIBILITY)
+#else  // #if !defined(CL_HPP_ENABLE_PROGRAM_CONSTRUCTION_FROM_ARRAY_COMPATIBILITY)
     typedef vector<std::pair<const void*, size_type> > Binaries;
     typedef vector<std::pair<const char*, size_type> > Sources;
 #endif // #if !defined(CL_HPP_ENABLE_PROGRAM_CONSTRUCTION_FROM_ARRAY_COMPATIBILITY)
-    
+
     Program(
         const string& source,
         bool build = false,
@@ -6024,8 +6457,8 @@ public:
     {
         cl_int error;
 
-        const char * strings = source.c_str();
-        const size_type length  = source.size();
+        const char* strings = source.c_str();
+        const size_type length = source.size();
 
         Context context = Context::getDefault(err);
 
@@ -6034,8 +6467,8 @@ public:
 
         detail::errHandler(error, __CREATE_PROGRAM_WITH_SOURCE_ERR);
 
-        if (error == CL_SUCCESS && build) {
-
+        if (error == CL_SUCCESS && build)
+        {
             error = ::clBuildProgram(
                 object_,
                 0,
@@ -6051,7 +6484,8 @@ public:
             detail::buildErrHandler(error, __BUILD_PROGRAM_ERR, getBuildInfo<CL_PROGRAM_BUILD_LOG>());
         }
 
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = error;
         }
     }
@@ -6064,15 +6498,16 @@ public:
     {
         cl_int error;
 
-        const char * strings = source.c_str();
-        const size_type length  = source.size();
+        const char* strings = source.c_str();
+        const size_type length = source.size();
 
         object_ = ::clCreateProgramWithSource(
             context(), (cl_uint)1, &strings, &length, &error);
 
         detail::errHandler(error, __CREATE_PROGRAM_WITH_SOURCE_ERR);
 
-        if (error == CL_SUCCESS && build) {
+        if (error == CL_SUCCESS && build)
+        {
             error = ::clBuildProgram(
                 object_,
                 0,
@@ -6084,11 +6519,12 @@ public:
 #endif // #if !defined(CL_HPP_CL_1_2_DEFAULT_BUILD)
                 NULL,
                 NULL);
-            
+
             detail::buildErrHandler(error, __BUILD_PROGRAM_ERR, getBuildInfo<CL_PROGRAM_BUILD_LOG>());
         }
 
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = error;
         }
     }
@@ -6109,11 +6545,12 @@ public:
         vector<size_type> lengths(n);
         vector<const char*> strings(n);
 
-        for (size_type i = 0; i < n; ++i) {
+        for (size_type i = 0; i < n; ++i)
+        {
 #if !defined(CL_HPP_ENABLE_PROGRAM_CONSTRUCTION_FROM_ARRAY_COMPATIBILITY)
             strings[i] = sources[(int)i].data();
             lengths[i] = sources[(int)i].length();
-#else // #if !defined(CL_HPP_ENABLE_PROGRAM_CONSTRUCTION_FROM_ARRAY_COMPATIBILITY)
+#else  // #if !defined(CL_HPP_ENABLE_PROGRAM_CONSTRUCTION_FROM_ARRAY_COMPATIBILITY)
             strings[i] = sources[(int)i].first;
             lengths[i] = sources[(int)i].second;
 #endif // #if !defined(CL_HPP_ENABLE_PROGRAM_CONSTRUCTION_FROM_ARRAY_COMPATIBILITY)
@@ -6123,7 +6560,8 @@ public:
             context(), (cl_uint)n, strings.data(), lengths.data(), &error);
 
         detail::errHandler(error, __CREATE_PROGRAM_WITH_SOURCE_ERR);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = error;
         }
     }
@@ -6144,11 +6582,12 @@ public:
         vector<size_type> lengths(n);
         vector<const char*> strings(n);
 
-        for (size_type i = 0; i < n; ++i) {
+        for (size_type i = 0; i < n; ++i)
+        {
 #if !defined(CL_HPP_ENABLE_PROGRAM_CONSTRUCTION_FROM_ARRAY_COMPATIBILITY)
             strings[i] = sources[(int)i].data();
             lengths[i] = sources[(int)i].length();
-#else // #if !defined(CL_HPP_ENABLE_PROGRAM_CONSTRUCTION_FROM_ARRAY_COMPATIBILITY)
+#else  // #if !defined(CL_HPP_ENABLE_PROGRAM_CONSTRUCTION_FROM_ARRAY_COMPATIBILITY)
             strings[i] = sources[(int)i].first;
             lengths[i] = sources[(int)i].second;
 #endif // #if !defined(CL_HPP_ENABLE_PROGRAM_CONSTRUCTION_FROM_ARRAY_COMPATIBILITY)
@@ -6158,7 +6597,8 @@ public:
             context(), (cl_uint)n, strings.data(), lengths.data(), &error);
 
         detail::errHandler(error, __CREATE_PROGRAM_WITH_SOURCE_ERR);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = error;
         }
     }
@@ -6190,57 +6630,60 @@ public:
         cl_int* err = NULL)
     {
         cl_int error;
-        
+
         const size_type numDevices = devices.size();
-        
+
         // Catch size mismatch early and return
-        if(binaries.size() != numDevices) {
+        if (binaries.size() != numDevices)
+        {
             error = CL_INVALID_VALUE;
             detail::errHandler(error, __CREATE_PROGRAM_WITH_BINARY_ERR);
-            if (err != NULL) {
+            if (err != NULL)
+            {
                 *err = error;
             }
             return;
         }
 
-
         vector<size_type> lengths(numDevices);
         vector<const unsigned char*> images(numDevices);
 #if !defined(CL_HPP_ENABLE_PROGRAM_CONSTRUCTION_FROM_ARRAY_COMPATIBILITY)
-        for (size_type i = 0; i < numDevices; ++i) {
+        for (size_type i = 0; i < numDevices; ++i)
+        {
             images[i] = binaries[i].data();
             lengths[i] = binaries[(int)i].size();
         }
-#else // #if !defined(CL_HPP_ENABLE_PROGRAM_CONSTRUCTION_FROM_ARRAY_COMPATIBILITY)
-        for (size_type i = 0; i < numDevices; ++i) {
+#else  // #if !defined(CL_HPP_ENABLE_PROGRAM_CONSTRUCTION_FROM_ARRAY_COMPATIBILITY)
+        for (size_type i = 0; i < numDevices; ++i)
+        {
             images[i] = (const unsigned char*)binaries[i].first;
             lengths[i] = binaries[(int)i].second;
         }
 #endif // #if !defined(CL_HPP_ENABLE_PROGRAM_CONSTRUCTION_FROM_ARRAY_COMPATIBILITY)
-        
+
         vector<cl_device_id> deviceIDs(numDevices);
-        for( size_type deviceIndex = 0; deviceIndex < numDevices; ++deviceIndex ) {
+        for (size_type deviceIndex = 0; deviceIndex < numDevices; ++deviceIndex)
+        {
             deviceIDs[deviceIndex] = (devices[deviceIndex])();
         }
 
-        if(binaryStatus) {
+        if (binaryStatus)
+        {
             binaryStatus->resize(numDevices);
         }
-        
+
         object_ = ::clCreateProgramWithBinary(
-            context(), (cl_uint) devices.size(),
+            context(), (cl_uint)devices.size(),
             deviceIDs.data(),
-            lengths.data(), images.data(), (binaryStatus != NULL && numDevices > 0)
-               ? &binaryStatus->front()
-               : NULL, &error);
+            lengths.data(), images.data(), (binaryStatus != NULL && numDevices > 0) ? &binaryStatus->front() : NULL, &error);
 
         detail::errHandler(error, __CREATE_PROGRAM_WITH_BINARY_ERR);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = error;
         }
     }
 
-    
 #if CL_HPP_TARGET_OPENCL_VERSION >= 120
     /**
      * Create program using builtin kernels.
@@ -6254,29 +6697,31 @@ public:
     {
         cl_int error;
 
-
         size_type numDevices = devices.size();
         vector<cl_device_id> deviceIDs(numDevices);
-        for( size_type deviceIndex = 0; deviceIndex < numDevices; ++deviceIndex ) {
+        for (size_type deviceIndex = 0; deviceIndex < numDevices; ++deviceIndex)
+        {
             deviceIDs[deviceIndex] = (devices[deviceIndex])();
         }
-        
+
         object_ = ::clCreateProgramWithBuiltInKernels(
-            context(), 
-            (cl_uint) devices.size(),
+            context(),
+            (cl_uint)devices.size(),
             deviceIDs.data(),
-            kernelNames.c_str(), 
+            kernelNames.c_str(),
             &error);
 
         detail::errHandler(error, __CREATE_PROGRAM_WITH_BUILT_IN_KERNELS_ERR);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = error;
         }
     }
 #endif // CL_HPP_TARGET_OPENCL_VERSION >= 120
 
-    Program() { }
-    
+    Program()
+    {
+    }
 
     /*! \brief Constructor from cl_mem - takes ownership.
      *
@@ -6284,10 +6729,12 @@ public:
      *                     Defaults to false to maintain compatibility with
      *                     earlier versions.
      */
-    explicit Program(const cl_program& program, bool retainObject = false) : 
-        detail::Wrapper<cl_type>(program, retainObject) { }
+    explicit Program(const cl_program& program, bool retainObject = false)
+        : detail::Wrapper<cl_type>(program, retainObject)
+    {
+    }
 
-    Program& operator = (const cl_program& rhs)
+    Program& operator=(const cl_program& rhs)
     {
         detail::Wrapper<cl_type>::operator=(rhs);
         return *this;
@@ -6296,12 +6743,15 @@ public:
     /*! \brief Copy constructor to forward copy to the superclass correctly.
      * Required for MSVC.
      */
-    Program(const Program& program) : detail::Wrapper<cl_type>(program) {}
+    Program(const Program& program)
+        : detail::Wrapper<cl_type>(program)
+    {
+    }
 
     /*! \brief Copy assignment to forward copy to the superclass correctly.
      * Required for MSVC.
      */
-    Program& operator = (const Program &program)
+    Program& operator=(const Program& program)
     {
         detail::Wrapper<cl_type>::operator=(program);
         return *this;
@@ -6310,12 +6760,14 @@ public:
     /*! \brief Move constructor to forward move to the superclass correctly.
      * Required for MSVC.
      */
-    Program(Program&& program) CL_HPP_NOEXCEPT_ : detail::Wrapper<cl_type>(std::move(program)) {}
+    Program(Program&& program) CL_HPP_NOEXCEPT_ : detail::Wrapper<cl_type>(std::move(program))
+    {
+    }
 
     /*! \brief Move assignment to forward move to the superclass correctly.
      * Required for MSVC.
      */
-    Program& operator = (Program &&program)
+    Program& operator=(Program&& program)
     {
         detail::Wrapper<cl_type>::operator=(std::move(program));
         return *this;
@@ -6324,20 +6776,21 @@ public:
     cl_int build(
         const vector<Device>& devices,
         const char* options = NULL,
-        void (CL_CALLBACK * notifyFptr)(cl_program, void *) = NULL,
+        void(CL_CALLBACK* notifyFptr)(cl_program, void*) = NULL,
         void* data = NULL) const
     {
         size_type numDevices = devices.size();
         vector<cl_device_id> deviceIDs(numDevices);
-        
-        for( size_type deviceIndex = 0; deviceIndex < numDevices; ++deviceIndex ) {
+
+        for (size_type deviceIndex = 0; deviceIndex < numDevices; ++deviceIndex)
+        {
             deviceIDs[deviceIndex] = (devices[deviceIndex])();
         }
 
         cl_int buildError = ::clBuildProgram(
             object_,
             (cl_uint)
-            devices.size(),
+                devices.size(),
             deviceIDs.data(),
             options,
             notifyFptr,
@@ -6348,7 +6801,7 @@ public:
 
     cl_int build(
         const char* options = NULL,
-        void (CL_CALLBACK * notifyFptr)(cl_program, void *) = NULL,
+        void(CL_CALLBACK* notifyFptr)(cl_program, void*) = NULL,
         void* data = NULL) const
     {
         cl_int buildError = ::clBuildProgram(
@@ -6359,14 +6812,13 @@ public:
             notifyFptr,
             data);
 
-
         return detail::buildErrHandler(buildError, __BUILD_PROGRAM_ERR, getBuildInfo<CL_PROGRAM_BUILD_LOG>());
     }
 
 #if CL_HPP_TARGET_OPENCL_VERSION >= 120
     cl_int compile(
         const char* options = NULL,
-        void (CL_CALLBACK * notifyFptr)(cl_program, void *) = NULL,
+        void(CL_CALLBACK* notifyFptr)(cl_program, void*) = NULL,
         void* data = NULL) const
     {
         cl_int error = ::clCompileProgram(
@@ -6383,7 +6835,7 @@ public:
     }
 #endif // CL_HPP_TARGET_OPENCL_VERSION >= 120
 
-    template <typename T>
+    template<typename T>
     cl_int getInfo(cl_program_info name, T* param) const
     {
         return detail::errHandler(
@@ -6391,81 +6843,88 @@ public:
             __GET_PROGRAM_INFO_ERR);
     }
 
-    template <cl_int name> typename
-    detail::param_traits<detail::cl_program_info, name>::param_type
+    template<cl_int name>
+    typename detail::param_traits<detail::cl_program_info, name>::param_type
     getInfo(cl_int* err = NULL) const
     {
         typename detail::param_traits<
             detail::cl_program_info, name>::param_type param;
         cl_int result = getInfo(name, &param);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = result;
         }
         return param;
     }
 
-    template <typename T>
+    template<typename T>
     cl_int getBuildInfo(
         const Device& device, cl_program_build_info name, T* param) const
     {
         return detail::errHandler(
             detail::getInfo(
                 &::clGetProgramBuildInfo, object_, device(), name, param),
-                __GET_PROGRAM_BUILD_INFO_ERR);
+            __GET_PROGRAM_BUILD_INFO_ERR);
     }
 
-    template <cl_int name> typename
-    detail::param_traits<detail::cl_program_build_info, name>::param_type
+    template<cl_int name>
+    typename detail::param_traits<detail::cl_program_build_info, name>::param_type
     getBuildInfo(const Device& device, cl_int* err = NULL) const
     {
         typename detail::param_traits<
             detail::cl_program_build_info, name>::param_type param;
         cl_int result = getBuildInfo(device, name, &param);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = result;
         }
         return param;
     }
-    
+
     /**
      * Build info function that returns a vector of device/info pairs for the specified 
      * info type and for all devices in the program.
      * On an error reading the info for any device, an empty vector of info will be returned.
      */
-    template <cl_int name>
-    vector<std::pair<cl::Device, typename detail::param_traits<detail::cl_program_build_info, name>::param_type>>
-        getBuildInfo(cl_int *err = NULL) const
+    template<cl_int name>
+    vector<std::pair<cl::Device, typename detail::param_traits<detail::cl_program_build_info, name>::param_type> >
+    getBuildInfo(cl_int* err = NULL) const
     {
         cl_int result = CL_SUCCESS;
 
         auto devs = getInfo<CL_PROGRAM_DEVICES>(&result);
-        vector<std::pair<cl::Device, typename detail::param_traits<detail::cl_program_build_info, name>::param_type>>
+        vector<std::pair<cl::Device, typename detail::param_traits<detail::cl_program_build_info, name>::param_type> >
             devInfo;
 
         // If there was an initial error from getInfo return the error
-        if (result != CL_SUCCESS) {
-            if (err != NULL) {
+        if (result != CL_SUCCESS)
+        {
+            if (err != NULL)
+            {
                 *err = result;
             }
             return devInfo;
         }
 
-        for (cl::Device d : devs) {
+        for (cl::Device d : devs)
+        {
             typename detail::param_traits<
                 detail::cl_program_build_info, name>::param_type param;
             result = getBuildInfo(d, name, &param);
             devInfo.push_back(
-                std::pair<cl::Device, typename detail::param_traits<detail::cl_program_build_info, name>::param_type>
-                (d, param));
-            if (result != CL_SUCCESS) {
+                std::pair<cl::Device, typename detail::param_traits<detail::cl_program_build_info, name>::param_type>(d, param));
+            if (result != CL_SUCCESS)
+            {
                 // On error, leave the loop and return the error code
                 break;
             }
         }
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = result;
         }
-        if (result != CL_SUCCESS) {
+        if (result != CL_SUCCESS)
+        {
             devInfo.clear();
         }
         return devInfo;
@@ -6475,25 +6934,29 @@ public:
     {
         cl_uint numKernels;
         cl_int err = ::clCreateKernelsInProgram(object_, 0, NULL, &numKernels);
-        if (err != CL_SUCCESS) {
+        if (err != CL_SUCCESS)
+        {
             return detail::errHandler(err, __CREATE_KERNELS_IN_PROGRAM_ERR);
         }
 
         vector<cl_kernel> value(numKernels);
-        
+
         err = ::clCreateKernelsInProgram(
             object_, numKernels, value.data(), NULL);
-        if (err != CL_SUCCESS) {
+        if (err != CL_SUCCESS)
+        {
             return detail::errHandler(err, __CREATE_KERNELS_IN_PROGRAM_ERR);
         }
 
-        if (kernels) {
+        if (kernels)
+        {
             kernels->resize(value.size());
 
             // Assign to param, constructing with retain behaviour
             // to correctly capture each underlying CL object
-            for (size_type i = 0; i < value.size(); i++) {
-                // We do not need to retain because this kernel is being created 
+            for (size_type i = 0; i < value.size(); i++)
+            {
+                // We do not need to retain because this kernel is being created
                 // by the runtime
                 (*kernels)[i] = Kernel(value[i], false);
             }
@@ -6507,16 +6970,17 @@ inline Program linkProgram(
     Program input1,
     Program input2,
     const char* options = NULL,
-    void (CL_CALLBACK * notifyFptr)(cl_program, void *) = NULL,
+    void(CL_CALLBACK* notifyFptr)(cl_program, void*) = NULL,
     void* data = NULL,
-    cl_int* err = NULL) 
+    cl_int* err = NULL)
 {
     cl_int error_local = CL_SUCCESS;
 
-    cl_program programs[2] = { input1(), input2() };
+    cl_program programs[2] = {input1(), input2()};
 
     Context ctx = input1.getInfo<CL_PROGRAM_CONTEXT>(&error_local);
-    if(error_local!=CL_SUCCESS) {
+    if (error_local != CL_SUCCESS)
+    {
         detail::errHandler(error_local, __LINK_PROGRAM_ERR);
     }
 
@@ -6531,8 +6995,9 @@ inline Program linkProgram(
         data,
         &error_local);
 
-    detail::errHandler(error_local,__COMPILE_PROGRAM_ERR);
-    if (err != NULL) {
+    detail::errHandler(error_local, __COMPILE_PROGRAM_ERR);
+    if (err != NULL)
+    {
         *err = error_local;
     }
 
@@ -6542,22 +7007,25 @@ inline Program linkProgram(
 inline Program linkProgram(
     vector<Program> inputPrograms,
     const char* options = NULL,
-    void (CL_CALLBACK * notifyFptr)(cl_program, void *) = NULL,
+    void(CL_CALLBACK* notifyFptr)(cl_program, void*) = NULL,
     void* data = NULL,
-    cl_int* err = NULL) 
+    cl_int* err = NULL)
 {
     cl_int error_local = CL_SUCCESS;
 
     vector<cl_program> programs(inputPrograms.size());
 
-    for (unsigned int i = 0; i < inputPrograms.size(); i++) {
+    for (unsigned int i = 0; i < inputPrograms.size(); i++)
+    {
         programs[i] = inputPrograms[i]();
     }
-    
+
     Context ctx;
-    if(inputPrograms.size() > 0) {
+    if (inputPrograms.size() > 0)
+    {
         ctx = inputPrograms[0].getInfo<CL_PROGRAM_CONTEXT>(&error_local);
-        if(error_local!=CL_SUCCESS) {
+        if (error_local != CL_SUCCESS)
+        {
             detail::errHandler(error_local, __LINK_PROGRAM_ERR);
         }
     }
@@ -6572,8 +7040,9 @@ inline Program linkProgram(
         data,
         &error_local);
 
-    detail::errHandler(error_local,__COMPILE_PROGRAM_ERR);
-    if (err != NULL) {
+    detail::errHandler(error_local, __COMPILE_PROGRAM_ERR);
+    if (err != NULL)
+    {
         *err = error_local;
     }
 
@@ -6582,13 +7051,15 @@ inline Program linkProgram(
 #endif // CL_HPP_TARGET_OPENCL_VERSION >= 120
 
 // Template specialization for CL_PROGRAM_BINARIES
-template <>
-inline cl_int cl::Program::getInfo(cl_program_info name, vector<vector<unsigned char>>* param) const
+template<>
+inline cl_int cl::Program::getInfo(cl_program_info name, vector<vector<unsigned char> >* param) const
 {
-    if (name != CL_PROGRAM_BINARIES) {
+    if (name != CL_PROGRAM_BINARIES)
+    {
         return CL_INVALID_VALUE;
     }
-    if (param) {
+    if (param)
+    {
         // Resize the parameter array appropriately for each allocation
         // and pass down to the helper
 
@@ -6597,7 +7068,8 @@ inline cl_int cl::Program::getInfo(cl_program_info name, vector<vector<unsigned 
 
         // Resize the parameter array and constituent arrays
         param->resize(numBinaries);
-        for (size_type i = 0; i < numBinaries; ++i) {
+        for (size_type i = 0; i < numBinaries; ++i)
+        {
             (*param)[i].resize(sizes[i]);
         }
 
@@ -6610,12 +7082,13 @@ inline cl_int cl::Program::getInfo(cl_program_info name, vector<vector<unsigned 
 }
 
 template<>
-inline vector<vector<unsigned char>> cl::Program::getInfo<CL_PROGRAM_BINARIES>(cl_int* err) const
+inline vector<vector<unsigned char> > cl::Program::getInfo<CL_PROGRAM_BINARIES>(cl_int* err) const
 {
-    vector<vector<unsigned char>> binariesVectors;
+    vector<vector<unsigned char> > binariesVectors;
 
     cl_int result = getInfo(CL_PROGRAM_BINARIES, &binariesVectors);
-    if (err != NULL) {
+    if (err != NULL)
+    {
         *err = result;
     }
     return binariesVectors;
@@ -6628,10 +7101,10 @@ inline Kernel::Kernel(const Program& program, const char* name, cl_int* err)
     object_ = ::clCreateKernel(program(), name, &error);
     detail::errHandler(error, __CREATE_KERNEL_ERR);
 
-    if (err != NULL) {
+    if (err != NULL)
+    {
         *err = error;
     }
-
 }
 
 enum class QueueProperties : cl_command_queue_properties
@@ -6673,16 +7146,19 @@ private:
             int error;
             Context context = Context::getDefault(&error);
 
-            if (error != CL_SUCCESS) {
+            if (error != CL_SUCCESS)
+            {
                 default_error_ = error;
             }
-            else {
+            else
+            {
                 Device device = Device::getDefault();
                 default_ = CommandQueue(context, device, 0, &default_error_);
             }
         }
 #if defined(CL_HPP_ENABLE_EXCEPTIONS)
-        catch (cl::Error &e) {
+        catch (cl::Error& e)
+        {
             default_error_ = e.err();
         }
 #endif
@@ -6693,7 +7169,8 @@ private:
      * This sets @c default_. It does not throw
      * @c cl::Error.
      */
-    static void makeDefaultProvided(const CommandQueue &c) {
+    static void makeDefaultProvided(const CommandQueue& c)
+    {
         default_ = c;
     }
 
@@ -6705,17 +7182,17 @@ public:
     * the unit test framework.
     * This function is not thread safe.
     */
-    static void unitTestClearDefault() {
+    static void unitTestClearDefault()
+    {
         default_ = CommandQueue();
     }
 #endif // #ifdef CL_HPP_UNIT_TEST_ENABLE
-        
 
     /*!
      * \brief Constructs a CommandQueue based on passed properties.
      * Will return an CL_INVALID_QUEUE_PROPERTIES error if CL_QUEUE_ON_DEVICE is specified.
      */
-   CommandQueue(
+    CommandQueue(
         cl_command_queue_properties properties,
         cl_int* err = NULL)
     {
@@ -6724,27 +7201,33 @@ public:
         Context context = Context::getDefault(&error);
         detail::errHandler(error, __CREATE_CONTEXT_ERR);
 
-        if (error != CL_SUCCESS) {
-            if (err != NULL) {
+        if (error != CL_SUCCESS)
+        {
+            if (err != NULL)
+            {
                 *err = error;
             }
         }
-        else {
+        else
+        {
             Device device = context.getInfo<CL_CONTEXT_DEVICES>()[0];
 
 #if CL_HPP_TARGET_OPENCL_VERSION >= 200
             cl_queue_properties queue_properties[] = {
-                CL_QUEUE_PROPERTIES, properties, 0 };
-            if ((properties & CL_QUEUE_ON_DEVICE) == 0) {
+                CL_QUEUE_PROPERTIES, properties, 0};
+            if ((properties & CL_QUEUE_ON_DEVICE) == 0)
+            {
                 object_ = ::clCreateCommandQueueWithProperties(
                     context(), device(), queue_properties, &error);
             }
-            else {
+            else
+            {
                 error = CL_INVALID_QUEUE_PROPERTIES;
             }
 
             detail::errHandler(error, __CREATE_COMMAND_QUEUE_WITH_PROPERTIES_ERR);
-            if (err != NULL) {
+            if (err != NULL)
+            {
                 *err = error;
             }
 #else
@@ -6752,57 +7235,62 @@ public:
                 context(), device(), properties, &error);
 
             detail::errHandler(error, __CREATE_COMMAND_QUEUE_ERR);
-            if (err != NULL) {
+            if (err != NULL)
+            {
                 *err = error;
             }
 #endif
         }
     }
 
-   /*!
+    /*!
     * \brief Constructs a CommandQueue based on passed properties.
     * Will return an CL_INVALID_QUEUE_PROPERTIES error if CL_QUEUE_ON_DEVICE is specified.
     */
-   CommandQueue(
-       QueueProperties properties,
-       cl_int* err = NULL)
-   {
-       cl_int error;
+    CommandQueue(
+        QueueProperties properties,
+        cl_int* err = NULL)
+    {
+        cl_int error;
 
-       Context context = Context::getDefault(&error);
-       detail::errHandler(error, __CREATE_CONTEXT_ERR);
+        Context context = Context::getDefault(&error);
+        detail::errHandler(error, __CREATE_CONTEXT_ERR);
 
-       if (error != CL_SUCCESS) {
-           if (err != NULL) {
-               *err = error;
-           }
-       }
-       else {
-           Device device = context.getInfo<CL_CONTEXT_DEVICES>()[0];
+        if (error != CL_SUCCESS)
+        {
+            if (err != NULL)
+            {
+                *err = error;
+            }
+        }
+        else
+        {
+            Device device = context.getInfo<CL_CONTEXT_DEVICES>()[0];
 
 #if CL_HPP_TARGET_OPENCL_VERSION >= 200
-           cl_queue_properties queue_properties[] = {
-               CL_QUEUE_PROPERTIES, static_cast<cl_queue_properties>(properties), 0 };
+            cl_queue_properties queue_properties[] = {
+                CL_QUEUE_PROPERTIES, static_cast<cl_queue_properties>(properties), 0};
 
-           object_ = ::clCreateCommandQueueWithProperties(
-               context(), device(), queue_properties, &error);
+            object_ = ::clCreateCommandQueueWithProperties(
+                context(), device(), queue_properties, &error);
 
-
-           detail::errHandler(error, __CREATE_COMMAND_QUEUE_WITH_PROPERTIES_ERR);
-           if (err != NULL) {
-               *err = error;
-           }
+            detail::errHandler(error, __CREATE_COMMAND_QUEUE_WITH_PROPERTIES_ERR);
+            if (err != NULL)
+            {
+                *err = error;
+            }
 #else
-           object_ = ::clCreateCommandQueue(
-               context(), device(), static_cast<cl_command_queue_properties>(properties), &error);
+            object_ = ::clCreateCommandQueue(
+                context(), device(), static_cast<cl_command_queue_properties>(properties), &error);
 
-           detail::errHandler(error, __CREATE_COMMAND_QUEUE_ERR);
-           if (err != NULL) {
-               *err = error;
-           }
+            detail::errHandler(error, __CREATE_COMMAND_QUEUE_ERR);
+            if (err != NULL)
+            {
+                *err = error;
+            }
 #endif
-       }
-   }
+        }
+    }
 
     /*!
      * \brief Constructs a CommandQueue for an implementation defined device in the given context
@@ -6821,7 +7309,8 @@ public:
 
         if (error != CL_SUCCESS)
         {
-            if (err != NULL) {
+            if (err != NULL)
+            {
                 *err = error;
             }
             return;
@@ -6829,17 +7318,20 @@ public:
 
 #if CL_HPP_TARGET_OPENCL_VERSION >= 200
         cl_queue_properties queue_properties[] = {
-            CL_QUEUE_PROPERTIES, properties, 0 };
-        if ((properties & CL_QUEUE_ON_DEVICE) == 0) {
+            CL_QUEUE_PROPERTIES, properties, 0};
+        if ((properties & CL_QUEUE_ON_DEVICE) == 0)
+        {
             object_ = ::clCreateCommandQueueWithProperties(
                 context(), devices[0](), queue_properties, &error);
         }
-        else {
+        else
+        {
             error = CL_INVALID_QUEUE_PROPERTIES;
         }
 
         detail::errHandler(error, __CREATE_COMMAND_QUEUE_WITH_PROPERTIES_ERR);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = error;
         }
 #else
@@ -6847,11 +7339,11 @@ public:
             context(), devices[0](), properties, &error);
 
         detail::errHandler(error, __CREATE_COMMAND_QUEUE_ERR);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = error;
         }
 #endif
-
     }
 
     /*!
@@ -6871,7 +7363,8 @@ public:
 
         if (error != CL_SUCCESS)
         {
-            if (err != NULL) {
+            if (err != NULL)
+            {
                 *err = error;
             }
             return;
@@ -6879,12 +7372,13 @@ public:
 
 #if CL_HPP_TARGET_OPENCL_VERSION >= 200
         cl_queue_properties queue_properties[] = {
-            CL_QUEUE_PROPERTIES, static_cast<cl_queue_properties>(properties), 0 };
+            CL_QUEUE_PROPERTIES, static_cast<cl_queue_properties>(properties), 0};
         object_ = ::clCreateCommandQueueWithProperties(
             context(), devices[0](), queue_properties, &error);
-       
+
         detail::errHandler(error, __CREATE_COMMAND_QUEUE_WITH_PROPERTIES_ERR);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = error;
         }
 #else
@@ -6892,11 +7386,11 @@ public:
             context(), devices[0](), static_cast<cl_command_queue_properties>(properties), &error);
 
         detail::errHandler(error, __CREATE_COMMAND_QUEUE_ERR);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = error;
         }
 #endif
-
     }
 
     /*!
@@ -6913,12 +7407,13 @@ public:
 
 #if CL_HPP_TARGET_OPENCL_VERSION >= 200
         cl_queue_properties queue_properties[] = {
-            CL_QUEUE_PROPERTIES, properties, 0 };
+            CL_QUEUE_PROPERTIES, properties, 0};
         object_ = ::clCreateCommandQueueWithProperties(
             context(), device(), queue_properties, &error);
-        
+
         detail::errHandler(error, __CREATE_COMMAND_QUEUE_WITH_PROPERTIES_ERR);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = error;
         }
 #else
@@ -6926,7 +7421,8 @@ public:
             context(), device(), properties, &error);
 
         detail::errHandler(error, __CREATE_COMMAND_QUEUE_ERR);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = error;
         }
 #endif
@@ -6942,38 +7438,41 @@ public:
         QueueProperties properties,
         cl_int* err = NULL)
     {
-            cl_int error;
+        cl_int error;
 
 #if CL_HPP_TARGET_OPENCL_VERSION >= 200
-            cl_queue_properties queue_properties[] = {
-                CL_QUEUE_PROPERTIES, static_cast<cl_queue_properties>(properties), 0 };
-            object_ = ::clCreateCommandQueueWithProperties(
-                context(), device(), queue_properties, &error);
-      
-            detail::errHandler(error, __CREATE_COMMAND_QUEUE_WITH_PROPERTIES_ERR);
-            if (err != NULL) {
-                *err = error;
-            }
-#else
-            object_ = ::clCreateCommandQueue(
-                context(), device(), static_cast<cl_command_queue_properties>(properties), &error);
+        cl_queue_properties queue_properties[] = {
+            CL_QUEUE_PROPERTIES, static_cast<cl_queue_properties>(properties), 0};
+        object_ = ::clCreateCommandQueueWithProperties(
+            context(), device(), queue_properties, &error);
 
-            detail::errHandler(error, __CREATE_COMMAND_QUEUE_ERR);
-            if (err != NULL) {
-                *err = error;
-            }
-#endif
+        detail::errHandler(error, __CREATE_COMMAND_QUEUE_WITH_PROPERTIES_ERR);
+        if (err != NULL)
+        {
+            *err = error;
         }
+#else
+        object_ = ::clCreateCommandQueue(
+            context(), device(), static_cast<cl_command_queue_properties>(properties), &error);
 
-    static CommandQueue getDefault(cl_int * err = NULL) 
+        detail::errHandler(error, __CREATE_COMMAND_QUEUE_ERR);
+        if (err != NULL)
+        {
+            *err = error;
+        }
+#endif
+    }
+
+    static CommandQueue getDefault(cl_int* err = NULL)
     {
         std::call_once(default_initialized_, makeDefault);
 #if CL_HPP_TARGET_OPENCL_VERSION >= 200
         detail::errHandler(default_error_, __CREATE_COMMAND_QUEUE_WITH_PROPERTIES_ERR);
-#else // CL_HPP_TARGET_OPENCL_VERSION >= 200
+#else  // CL_HPP_TARGET_OPENCL_VERSION >= 200
         detail::errHandler(default_error_, __CREATE_COMMAND_QUEUE_ERR);
 #endif // CL_HPP_TARGET_OPENCL_VERSION >= 200
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = default_error_;
         }
         return default_;
@@ -6986,15 +7485,16 @@ public:
      * @return updated default command queue.
      *         Should be compared to the passed value to ensure that it was updated.
      */
-    static CommandQueue setDefault(const CommandQueue &default_queue)
+    static CommandQueue setDefault(const CommandQueue& default_queue)
     {
         std::call_once(default_initialized_, makeDefaultProvided, std::cref(default_queue));
         detail::errHandler(default_error_);
         return default_;
     }
 
-    CommandQueue() { }
-
+    CommandQueue()
+    {
+    }
 
     /*! \brief Constructor from cl_mem - takes ownership.
      *
@@ -7002,10 +7502,12 @@ public:
      *                     Defaults to false to maintain compatibility with
      *                     earlier versions.
      */
-    explicit CommandQueue(const cl_command_queue& commandQueue, bool retainObject = false) : 
-        detail::Wrapper<cl_type>(commandQueue, retainObject) { }
+    explicit CommandQueue(const cl_command_queue& commandQueue, bool retainObject = false)
+        : detail::Wrapper<cl_type>(commandQueue, retainObject)
+    {
+    }
 
-    CommandQueue& operator = (const cl_command_queue& rhs)
+    CommandQueue& operator=(const cl_command_queue& rhs)
     {
         detail::Wrapper<cl_type>::operator=(rhs);
         return *this;
@@ -7014,12 +7516,15 @@ public:
     /*! \brief Copy constructor to forward copy to the superclass correctly.
      * Required for MSVC.
      */
-    CommandQueue(const CommandQueue& queue) : detail::Wrapper<cl_type>(queue) {}
+    CommandQueue(const CommandQueue& queue)
+        : detail::Wrapper<cl_type>(queue)
+    {
+    }
 
     /*! \brief Copy assignment to forward copy to the superclass correctly.
      * Required for MSVC.
      */
-    CommandQueue& operator = (const CommandQueue &queue)
+    CommandQueue& operator=(const CommandQueue& queue)
     {
         detail::Wrapper<cl_type>::operator=(queue);
         return *this;
@@ -7028,34 +7533,37 @@ public:
     /*! \brief Move constructor to forward move to the superclass correctly.
      * Required for MSVC.
      */
-    CommandQueue(CommandQueue&& queue) CL_HPP_NOEXCEPT_ : detail::Wrapper<cl_type>(std::move(queue)) {}
+    CommandQueue(CommandQueue&& queue) CL_HPP_NOEXCEPT_ : detail::Wrapper<cl_type>(std::move(queue))
+    {
+    }
 
     /*! \brief Move assignment to forward move to the superclass correctly.
      * Required for MSVC.
      */
-    CommandQueue& operator = (CommandQueue &&queue)
+    CommandQueue& operator=(CommandQueue&& queue)
     {
         detail::Wrapper<cl_type>::operator=(std::move(queue));
         return *this;
     }
 
-    template <typename T>
+    template<typename T>
     cl_int getInfo(cl_command_queue_info name, T* param) const
     {
         return detail::errHandler(
             detail::getInfo(
                 &::clGetCommandQueueInfo, object_, name, param),
-                __GET_COMMAND_QUEUE_INFO_ERR);
+            __GET_COMMAND_QUEUE_INFO_ERR);
     }
 
-    template <cl_int name> typename
-    detail::param_traits<detail::cl_command_queue_info, name>::param_type
+    template<cl_int name>
+    typename detail::param_traits<detail::cl_command_queue_info, name>::param_type
     getInfo(cl_int* err = NULL) const
     {
         typename detail::param_traits<
             detail::cl_command_queue_info, name>::param_type param;
         cl_int result = getInfo(name, &param);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = result;
         }
         return param;
@@ -7075,8 +7583,8 @@ public:
             ::clEnqueueReadBuffer(
                 object_, buffer(), blocking, offset, size,
                 ptr,
-                (events != NULL) ? (cl_uint) events->size() : 0,
-                (events != NULL && events->size() > 0) ? (cl_event*) &events->front() : NULL,
+                (events != NULL) ? (cl_uint)events->size() : 0,
+                (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
                 (event != NULL) ? &tmp : NULL),
             __ENQUEUE_READ_BUFFER_ERR);
 
@@ -7100,10 +7608,10 @@ public:
             ::clEnqueueWriteBuffer(
                 object_, buffer(), blocking, offset, size,
                 ptr,
-                (events != NULL) ? (cl_uint) events->size() : 0,
-                (events != NULL && events->size() > 0) ? (cl_event*) &events->front() : NULL,
+                (events != NULL) ? (cl_uint)events->size() : 0,
+                (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
                 (event != NULL) ? &tmp : NULL),
-                __ENQUEUE_WRITE_BUFFER_ERR);
+            __ENQUEUE_WRITE_BUFFER_ERR);
 
         if (event != NULL && err == CL_SUCCESS)
             *event = tmp;
@@ -7124,8 +7632,8 @@ public:
         cl_int err = detail::errHandler(
             ::clEnqueueCopyBuffer(
                 object_, src(), dst(), src_offset, dst_offset, size,
-                (events != NULL) ? (cl_uint) events->size() : 0,
-                (events != NULL && events->size() > 0) ? (cl_event*) &events->front() : NULL,
+                (events != NULL) ? (cl_uint)events->size() : 0,
+                (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
                 (event != NULL) ? &tmp : NULL),
             __ENQEUE_COPY_BUFFER_ERR);
 
@@ -7145,15 +7653,15 @@ public:
         size_type buffer_slice_pitch,
         size_type host_row_pitch,
         size_type host_slice_pitch,
-        void *ptr,
+        void* ptr,
         const vector<Event>* events = NULL,
         Event* event = NULL) const
     {
         cl_event tmp;
         cl_int err = detail::errHandler(
             ::clEnqueueReadBufferRect(
-                object_, 
-                buffer(), 
+                object_,
+                buffer(),
                 blocking,
                 buffer_offset.data(),
                 host_offset.data(),
@@ -7163,10 +7671,10 @@ public:
                 host_row_pitch,
                 host_slice_pitch,
                 ptr,
-                (events != NULL) ? (cl_uint) events->size() : 0,
-                (events != NULL && events->size() > 0) ? (cl_event*) &events->front() : NULL,
+                (events != NULL) ? (cl_uint)events->size() : 0,
+                (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
                 (event != NULL) ? &tmp : NULL),
-                __ENQUEUE_READ_BUFFER_RECT_ERR);
+            __ENQUEUE_READ_BUFFER_RECT_ERR);
 
         if (event != NULL && err == CL_SUCCESS)
             *event = tmp;
@@ -7184,15 +7692,15 @@ public:
         size_type buffer_slice_pitch,
         size_type host_row_pitch,
         size_type host_slice_pitch,
-        const void *ptr,
+        const void* ptr,
         const vector<Event>* events = NULL,
         Event* event = NULL) const
     {
         cl_event tmp;
         cl_int err = detail::errHandler(
             ::clEnqueueWriteBufferRect(
-                object_, 
-                buffer(), 
+                object_,
+                buffer(),
                 blocking,
                 buffer_offset.data(),
                 host_offset.data(),
@@ -7202,10 +7710,10 @@ public:
                 host_row_pitch,
                 host_slice_pitch,
                 ptr,
-                (events != NULL) ? (cl_uint) events->size() : 0,
-                (events != NULL && events->size() > 0) ? (cl_event*) &events->front() : NULL,
+                (events != NULL) ? (cl_uint)events->size() : 0,
+                (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
                 (event != NULL) ? &tmp : NULL),
-                __ENQUEUE_WRITE_BUFFER_RECT_ERR);
+            __ENQUEUE_WRITE_BUFFER_RECT_ERR);
 
         if (event != NULL && err == CL_SUCCESS)
             *event = tmp;
@@ -7229,9 +7737,9 @@ public:
         cl_event tmp;
         cl_int err = detail::errHandler(
             ::clEnqueueCopyBufferRect(
-                object_, 
-                src(), 
-                dst(), 
+                object_,
+                src(),
+                dst(),
                 src_origin.data(),
                 dst_origin.data(),
                 region.data(),
@@ -7239,8 +7747,8 @@ public:
                 src_slice_pitch,
                 dst_row_pitch,
                 dst_slice_pitch,
-                (events != NULL) ? (cl_uint) events->size() : 0,
-                (events != NULL && events->size() > 0) ? (cl_event*) &events->front() : NULL,
+                (events != NULL) ? (cl_uint)events->size() : 0,
+                (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
                 (event != NULL) ? &tmp : NULL),
             __ENQEUE_COPY_BUFFER_RECT_ERR);
 
@@ -7274,16 +7782,16 @@ public:
         cl_event tmp;
         cl_int err = detail::errHandler(
             ::clEnqueueFillBuffer(
-                object_, 
+                object_,
                 buffer(),
                 static_cast<void*>(&pattern),
-                sizeof(PatternType), 
-                offset, 
+                sizeof(PatternType),
+                offset,
                 size,
-                (events != NULL) ? (cl_uint) events->size() : 0,
-                (events != NULL && events->size() > 0) ? (cl_event*) &events->front() : NULL,
+                (events != NULL) ? (cl_uint)events->size() : 0,
+                (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
                 (event != NULL) ? &tmp : NULL),
-                __ENQUEUE_FILL_BUFFER_ERR);
+            __ENQUEUE_FILL_BUFFER_ERR);
 
         if (event != NULL && err == CL_SUCCESS)
             *event = tmp;
@@ -7306,16 +7814,16 @@ public:
         cl_event tmp;
         cl_int err = detail::errHandler(
             ::clEnqueueReadImage(
-                object_, 
-                image(), 
-                blocking, 
+                object_,
+                image(),
+                blocking,
                 origin.data(),
-                region.data(), 
-                row_pitch, 
-                slice_pitch, 
+                region.data(),
+                row_pitch,
+                slice_pitch,
                 ptr,
-                (events != NULL) ? (cl_uint) events->size() : 0,
-                (events != NULL && events->size() > 0) ? (cl_event*) &events->front() : NULL,
+                (events != NULL) ? (cl_uint)events->size() : 0,
+                (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
                 (event != NULL) ? &tmp : NULL),
             __ENQUEUE_READ_IMAGE_ERR);
 
@@ -7339,16 +7847,16 @@ public:
         cl_event tmp;
         cl_int err = detail::errHandler(
             ::clEnqueueWriteImage(
-                object_, 
-                image(), 
-                blocking, 
+                object_,
+                image(),
+                blocking,
                 origin.data(),
-                region.data(), 
-                row_pitch, 
-                slice_pitch, 
+                region.data(),
+                row_pitch,
+                slice_pitch,
                 ptr,
-                (events != NULL) ? (cl_uint) events->size() : 0,
-                (events != NULL && events->size() > 0) ? (cl_event*) &events->front() : NULL,
+                (events != NULL) ? (cl_uint)events->size() : 0,
+                (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
                 (event != NULL) ? &tmp : NULL),
             __ENQUEUE_WRITE_IMAGE_ERR);
 
@@ -7370,14 +7878,14 @@ public:
         cl_event tmp;
         cl_int err = detail::errHandler(
             ::clEnqueueCopyImage(
-                object_, 
-                src(), 
-                dst(), 
+                object_,
+                src(),
+                dst(),
                 src_origin.data(),
-                dst_origin.data(), 
+                dst_origin.data(),
                 region.data(),
-                (events != NULL) ? (cl_uint) events->size() : 0,
-                (events != NULL && events->size() > 0) ? (cl_event*) &events->front() : NULL,
+                (events != NULL) ? (cl_uint)events->size() : 0,
+                (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
                 (event != NULL) ? &tmp : NULL),
             __ENQUEUE_COPY_IMAGE_ERR);
 
@@ -7406,15 +7914,15 @@ public:
         cl_event tmp;
         cl_int err = detail::errHandler(
             ::clEnqueueFillImage(
-                object_, 
+                object_,
                 image(),
-                static_cast<void*>(&fillColor), 
+                static_cast<void*>(&fillColor),
                 origin.data(),
                 region.data(),
-                (events != NULL) ? (cl_uint) events->size() : 0,
-                (events != NULL && events->size() > 0) ? (cl_event*) &events->front() : NULL,
+                (events != NULL) ? (cl_uint)events->size() : 0,
+                (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
                 (event != NULL) ? &tmp : NULL),
-                __ENQUEUE_FILL_IMAGE_ERR);
+            __ENQUEUE_FILL_IMAGE_ERR);
 
         if (event != NULL && err == CL_SUCCESS)
             *event = tmp;
@@ -7440,15 +7948,15 @@ public:
         cl_event tmp;
         cl_int err = detail::errHandler(
             ::clEnqueueFillImage(
-                object_, 
+                object_,
                 image(),
-                static_cast<void*>(&fillColor), 
+                static_cast<void*>(&fillColor),
                 origin.data(),
                 region.data(),
-                (events != NULL) ? (cl_uint) events->size() : 0,
-                (events != NULL && events->size() > 0) ? (cl_event*) &events->front() : NULL,
+                (events != NULL) ? (cl_uint)events->size() : 0,
+                (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
                 (event != NULL) ? &tmp : NULL),
-                __ENQUEUE_FILL_IMAGE_ERR);
+            __ENQUEUE_FILL_IMAGE_ERR);
 
         if (event != NULL && err == CL_SUCCESS)
             *event = tmp;
@@ -7474,15 +7982,15 @@ public:
         cl_event tmp;
         cl_int err = detail::errHandler(
             ::clEnqueueFillImage(
-                object_, 
+                object_,
                 image(),
-                static_cast<void*>(&fillColor), 
+                static_cast<void*>(&fillColor),
                 origin.data(),
                 region.data(),
-                (events != NULL) ? (cl_uint) events->size() : 0,
-                (events != NULL && events->size() > 0) ? (cl_event*) &events->front() : NULL,
+                (events != NULL) ? (cl_uint)events->size() : 0,
+                (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
                 (event != NULL) ? &tmp : NULL),
-                __ENQUEUE_FILL_IMAGE_ERR);
+            __ENQUEUE_FILL_IMAGE_ERR);
 
         if (event != NULL && err == CL_SUCCESS)
             *event = tmp;
@@ -7503,14 +8011,14 @@ public:
         cl_event tmp;
         cl_int err = detail::errHandler(
             ::clEnqueueCopyImageToBuffer(
-                object_, 
-                src(), 
-                dst(), 
+                object_,
+                src(),
+                dst(),
                 src_origin.data(),
-                region.data(), 
+                region.data(),
                 dst_offset,
-                (events != NULL) ? (cl_uint) events->size() : 0,
-                (events != NULL && events->size() > 0) ? (cl_event*) &events->front() : NULL,
+                (events != NULL) ? (cl_uint)events->size() : 0,
+                (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
                 (event != NULL) ? &tmp : NULL),
             __ENQUEUE_COPY_IMAGE_TO_BUFFER_ERR);
 
@@ -7532,14 +8040,14 @@ public:
         cl_event tmp;
         cl_int err = detail::errHandler(
             ::clEnqueueCopyBufferToImage(
-                object_, 
-                src(), 
-                dst(), 
+                object_,
+                src(),
+                dst(),
                 src_offset,
-                dst_origin.data(), 
+                dst_origin.data(),
                 region.data(),
-                (events != NULL) ? (cl_uint) events->size() : 0,
-                (events != NULL && events->size() > 0) ? (cl_event*) &events->front() : NULL,
+                (events != NULL) ? (cl_uint)events->size() : 0,
+                (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
                 (event != NULL) ? &tmp : NULL),
             __ENQUEUE_COPY_BUFFER_TO_IMAGE_ERR);
 
@@ -7561,15 +8069,16 @@ public:
     {
         cl_event tmp;
         cl_int error;
-        void * result = ::clEnqueueMapBuffer(
+        void* result = ::clEnqueueMapBuffer(
             object_, buffer(), blocking, flags, offset, size,
-            (events != NULL) ? (cl_uint) events->size() : 0,
-            (events != NULL && events->size() > 0) ? (cl_event*) &events->front() : NULL,
+            (events != NULL) ? (cl_uint)events->size() : 0,
+            (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
             (event != NULL) ? &tmp : NULL,
             &error);
 
         detail::errHandler(error, __ENQUEUE_MAP_BUFFER_ERR);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = error;
         }
         if (event != NULL && error == CL_SUCCESS)
@@ -7584,27 +8093,28 @@ public:
         cl_map_flags flags,
         const array<size_type, 3>& origin,
         const array<size_type, 3>& region,
-        size_type * row_pitch,
-        size_type * slice_pitch,
+        size_type* row_pitch,
+        size_type* slice_pitch,
         const vector<Event>* events = NULL,
         Event* event = NULL,
         cl_int* err = NULL) const
     {
         cl_event tmp;
         cl_int error;
-        void * result = ::clEnqueueMapImage(
+        void* result = ::clEnqueueMapImage(
             object_, buffer(), blocking, flags,
-            origin.data(), 
+            origin.data(),
             region.data(),
             row_pitch, slice_pitch,
-            (events != NULL) ? (cl_uint) events->size() : 0,
-            (events != NULL && events->size() > 0) ? (cl_event*) &events->front() : NULL,
+            (events != NULL) ? (cl_uint)events->size() : 0,
+            (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
             (event != NULL) ? &tmp : NULL,
             &error);
 
         detail::errHandler(error, __ENQUEUE_MAP_IMAGE_ERR);
-        if (err != NULL) {
-              *err = error;
+        if (err != NULL)
+        {
+            *err = error;
         }
         if (event != NULL && error == CL_SUCCESS)
             *event = tmp;
@@ -7627,11 +8137,11 @@ public:
     {
         cl_event tmp;
         cl_int err = detail::errHandler(::clEnqueueSVMMap(
-            object_, blocking, flags, static_cast<void*>(ptr), size,
-            (events != NULL) ? (cl_uint)events->size() : 0,
-            (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
-            (event != NULL) ? &tmp : NULL),
-            __ENQUEUE_MAP_BUFFER_ERR);
+                                            object_, blocking, flags, static_cast<void*>(ptr), size,
+                                            (events != NULL) ? (cl_uint)events->size() : 0,
+                                            (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
+                                            (event != NULL) ? &tmp : NULL),
+                                        __ENQUEUE_MAP_BUFFER_ERR);
 
         if (event != NULL && err == CL_SUCCESS)
             *event = tmp;
@@ -7639,14 +8149,13 @@ public:
         return err;
     }
 
-
     /**
      * Enqueues a command that will allow the host to update a region of a coarse-grained SVM buffer.
      * This variant takes a cl::pointer instance.
      */
     template<typename T, class D>
     cl_int enqueueMapSVM(
-        cl::pointer<T, D> &ptr,
+        cl::pointer<T, D>& ptr,
         cl_bool blocking,
         cl_map_flags flags,
         size_type size,
@@ -7655,11 +8164,11 @@ public:
     {
         cl_event tmp;
         cl_int err = detail::errHandler(::clEnqueueSVMMap(
-            object_, blocking, flags, static_cast<void*>(ptr.get()), size,
-            (events != NULL) ? (cl_uint)events->size() : 0,
-            (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
-            (event != NULL) ? &tmp : NULL),
-            __ENQUEUE_MAP_BUFFER_ERR);
+                                            object_, blocking, flags, static_cast<void*>(ptr.get()), size,
+                                            (events != NULL) ? (cl_uint)events->size() : 0,
+                                            (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
+                                            (event != NULL) ? &tmp : NULL),
+                                        __ENQUEUE_MAP_BUFFER_ERR);
 
         if (event != NULL && err == CL_SUCCESS)
             *event = tmp;
@@ -7673,7 +8182,7 @@ public:
      */
     template<typename T, class Alloc>
     cl_int enqueueMapSVM(
-        cl::vector<T, Alloc> &container,
+        cl::vector<T, Alloc>& container,
         cl_bool blocking,
         cl_map_flags flags,
         const vector<Event>* events = NULL,
@@ -7681,11 +8190,11 @@ public:
     {
         cl_event tmp;
         cl_int err = detail::errHandler(::clEnqueueSVMMap(
-            object_, blocking, flags, static_cast<void*>(container.data()), container.size(),
-            (events != NULL) ? (cl_uint)events->size() : 0,
-            (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
-            (event != NULL) ? &tmp : NULL),
-            __ENQUEUE_MAP_BUFFER_ERR);
+                                            object_, blocking, flags, static_cast<void*>(container.data()), container.size(),
+                                            (events != NULL) ? (cl_uint)events->size() : 0,
+                                            (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
+                                            (event != NULL) ? &tmp : NULL),
+                                        __ENQUEUE_MAP_BUFFER_ERR);
 
         if (event != NULL && err == CL_SUCCESS)
             *event = tmp;
@@ -7704,8 +8213,8 @@ public:
         cl_int err = detail::errHandler(
             ::clEnqueueUnmapMemObject(
                 object_, memory(), mapped_ptr,
-                (events != NULL) ? (cl_uint) events->size() : 0,
-                (events != NULL && events->size() > 0) ? (cl_event*) &events->front() : NULL,
+                (events != NULL) ? (cl_uint)events->size() : 0,
+                (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
                 (event != NULL) ? &tmp : NULL),
             __ENQUEUE_UNMAP_MEM_OBJECT_ERR);
 
@@ -7714,7 +8223,6 @@ public:
 
         return err;
     }
-
 
 #if CL_HPP_TARGET_OPENCL_VERSION >= 200
     /**
@@ -7730,10 +8238,10 @@ public:
         cl_event tmp;
         cl_int err = detail::errHandler(
             ::clEnqueueSVMUnmap(
-            object_, static_cast<void*>(ptr),
-            (events != NULL) ? (cl_uint)events->size() : 0,
-            (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
-            (event != NULL) ? &tmp : NULL),
+                object_, static_cast<void*>(ptr),
+                (events != NULL) ? (cl_uint)events->size() : 0,
+                (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
+                (event != NULL) ? &tmp : NULL),
             __ENQUEUE_UNMAP_MEM_OBJECT_ERR);
 
         if (event != NULL && err == CL_SUCCESS)
@@ -7748,17 +8256,17 @@ public:
      */
     template<typename T, class D>
     cl_int enqueueUnmapSVM(
-        cl::pointer<T, D> &ptr,
+        cl::pointer<T, D>& ptr,
         const vector<Event>* events = NULL,
         Event* event = NULL) const
     {
         cl_event tmp;
         cl_int err = detail::errHandler(
             ::clEnqueueSVMUnmap(
-            object_, static_cast<void*>(ptr.get()),
-            (events != NULL) ? (cl_uint)events->size() : 0,
-            (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
-            (event != NULL) ? &tmp : NULL),
+                object_, static_cast<void*>(ptr.get()),
+                (events != NULL) ? (cl_uint)events->size() : 0,
+                (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
+                (event != NULL) ? &tmp : NULL),
             __ENQUEUE_UNMAP_MEM_OBJECT_ERR);
 
         if (event != NULL && err == CL_SUCCESS)
@@ -7773,17 +8281,17 @@ public:
      */
     template<typename T, class Alloc>
     cl_int enqueueUnmapSVM(
-        cl::vector<T, Alloc> &container,
+        cl::vector<T, Alloc>& container,
         const vector<Event>* events = NULL,
         Event* event = NULL) const
     {
         cl_event tmp;
         cl_int err = detail::errHandler(
             ::clEnqueueSVMUnmap(
-            object_, static_cast<void*>(container.data()),
-            (events != NULL) ? (cl_uint)events->size() : 0,
-            (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
-            (event != NULL) ? &tmp : NULL),
+                object_, static_cast<void*>(container.data()),
+                (events != NULL) ? (cl_uint)events->size() : 0,
+                (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
+                (event != NULL) ? &tmp : NULL),
             __ENQUEUE_UNMAP_MEM_OBJECT_ERR);
 
         if (event != NULL && err == CL_SUCCESS)
@@ -7806,15 +8314,15 @@ public:
      * have completed.
      */
     cl_int enqueueMarkerWithWaitList(
-        const vector<Event> *events = 0,
-        Event *event = 0)
+        const vector<Event>* events = 0,
+        Event* event = 0)
     {
         cl_event tmp;
         cl_int err = detail::errHandler(
             ::clEnqueueMarkerWithWaitList(
                 object_,
-                (events != NULL) ? (cl_uint) events->size() : 0,
-                (events != NULL && events->size() > 0) ? (cl_event*) &events->front() : NULL,
+                (events != NULL) ? (cl_uint)events->size() : 0,
+                (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
                 (event != NULL) ? &tmp : NULL),
             __ENQUEUE_MARKER_WAIT_LIST_ERR);
 
@@ -7836,15 +8344,15 @@ public:
      * before this command to command_queue, have completed.
      */
     cl_int enqueueBarrierWithWaitList(
-        const vector<Event> *events = 0,
-        Event *event = 0)
+        const vector<Event>* events = 0,
+        Event* event = 0)
     {
         cl_event tmp;
         cl_int err = detail::errHandler(
             ::clEnqueueBarrierWithWaitList(
                 object_,
-                (events != NULL) ? (cl_uint) events->size() : 0,
-                (events != NULL && events->size() > 0) ? (cl_event*) &events->front() : NULL,
+                (events != NULL) ? (cl_uint)events->size() : 0,
+                (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
                 (event != NULL) ? &tmp : NULL),
             __ENQUEUE_BARRIER_WAIT_LIST_ERR);
 
@@ -7853,35 +8361,34 @@ public:
 
         return err;
     }
-    
+
     /**
      * Enqueues a command to indicate with which device a set of memory objects
      * should be associated.
      */
     cl_int enqueueMigrateMemObjects(
-        const vector<Memory> &memObjects,
+        const vector<Memory>& memObjects,
         cl_mem_migration_flags flags,
         const vector<Event>* events = NULL,
-        Event* event = NULL
-        )
+        Event* event = NULL)
     {
         cl_event tmp;
-        
+
         vector<cl_mem> localMemObjects(memObjects.size());
 
-        for( int i = 0; i < (int)memObjects.size(); ++i ) {
+        for (int i = 0; i < (int)memObjects.size(); ++i)
+        {
             localMemObjects[i] = memObjects[i]();
         }
 
-
         cl_int err = detail::errHandler(
             ::clEnqueueMigrateMemObjects(
-                object_, 
-                (cl_uint)memObjects.size(), 
+                object_,
+                (cl_uint)memObjects.size(),
                 localMemObjects.data(),
                 flags,
-                (events != NULL) ? (cl_uint) events->size() : 0,
-                (events != NULL && events->size() > 0) ? (cl_event*) &events->front() : NULL,
+                (events != NULL) ? (cl_uint)events->size() : 0,
+                (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
                 (event != NULL) ? &tmp : NULL),
             __ENQUEUE_UNMAP_MEM_OBJECT_ERR);
 
@@ -7903,12 +8410,12 @@ public:
         cl_event tmp;
         cl_int err = detail::errHandler(
             ::clEnqueueNDRangeKernel(
-                object_, kernel(), (cl_uint) global.dimensions(),
-                offset.dimensions() != 0 ? (const size_type*) offset : NULL,
-                (const size_type*) global,
-                local.dimensions() != 0 ? (const size_type*) local : NULL,
-                (events != NULL) ? (cl_uint) events->size() : 0,
-                (events != NULL && events->size() > 0) ? (cl_event*) &events->front() : NULL,
+                object_, kernel(), (cl_uint)global.dimensions(),
+                offset.dimensions() != 0 ? (const size_type*)offset : NULL,
+                (const size_type*)global,
+                local.dimensions() != 0 ? (const size_type*)local : NULL,
+                (events != NULL) ? (cl_uint)events->size() : 0,
+                (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
                 (event != NULL) ? &tmp : NULL),
             __ENQUEUE_NDRANGE_KERNEL_ERR);
 
@@ -7928,8 +8435,8 @@ public:
         cl_int err = detail::errHandler(
             ::clEnqueueTask(
                 object_, kernel(),
-                (events != NULL) ? (cl_uint) events->size() : 0,
-                (events != NULL && events->size() > 0) ? (cl_event*) &events->front() : NULL,
+                (events != NULL) ? (cl_uint)events->size() : 0,
+                (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
                 (event != NULL) ? &tmp : NULL),
             __ENQUEUE_TASK_ERR);
 
@@ -7941,7 +8448,7 @@ public:
 #endif // #if defined(CL_USE_DEPRECATED_OPENCL_1_2_APIS)
 
     cl_int enqueueNativeKernel(
-        void (CL_CALLBACK *userFptr)(void *),
+        void(CL_CALLBACK* userFptr)(void*),
         std::pair<void*, size_type> args,
         const vector<Memory>* mem_objects = NULL,
         const vector<const void*>* mem_locs = NULL,
@@ -7949,23 +8456,25 @@ public:
         Event* event = NULL) const
     {
         size_type elements = 0;
-        if (mem_objects != NULL) {
+        if (mem_objects != NULL)
+        {
             elements = mem_objects->size();
         }
         vector<cl_mem> mems(elements);
-        for (unsigned int i = 0; i < elements; i++) {
+        for (unsigned int i = 0; i < elements; i++)
+        {
             mems[i] = ((*mem_objects)[i])();
         }
-        
+
         cl_event tmp;
         cl_int err = detail::errHandler(
             ::clEnqueueNativeKernel(
                 object_, userFptr, args.first, args.second,
-                (mem_objects != NULL) ? (cl_uint) mem_objects->size() : 0,
+                (mem_objects != NULL) ? (cl_uint)mem_objects->size() : 0,
                 mems.data(),
-                (mem_locs != NULL && mem_locs->size() > 0) ? (const void **) &mem_locs->front() : NULL,
-                (events != NULL) ? (cl_uint) events->size() : 0,
-                (events != NULL && events->size() > 0) ? (cl_event*) &events->front() : NULL,
+                (mem_locs != NULL && mem_locs->size() > 0) ? (const void**)&mem_locs->front() : NULL,
+                (events != NULL) ? (cl_uint)events->size() : 0,
+                (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
                 (event != NULL) ? &tmp : NULL),
             __ENQUEUE_NATIVE_KERNEL);
 
@@ -7979,13 +8488,13 @@ public:
  * Deprecated APIs for 1.2
  */
 #if defined(CL_USE_DEPRECATED_OPENCL_1_1_APIS)
-    CL_EXT_PREFIX__VERSION_1_1_DEPRECATED 
+    CL_EXT_PREFIX__VERSION_1_1_DEPRECATED
     cl_int enqueueMarker(Event* event = NULL) const CL_EXT_SUFFIX__VERSION_1_1_DEPRECATED
     {
         cl_event tmp;
         cl_int err = detail::errHandler(
             ::clEnqueueMarker(
-                object_, 
+                object_,
                 (event != NULL) ? &tmp : NULL),
             __ENQUEUE_MARKER_ERR);
 
@@ -8001,70 +8510,70 @@ public:
         return detail::errHandler(
             ::clEnqueueWaitForEvents(
                 object_,
-                (cl_uint) events.size(),
-                events.size() > 0 ? (const cl_event*) &events.front() : NULL),
+                (cl_uint)events.size(),
+                events.size() > 0 ? (const cl_event*)&events.front() : NULL),
             __ENQUEUE_WAIT_FOR_EVENTS_ERR);
     }
 #endif // defined(CL_USE_DEPRECATED_OPENCL_1_1_APIS)
 
     cl_int enqueueAcquireGLObjects(
-         const vector<Memory>* mem_objects = NULL,
-         const vector<Event>* events = NULL,
-         Event* event = NULL) const
-     {
+        const vector<Memory>* mem_objects = NULL,
+        const vector<Event>* events = NULL,
+        Event* event = NULL) const
+    {
         cl_event tmp;
         cl_int err = detail::errHandler(
-             ::clEnqueueAcquireGLObjects(
-                 object_,
-                 (mem_objects != NULL) ? (cl_uint) mem_objects->size() : 0,
-                 (mem_objects != NULL && mem_objects->size() > 0) ? (const cl_mem *) &mem_objects->front(): NULL,
-                 (events != NULL) ? (cl_uint) events->size() : 0,
-                 (events != NULL && events->size() > 0) ? (cl_event*) &events->front() : NULL,
-                 (event != NULL) ? &tmp : NULL),
-             __ENQUEUE_ACQUIRE_GL_ERR);
+            ::clEnqueueAcquireGLObjects(
+                object_,
+                (mem_objects != NULL) ? (cl_uint)mem_objects->size() : 0,
+                (mem_objects != NULL && mem_objects->size() > 0) ? (const cl_mem*)&mem_objects->front() : NULL,
+                (events != NULL) ? (cl_uint)events->size() : 0,
+                (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
+                (event != NULL) ? &tmp : NULL),
+            __ENQUEUE_ACQUIRE_GL_ERR);
 
         if (event != NULL && err == CL_SUCCESS)
             *event = tmp;
 
         return err;
-     }
+    }
 
     cl_int enqueueReleaseGLObjects(
-         const vector<Memory>* mem_objects = NULL,
-         const vector<Event>* events = NULL,
-         Event* event = NULL) const
-     {
+        const vector<Memory>* mem_objects = NULL,
+        const vector<Event>* events = NULL,
+        Event* event = NULL) const
+    {
         cl_event tmp;
         cl_int err = detail::errHandler(
-             ::clEnqueueReleaseGLObjects(
-                 object_,
-                 (mem_objects != NULL) ? (cl_uint) mem_objects->size() : 0,
-                 (mem_objects != NULL && mem_objects->size() > 0) ? (const cl_mem *) &mem_objects->front(): NULL,
-                 (events != NULL) ? (cl_uint) events->size() : 0,
-                 (events != NULL && events->size() > 0) ? (cl_event*) &events->front() : NULL,
-                 (event != NULL) ? &tmp : NULL),
-             __ENQUEUE_RELEASE_GL_ERR);
+            ::clEnqueueReleaseGLObjects(
+                object_,
+                (mem_objects != NULL) ? (cl_uint)mem_objects->size() : 0,
+                (mem_objects != NULL && mem_objects->size() > 0) ? (const cl_mem*)&mem_objects->front() : NULL,
+                (events != NULL) ? (cl_uint)events->size() : 0,
+                (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
+                (event != NULL) ? &tmp : NULL),
+            __ENQUEUE_RELEASE_GL_ERR);
 
         if (event != NULL && err == CL_SUCCESS)
             *event = tmp;
 
         return err;
-     }
+    }
 
-#if defined (CL_HPP_USE_DX_INTEROP)
-typedef CL_API_ENTRY cl_int (CL_API_CALL *PFN_clEnqueueAcquireD3D10ObjectsKHR)(
-    cl_command_queue command_queue, cl_uint num_objects,
-    const cl_mem* mem_objects, cl_uint num_events_in_wait_list,
-    const cl_event* event_wait_list, cl_event* event);
-typedef CL_API_ENTRY cl_int (CL_API_CALL *PFN_clEnqueueReleaseD3D10ObjectsKHR)(
-    cl_command_queue command_queue, cl_uint num_objects,
-    const cl_mem* mem_objects,  cl_uint num_events_in_wait_list,
-    const cl_event* event_wait_list, cl_event* event);
+#if defined(CL_HPP_USE_DX_INTEROP)
+    typedef CL_API_ENTRY cl_int(CL_API_CALL* PFN_clEnqueueAcquireD3D10ObjectsKHR)(
+        cl_command_queue command_queue, cl_uint num_objects,
+        const cl_mem* mem_objects, cl_uint num_events_in_wait_list,
+        const cl_event* event_wait_list, cl_event* event);
+    typedef CL_API_ENTRY cl_int(CL_API_CALL* PFN_clEnqueueReleaseD3D10ObjectsKHR)(
+        cl_command_queue command_queue, cl_uint num_objects,
+        const cl_mem* mem_objects, cl_uint num_events_in_wait_list,
+        const cl_event* event_wait_list, cl_event* event);
 
     cl_int enqueueAcquireD3D10Objects(
-         const vector<Memory>* mem_objects = NULL,
-         const vector<Event>* events = NULL,
-         Event* event = NULL) const
+        const vector<Memory>* mem_objects = NULL,
+        const vector<Event>* events = NULL,
+        Event* event = NULL) const
     {
         static PFN_clEnqueueAcquireD3D10ObjectsKHR pfn_clEnqueueAcquireD3D10ObjectsKHR = NULL;
 #if CL_HPP_TARGET_OPENCL_VERSION >= 120
@@ -8076,28 +8585,28 @@ typedef CL_API_ENTRY cl_int (CL_API_CALL *PFN_clEnqueueReleaseD3D10ObjectsKHR)(
 #if CL_HPP_TARGET_OPENCL_VERSION >= 110
         CL_HPP_INIT_CL_EXT_FCN_PTR_(clEnqueueAcquireD3D10ObjectsKHR);
 #endif
-        
+
         cl_event tmp;
         cl_int err = detail::errHandler(
-             pfn_clEnqueueAcquireD3D10ObjectsKHR(
-                 object_,
-                 (mem_objects != NULL) ? (cl_uint) mem_objects->size() : 0,
-                 (mem_objects != NULL && mem_objects->size() > 0) ? (const cl_mem *) &mem_objects->front(): NULL,
-                 (events != NULL) ? (cl_uint) events->size() : 0,
-                 (events != NULL) ? (cl_event*) &events->front() : NULL,
-                 (event != NULL) ? &tmp : NULL),
-             __ENQUEUE_ACQUIRE_GL_ERR);
+            pfn_clEnqueueAcquireD3D10ObjectsKHR(
+                object_,
+                (mem_objects != NULL) ? (cl_uint)mem_objects->size() : 0,
+                (mem_objects != NULL && mem_objects->size() > 0) ? (const cl_mem*)&mem_objects->front() : NULL,
+                (events != NULL) ? (cl_uint)events->size() : 0,
+                (events != NULL) ? (cl_event*)&events->front() : NULL,
+                (event != NULL) ? &tmp : NULL),
+            __ENQUEUE_ACQUIRE_GL_ERR);
 
         if (event != NULL && err == CL_SUCCESS)
             *event = tmp;
 
         return err;
-     }
+    }
 
     cl_int enqueueReleaseD3D10Objects(
-         const vector<Memory>* mem_objects = NULL,
-         const vector<Event>* events = NULL,
-         Event* event = NULL) const
+        const vector<Memory>* mem_objects = NULL,
+        const vector<Event>* events = NULL,
+        Event* event = NULL) const
     {
         static PFN_clEnqueueReleaseD3D10ObjectsKHR pfn_clEnqueueReleaseD3D10ObjectsKHR = NULL;
 #if CL_HPP_TARGET_OPENCL_VERSION >= 120
@@ -8114,10 +8623,10 @@ typedef CL_API_ENTRY cl_int (CL_API_CALL *PFN_clEnqueueReleaseD3D10ObjectsKHR)(
         cl_int err = detail::errHandler(
             pfn_clEnqueueReleaseD3D10ObjectsKHR(
                 object_,
-                (mem_objects != NULL) ? (cl_uint) mem_objects->size() : 0,
-                (mem_objects != NULL && mem_objects->size() > 0) ? (const cl_mem *) &mem_objects->front(): NULL,
-                (events != NULL) ? (cl_uint) events->size() : 0,
-                (events != NULL && events->size() > 0) ? (cl_event*) &events->front() : NULL,
+                (mem_objects != NULL) ? (cl_uint)mem_objects->size() : 0,
+                (mem_objects != NULL && mem_objects->size() > 0) ? (const cl_mem*)&mem_objects->front() : NULL,
+                (events != NULL) ? (cl_uint)events->size() : 0,
+                (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
                 (event != NULL) ? &tmp : NULL),
             __ENQUEUE_RELEASE_GL_ERR);
 
@@ -8156,7 +8665,6 @@ CL_HPP_DEFINE_STATIC_MEMBER_ std::once_flag CommandQueue::default_initialized_;
 CL_HPP_DEFINE_STATIC_MEMBER_ CommandQueue CommandQueue::default_;
 CL_HPP_DEFINE_STATIC_MEMBER_ cl_int CommandQueue::default_error_ = CL_SUCCESS;
 
-
 #if CL_HPP_TARGET_OPENCL_VERSION >= 200
 enum class DeviceQueueProperties : cl_command_queue_properties
 {
@@ -8175,11 +8683,12 @@ inline DeviceQueueProperties operator|(DeviceQueueProperties lhs, DeviceQueuePro
 class DeviceCommandQueue : public detail::Wrapper<cl_command_queue>
 {
 public:
-
     /*!
      * Trivial empty constructor to create a null queue.
      */
-    DeviceCommandQueue() { }
+    DeviceCommandQueue()
+    {
+    }
 
     /*!
      * Default construct device command queue on default context and device
@@ -8190,16 +8699,16 @@ public:
         cl::Context context = cl::Context::getDefault();
         cl::Device device = cl::Device::getDefault();
 
-        cl_command_queue_properties mergedProperties =
-            CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE | CL_QUEUE_ON_DEVICE | static_cast<cl_command_queue_properties>(properties);
+        cl_command_queue_properties mergedProperties = CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE | CL_QUEUE_ON_DEVICE | static_cast<cl_command_queue_properties>(properties);
 
         cl_queue_properties queue_properties[] = {
-            CL_QUEUE_PROPERTIES, mergedProperties, 0 };
+            CL_QUEUE_PROPERTIES, mergedProperties, 0};
         object_ = ::clCreateCommandQueueWithProperties(
             context(), device(), queue_properties, &error);
 
         detail::errHandler(error, __CREATE_COMMAND_QUEUE_WITH_PROPERTIES_ERR);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = error;
         }
     }
@@ -8215,15 +8724,15 @@ public:
     {
         cl_int error;
 
-        cl_command_queue_properties mergedProperties =
-            CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE | CL_QUEUE_ON_DEVICE | static_cast<cl_command_queue_properties>(properties);
+        cl_command_queue_properties mergedProperties = CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE | CL_QUEUE_ON_DEVICE | static_cast<cl_command_queue_properties>(properties);
         cl_queue_properties queue_properties[] = {
-            CL_QUEUE_PROPERTIES, mergedProperties, 0 };
+            CL_QUEUE_PROPERTIES, mergedProperties, 0};
         object_ = ::clCreateCommandQueueWithProperties(
             context(), device(), queue_properties, &error);
 
         detail::errHandler(error, __CREATE_COMMAND_QUEUE_WITH_PROPERTIES_ERR);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = error;
         }
     }
@@ -8240,17 +8749,17 @@ public:
     {
         cl_int error;
 
-        cl_command_queue_properties mergedProperties =
-            CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE | CL_QUEUE_ON_DEVICE | static_cast<cl_command_queue_properties>(properties);
+        cl_command_queue_properties mergedProperties = CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE | CL_QUEUE_ON_DEVICE | static_cast<cl_command_queue_properties>(properties);
         cl_queue_properties queue_properties[] = {
             CL_QUEUE_PROPERTIES, mergedProperties,
-            CL_QUEUE_SIZE, queueSize, 
-            0 };
+            CL_QUEUE_SIZE, queueSize,
+            0};
         object_ = ::clCreateCommandQueueWithProperties(
             context(), device(), queue_properties, &error);
 
         detail::errHandler(error, __CREATE_COMMAND_QUEUE_WITH_PROPERTIES_ERR);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = error;
         }
     }
@@ -8261,10 +8770,12 @@ public:
     *                     Defaults to false to maintain compatibility with
     *                     earlier versions.
     */
-    explicit DeviceCommandQueue(const cl_command_queue& commandQueue, bool retainObject = false) :
-        detail::Wrapper<cl_type>(commandQueue, retainObject) { }
+    explicit DeviceCommandQueue(const cl_command_queue& commandQueue, bool retainObject = false)
+        : detail::Wrapper<cl_type>(commandQueue, retainObject)
+    {
+    }
 
-    DeviceCommandQueue& operator = (const cl_command_queue& rhs)
+    DeviceCommandQueue& operator=(const cl_command_queue& rhs)
     {
         detail::Wrapper<cl_type>::operator=(rhs);
         return *this;
@@ -8273,12 +8784,15 @@ public:
     /*! \brief Copy constructor to forward copy to the superclass correctly.
      * Required for MSVC.
      */
-    DeviceCommandQueue(const DeviceCommandQueue& queue) : detail::Wrapper<cl_type>(queue) {}
+    DeviceCommandQueue(const DeviceCommandQueue& queue)
+        : detail::Wrapper<cl_type>(queue)
+    {
+    }
 
     /*! \brief Copy assignment to forward copy to the superclass correctly.
      * Required for MSVC.
      */
-    DeviceCommandQueue& operator = (const DeviceCommandQueue &queue)
+    DeviceCommandQueue& operator=(const DeviceCommandQueue& queue)
     {
         detail::Wrapper<cl_type>::operator=(queue);
         return *this;
@@ -8287,34 +8801,37 @@ public:
     /*! \brief Move constructor to forward move to the superclass correctly.
      * Required for MSVC.
      */
-    DeviceCommandQueue(DeviceCommandQueue&& queue) CL_HPP_NOEXCEPT_ : detail::Wrapper<cl_type>(std::move(queue)) {}
+    DeviceCommandQueue(DeviceCommandQueue&& queue) CL_HPP_NOEXCEPT_ : detail::Wrapper<cl_type>(std::move(queue))
+    {
+    }
 
     /*! \brief Move assignment to forward move to the superclass correctly.
      * Required for MSVC.
      */
-    DeviceCommandQueue& operator = (DeviceCommandQueue &&queue)
+    DeviceCommandQueue& operator=(DeviceCommandQueue&& queue)
     {
         detail::Wrapper<cl_type>::operator=(std::move(queue));
         return *this;
     }
 
-    template <typename T>
+    template<typename T>
     cl_int getInfo(cl_command_queue_info name, T* param) const
     {
         return detail::errHandler(
             detail::getInfo(
-            &::clGetCommandQueueInfo, object_, name, param),
+                &::clGetCommandQueueInfo, object_, name, param),
             __GET_COMMAND_QUEUE_INFO_ERR);
     }
 
-    template <cl_int name> typename
-        detail::param_traits<detail::cl_command_queue_info, name>::param_type
-        getInfo(cl_int* err = NULL) const
+    template<cl_int name>
+    typename detail::param_traits<detail::cl_command_queue_info, name>::param_type
+    getInfo(cl_int* err = NULL) const
     {
         typename detail::param_traits<
             detail::cl_command_queue_info, name>::param_type param;
         cl_int result = getInfo(name, &param);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = result;
         }
         return param;
@@ -8327,23 +8844,23 @@ public:
     * function will return the pre-existing queue.
     */
     static DeviceCommandQueue makeDefault(
-        cl_int *err = nullptr)
+        cl_int* err = nullptr)
     {
         cl_int error;
         cl::Context context = cl::Context::getDefault();
         cl::Device device = cl::Device::getDefault();
 
-        cl_command_queue_properties properties =
-            CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE | CL_QUEUE_ON_DEVICE | CL_QUEUE_ON_DEVICE_DEFAULT;
+        cl_command_queue_properties properties = CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE | CL_QUEUE_ON_DEVICE | CL_QUEUE_ON_DEVICE_DEFAULT;
         cl_queue_properties queue_properties[] = {
             CL_QUEUE_PROPERTIES, properties,
-            0 };
+            0};
         DeviceCommandQueue deviceQueue(
             ::clCreateCommandQueueWithProperties(
-            context(), device(), queue_properties, &error));
+                context(), device(), queue_properties, &error));
 
         detail::errHandler(error, __CREATE_COMMAND_QUEUE_WITH_PROPERTIES_ERR);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = error;
         }
 
@@ -8357,21 +8874,21 @@ public:
     * function will return the pre-existing queue.
     */
     static DeviceCommandQueue makeDefault(
-        const Context &context, const Device &device, cl_int *err = nullptr)
+        const Context& context, const Device& device, cl_int* err = nullptr)
     {
         cl_int error;
 
-        cl_command_queue_properties properties =
-            CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE | CL_QUEUE_ON_DEVICE | CL_QUEUE_ON_DEVICE_DEFAULT;
+        cl_command_queue_properties properties = CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE | CL_QUEUE_ON_DEVICE | CL_QUEUE_ON_DEVICE_DEFAULT;
         cl_queue_properties queue_properties[] = {
             CL_QUEUE_PROPERTIES, properties,
-            0 };
+            0};
         DeviceCommandQueue deviceQueue(
             ::clCreateCommandQueueWithProperties(
-            context(), device(), queue_properties, &error));
+                context(), device(), queue_properties, &error));
 
         detail::errHandler(error, __CREATE_COMMAND_QUEUE_WITH_PROPERTIES_ERR);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = error;
         }
 
@@ -8385,22 +8902,22 @@ public:
      * function will return the pre-existing queue.
      */
     static DeviceCommandQueue makeDefault(
-        const Context &context, const Device &device, cl_uint queueSize, cl_int *err = nullptr)
+        const Context& context, const Device& device, cl_uint queueSize, cl_int* err = nullptr)
     {
         cl_int error;
 
-        cl_command_queue_properties properties =
-            CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE | CL_QUEUE_ON_DEVICE | CL_QUEUE_ON_DEVICE_DEFAULT;
+        cl_command_queue_properties properties = CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE | CL_QUEUE_ON_DEVICE | CL_QUEUE_ON_DEVICE_DEFAULT;
         cl_queue_properties queue_properties[] = {
             CL_QUEUE_PROPERTIES, properties,
             CL_QUEUE_SIZE, queueSize,
-            0 };
+            0};
         DeviceCommandQueue deviceQueue(
             ::clCreateCommandQueueWithProperties(
                 context(), device(), queue_properties, &error));
 
         detail::errHandler(error, __CREATE_COMMAND_QUEUE_WITH_PROPERTIES_ERR);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = error;
         }
 
@@ -8408,23 +8925,27 @@ public:
     }
 }; // DeviceCommandQueue
 
-namespace detail
+namespace detail {
+// Specialization for device command queue
+template<>
+struct KernelArgumentHandler<cl::DeviceCommandQueue, void>
 {
-    // Specialization for device command queue
-    template <>
-    struct KernelArgumentHandler<cl::DeviceCommandQueue, void>
+    static size_type size(const cl::DeviceCommandQueue&)
     {
-        static size_type size(const cl::DeviceCommandQueue&) { return sizeof(cl_command_queue); }
-        static const cl_command_queue* ptr(const cl::DeviceCommandQueue& value) { return &(value()); }
-    };
+        return sizeof(cl_command_queue);
+    }
+    static const cl_command_queue* ptr(const cl::DeviceCommandQueue& value)
+    {
+        return &(value());
+    }
+};
 } // namespace detail
 
 #endif // #if CL_HPP_TARGET_OPENCL_VERSION >= 200
 
-
-template< typename IteratorType >
+template<typename IteratorType>
 Buffer::Buffer(
-    const Context &context,
+    const Context& context,
     IteratorType startIterator,
     IteratorType endIterator,
     bool readOnly,
@@ -8435,47 +8956,57 @@ Buffer::Buffer(
     cl_int error;
 
     cl_mem_flags flags = 0;
-    if( readOnly ) {
+    if (readOnly)
+    {
         flags |= CL_MEM_READ_ONLY;
     }
-    else {
+    else
+    {
         flags |= CL_MEM_READ_WRITE;
     }
-    if( useHostPtr ) {
+    if (useHostPtr)
+    {
         flags |= CL_MEM_USE_HOST_PTR;
     }
-    
-    size_type size = sizeof(DataType)*(endIterator - startIterator);
 
-    if( useHostPtr ) {
+    size_type size = sizeof(DataType) * (endIterator - startIterator);
+
+    if (useHostPtr)
+    {
         object_ = ::clCreateBuffer(context(), flags, size, static_cast<DataType*>(&*startIterator), &error);
-    } else {
+    }
+    else
+    {
         object_ = ::clCreateBuffer(context(), flags, size, 0, &error);
     }
 
     detail::errHandler(error, __CREATE_BUFFER_ERR);
-    if (err != NULL) {
+    if (err != NULL)
+    {
         *err = error;
     }
 
-    if( !useHostPtr ) {
+    if (!useHostPtr)
+    {
         CommandQueue queue(context, 0, &error);
         detail::errHandler(error, __CREATE_BUFFER_ERR);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = error;
         }
 
         error = cl::copy(queue, startIterator, endIterator, *this);
         detail::errHandler(error, __CREATE_BUFFER_ERR);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = error;
         }
     }
 }
 
-template< typename IteratorType >
+template<typename IteratorType>
 Buffer::Buffer(
-    const CommandQueue &queue,
+    const CommandQueue& queue,
     IteratorType startIterator,
     IteratorType endIterator,
     bool readOnly,
@@ -8486,36 +9017,44 @@ Buffer::Buffer(
     cl_int error;
 
     cl_mem_flags flags = 0;
-    if (readOnly) {
+    if (readOnly)
+    {
         flags |= CL_MEM_READ_ONLY;
     }
-    else {
+    else
+    {
         flags |= CL_MEM_READ_WRITE;
     }
-    if (useHostPtr) {
+    if (useHostPtr)
+    {
         flags |= CL_MEM_USE_HOST_PTR;
     }
 
-    size_type size = sizeof(DataType)*(endIterator - startIterator);
+    size_type size = sizeof(DataType) * (endIterator - startIterator);
 
     Context context = queue.getInfo<CL_QUEUE_CONTEXT>();
 
-    if (useHostPtr) {
+    if (useHostPtr)
+    {
         object_ = ::clCreateBuffer(context(), flags, size, static_cast<DataType*>(&*startIterator), &error);
     }
-    else {
+    else
+    {
         object_ = ::clCreateBuffer(context(), flags, size, 0, &error);
     }
 
     detail::errHandler(error, __CREATE_BUFFER_ERR);
-    if (err != NULL) {
+    if (err != NULL)
+    {
         *err = error;
     }
 
-    if (!useHostPtr) {
+    if (!useHostPtr)
+    {
         error = cl::copy(queue, startIterator, endIterator, *this);
         detail::errHandler(error, __CREATE_BUFFER_ERR);
-        if (err != NULL) {
+        if (err != NULL)
+        {
             *err = error;
         }
     }
@@ -8533,7 +9072,8 @@ inline cl_int enqueueReadBuffer(
     cl_int error;
     CommandQueue queue = CommandQueue::getDefault(&error);
 
-    if (error != CL_SUCCESS) {
+    if (error != CL_SUCCESS)
+    {
         return error;
     }
 
@@ -8541,18 +9081,19 @@ inline cl_int enqueueReadBuffer(
 }
 
 inline cl_int enqueueWriteBuffer(
-        const Buffer& buffer,
-        cl_bool blocking,
-        size_type offset,
-        size_type size,
-        const void* ptr,
-        const vector<Event>* events = NULL,
-        Event* event = NULL)
+    const Buffer& buffer,
+    cl_bool blocking,
+    size_type offset,
+    size_type size,
+    const void* ptr,
+    const vector<Event>* events = NULL,
+    Event* event = NULL)
 {
     cl_int error;
     CommandQueue queue = CommandQueue::getDefault(&error);
 
-    if (error != CL_SUCCESS) {
+    if (error != CL_SUCCESS)
+    {
         return error;
     }
 
@@ -8560,36 +9101,37 @@ inline cl_int enqueueWriteBuffer(
 }
 
 inline void* enqueueMapBuffer(
-        const Buffer& buffer,
-        cl_bool blocking,
-        cl_map_flags flags,
-        size_type offset,
-        size_type size,
-        const vector<Event>* events = NULL,
-        Event* event = NULL,
-        cl_int* err = NULL)
+    const Buffer& buffer,
+    cl_bool blocking,
+    cl_map_flags flags,
+    size_type offset,
+    size_type size,
+    const vector<Event>* events = NULL,
+    Event* event = NULL,
+    cl_int* err = NULL)
 {
     cl_int error;
     CommandQueue queue = CommandQueue::getDefault(&error);
     detail::errHandler(error, __ENQUEUE_MAP_BUFFER_ERR);
-    if (err != NULL) {
+    if (err != NULL)
+    {
         *err = error;
     }
 
-    void * result = ::clEnqueueMapBuffer(
-            queue(), buffer(), blocking, flags, offset, size,
-            (events != NULL) ? (cl_uint) events->size() : 0,
-            (events != NULL && events->size() > 0) ? (cl_event*) &events->front() : NULL,
-            (cl_event*) event,
-            &error);
+    void* result = ::clEnqueueMapBuffer(
+        queue(), buffer(), blocking, flags, offset, size,
+        (events != NULL) ? (cl_uint)events->size() : 0,
+        (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
+        (cl_event*)event,
+        &error);
 
     detail::errHandler(error, __ENQUEUE_MAP_BUFFER_ERR);
-    if (err != NULL) {
+    if (err != NULL)
+    {
         *err = error;
     }
     return result;
 }
-
 
 #if CL_HPP_TARGET_OPENCL_VERSION >= 200
 /**
@@ -8608,7 +9150,8 @@ inline cl_int enqueueMapSVM(
 {
     cl_int error;
     CommandQueue queue = CommandQueue::getDefault(&error);
-    if (error != CL_SUCCESS) {
+    if (error != CL_SUCCESS)
+    {
         return detail::errHandler(error, __ENQUEUE_MAP_BUFFER_ERR);
     }
 
@@ -8632,7 +9175,8 @@ inline cl_int enqueueMapSVM(
 {
     cl_int error;
     CommandQueue queue = CommandQueue::getDefault(&error);
-    if (error != CL_SUCCESS) {
+    if (error != CL_SUCCESS)
+    {
         return detail::errHandler(error, __ENQUEUE_MAP_BUFFER_ERR);
     }
 
@@ -8655,7 +9199,8 @@ inline cl_int enqueueMapSVM(
 {
     cl_int error;
     CommandQueue queue = CommandQueue::getDefault(&error);
-    if (error != CL_SUCCESS) {
+    if (error != CL_SUCCESS)
+    {
         return detail::errHandler(error, __ENQUEUE_MAP_BUFFER_ERR);
     }
 
@@ -8674,17 +9219,18 @@ inline cl_int enqueueUnmapMemObject(
     cl_int error;
     CommandQueue queue = CommandQueue::getDefault(&error);
     detail::errHandler(error, __ENQUEUE_MAP_BUFFER_ERR);
-    if (error != CL_SUCCESS) {
+    if (error != CL_SUCCESS)
+    {
         return error;
     }
 
     cl_event tmp;
     cl_int err = detail::errHandler(
         ::clEnqueueUnmapMemObject(
-        queue(), memory(), mapped_ptr,
-        (events != NULL) ? (cl_uint)events->size() : 0,
-        (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
-        (event != NULL) ? &tmp : NULL),
+            queue(), memory(), mapped_ptr,
+            (events != NULL) ? (cl_uint)events->size() : 0,
+            (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
+            (event != NULL) ? &tmp : NULL),
         __ENQUEUE_UNMAP_MEM_OBJECT_ERR);
 
     if (event != NULL && err == CL_SUCCESS)
@@ -8707,13 +9253,13 @@ inline cl_int enqueueUnmapSVM(
 {
     cl_int error;
     CommandQueue queue = CommandQueue::getDefault(&error);
-    if (error != CL_SUCCESS) {
+    if (error != CL_SUCCESS)
+    {
         return detail::errHandler(error, __ENQUEUE_UNMAP_MEM_OBJECT_ERR);
     }
 
-    return detail::errHandler(queue.enqueueUnmapSVM(ptr, events, event), 
-        __ENQUEUE_UNMAP_MEM_OBJECT_ERR);
-
+    return detail::errHandler(queue.enqueueUnmapSVM(ptr, events, event),
+                              __ENQUEUE_UNMAP_MEM_OBJECT_ERR);
 }
 
 /**
@@ -8723,18 +9269,19 @@ inline cl_int enqueueUnmapSVM(
  */
 template<typename T, class D>
 inline cl_int enqueueUnmapSVM(
-    cl::pointer<T, D> &ptr,
+    cl::pointer<T, D>& ptr,
     const vector<Event>* events = NULL,
     Event* event = NULL)
 {
     cl_int error;
     CommandQueue queue = CommandQueue::getDefault(&error);
-    if (error != CL_SUCCESS) {
+    if (error != CL_SUCCESS)
+    {
         return detail::errHandler(error, __ENQUEUE_UNMAP_MEM_OBJECT_ERR);
     }
 
     return detail::errHandler(queue.enqueueUnmapSVM(ptr, events, event),
-        __ENQUEUE_UNMAP_MEM_OBJECT_ERR);
+                              __ENQUEUE_UNMAP_MEM_OBJECT_ERR);
 }
 
 /**
@@ -8744,35 +9291,37 @@ inline cl_int enqueueUnmapSVM(
  */
 template<typename T, class Alloc>
 inline cl_int enqueueUnmapSVM(
-    cl::vector<T, Alloc> &container,
+    cl::vector<T, Alloc>& container,
     const vector<Event>* events = NULL,
     Event* event = NULL)
 {
     cl_int error;
     CommandQueue queue = CommandQueue::getDefault(&error);
-    if (error != CL_SUCCESS) {
+    if (error != CL_SUCCESS)
+    {
         return detail::errHandler(error, __ENQUEUE_UNMAP_MEM_OBJECT_ERR);
     }
 
     return detail::errHandler(queue.enqueueUnmapSVM(container, events, event),
-        __ENQUEUE_UNMAP_MEM_OBJECT_ERR);
+                              __ENQUEUE_UNMAP_MEM_OBJECT_ERR);
 }
 
 #endif // #if CL_HPP_TARGET_OPENCL_VERSION >= 200
 
 inline cl_int enqueueCopyBuffer(
-        const Buffer& src,
-        const Buffer& dst,
-        size_type src_offset,
-        size_type dst_offset,
-        size_type size,
-        const vector<Event>* events = NULL,
-        Event* event = NULL)
+    const Buffer& src,
+    const Buffer& dst,
+    size_type src_offset,
+    size_type dst_offset,
+    size_type size,
+    const vector<Event>* events = NULL,
+    Event* event = NULL)
 {
     cl_int error;
     CommandQueue queue = CommandQueue::getDefault(&error);
 
-    if (error != CL_SUCCESS) {
+    if (error != CL_SUCCESS)
+    {
         return error;
     }
 
@@ -8784,8 +9333,8 @@ inline cl_int enqueueCopyBuffer(
  * Host to Device.
  * Uses default command queue.
  */
-template< typename IteratorType >
-inline cl_int copy( IteratorType startIterator, IteratorType endIterator, cl::Buffer &buffer )
+template<typename IteratorType>
+inline cl_int copy(IteratorType startIterator, IteratorType endIterator, cl::Buffer& buffer)
 {
     cl_int error;
     CommandQueue queue = CommandQueue::getDefault(&error);
@@ -8800,8 +9349,8 @@ inline cl_int copy( IteratorType startIterator, IteratorType endIterator, cl::Bu
  * Device to Host.
  * Uses default command queue.
  */
-template< typename IteratorType >
-inline cl_int copy( const cl::Buffer &buffer, IteratorType startIterator, IteratorType endIterator )
+template<typename IteratorType>
+inline cl_int copy(const cl::Buffer& buffer, IteratorType startIterator, IteratorType endIterator)
 {
     cl_int error;
     CommandQueue queue = CommandQueue::getDefault(&error);
@@ -8816,25 +9365,25 @@ inline cl_int copy( const cl::Buffer &buffer, IteratorType startIterator, Iterat
  * Host to Device.
  * Uses specified queue.
  */
-template< typename IteratorType >
-inline cl_int copy( const CommandQueue &queue, IteratorType startIterator, IteratorType endIterator, cl::Buffer &buffer )
+template<typename IteratorType>
+inline cl_int copy(const CommandQueue& queue, IteratorType startIterator, IteratorType endIterator, cl::Buffer& buffer)
 {
     typedef typename std::iterator_traits<IteratorType>::value_type DataType;
     cl_int error;
-    
-    size_type length = endIterator-startIterator;
-    size_type byteLength = length*sizeof(DataType);
 
-    DataType *pointer = 
-        static_cast<DataType*>(queue.enqueueMapBuffer(buffer, CL_TRUE, CL_MAP_WRITE, 0, byteLength, 0, 0, &error));
+    size_type length = endIterator - startIterator;
+    size_type byteLength = length * sizeof(DataType);
+
+    DataType* pointer = static_cast<DataType*>(queue.enqueueMapBuffer(buffer, CL_TRUE, CL_MAP_WRITE, 0, byteLength, 0, 0, &error));
     // if exceptions enabled, enqueueMapBuffer will throw
-    if( error != CL_SUCCESS ) {
+    if (error != CL_SUCCESS)
+    {
         return error;
     }
 #if defined(_MSC_VER)
     std::copy(
-        startIterator, 
-        endIterator, 
+        startIterator,
+        endIterator,
         stdext::checked_array_iterator<DataType*>(
             pointer, length));
 #else
@@ -8843,7 +9392,8 @@ inline cl_int copy( const CommandQueue &queue, IteratorType startIterator, Itera
     Event endEvent;
     error = queue.enqueueUnmapMemObject(buffer, pointer, 0, &endEvent);
     // if exceptions enabled, enqueueUnmapMemObject will throw
-    if( error != CL_SUCCESS ) { 
+    if (error != CL_SUCCESS)
+    {
         return error;
     }
     endEvent.wait();
@@ -8855,39 +9405,39 @@ inline cl_int copy( const CommandQueue &queue, IteratorType startIterator, Itera
  * Device to Host.
  * Uses specified queue.
  */
-template< typename IteratorType >
-inline cl_int copy( const CommandQueue &queue, const cl::Buffer &buffer, IteratorType startIterator, IteratorType endIterator )
+template<typename IteratorType>
+inline cl_int copy(const CommandQueue& queue, const cl::Buffer& buffer, IteratorType startIterator, IteratorType endIterator)
 {
     typedef typename std::iterator_traits<IteratorType>::value_type DataType;
     cl_int error;
-        
-    size_type length = endIterator-startIterator;
-    size_type byteLength = length*sizeof(DataType);
 
-    DataType *pointer = 
-        static_cast<DataType*>(queue.enqueueMapBuffer(buffer, CL_TRUE, CL_MAP_READ, 0, byteLength, 0, 0, &error));
+    size_type length = endIterator - startIterator;
+    size_type byteLength = length * sizeof(DataType);
+
+    DataType* pointer = static_cast<DataType*>(queue.enqueueMapBuffer(buffer, CL_TRUE, CL_MAP_READ, 0, byteLength, 0, 0, &error));
     // if exceptions enabled, enqueueMapBuffer will throw
-    if( error != CL_SUCCESS ) {
+    if (error != CL_SUCCESS)
+    {
         return error;
     }
     std::copy(pointer, pointer + length, startIterator);
     Event endEvent;
     error = queue.enqueueUnmapMemObject(buffer, pointer, 0, &endEvent);
     // if exceptions enabled, enqueueUnmapMemObject will throw
-    if( error != CL_SUCCESS ) { 
+    if (error != CL_SUCCESS)
+    {
         return error;
     }
     endEvent.wait();
     return CL_SUCCESS;
 }
 
-
 #if CL_HPP_TARGET_OPENCL_VERSION >= 200
 /**
  * Blocking SVM map operation - performs a blocking map underneath.
  */
 template<typename T, class Alloc>
-inline cl_int mapSVM(cl::vector<T, Alloc> &container)
+inline cl_int mapSVM(cl::vector<T, Alloc>& container)
 {
     return enqueueMapSVM(container, CL_TRUE, CL_MAP_READ | CL_MAP_WRITE);
 }
@@ -8896,7 +9446,7 @@ inline cl_int mapSVM(cl::vector<T, Alloc> &container)
 * Blocking SVM map operation - performs a blocking map underneath.
 */
 template<typename T, class Alloc>
-inline cl_int unmapSVM(cl::vector<T, Alloc> &container)
+inline cl_int unmapSVM(cl::vector<T, Alloc>& container)
 {
     return enqueueUnmapSVM(container);
 }
@@ -8914,29 +9464,30 @@ inline cl_int enqueueReadBufferRect(
     size_type buffer_slice_pitch,
     size_type host_row_pitch,
     size_type host_slice_pitch,
-    void *ptr,
+    void* ptr,
     const vector<Event>* events = NULL,
     Event* event = NULL)
 {
     cl_int error;
     CommandQueue queue = CommandQueue::getDefault(&error);
 
-    if (error != CL_SUCCESS) {
+    if (error != CL_SUCCESS)
+    {
         return error;
     }
 
     return queue.enqueueReadBufferRect(
-        buffer, 
-        blocking, 
-        buffer_offset, 
+        buffer,
+        blocking,
+        buffer_offset,
         host_offset,
         region,
         buffer_row_pitch,
         buffer_slice_pitch,
         host_row_pitch,
         host_slice_pitch,
-        ptr, 
-        events, 
+        ptr,
+        events,
         event);
 }
 
@@ -8950,29 +9501,30 @@ inline cl_int enqueueWriteBufferRect(
     size_type buffer_slice_pitch,
     size_type host_row_pitch,
     size_type host_slice_pitch,
-    const void *ptr,
+    const void* ptr,
     const vector<Event>* events = NULL,
     Event* event = NULL)
 {
     cl_int error;
     CommandQueue queue = CommandQueue::getDefault(&error);
 
-    if (error != CL_SUCCESS) {
+    if (error != CL_SUCCESS)
+    {
         return error;
     }
 
     return queue.enqueueWriteBufferRect(
-        buffer, 
-        blocking, 
-        buffer_offset, 
+        buffer,
+        blocking,
+        buffer_offset,
         host_offset,
         region,
         buffer_row_pitch,
         buffer_slice_pitch,
         host_row_pitch,
         host_slice_pitch,
-        ptr, 
-        events, 
+        ptr,
+        events,
         event);
 }
 
@@ -8992,7 +9544,8 @@ inline cl_int enqueueCopyBufferRect(
     cl_int error;
     CommandQueue queue = CommandQueue::getDefault(&error);
 
-    if (error != CL_SUCCESS) {
+    if (error != CL_SUCCESS)
+    {
         return error;
     }
 
@@ -9006,7 +9559,7 @@ inline cl_int enqueueCopyBufferRect(
         src_slice_pitch,
         dst_row_pitch,
         dst_slice_pitch,
-        events, 
+        events,
         event);
 }
 #endif // CL_HPP_TARGET_OPENCL_VERSION >= 110
@@ -9020,12 +9573,13 @@ inline cl_int enqueueReadImage(
     size_type slice_pitch,
     void* ptr,
     const vector<Event>* events = NULL,
-    Event* event = NULL) 
+    Event* event = NULL)
 {
     cl_int error;
     CommandQueue queue = CommandQueue::getDefault(&error);
 
-    if (error != CL_SUCCESS) {
+    if (error != CL_SUCCESS)
+    {
         return error;
     }
 
@@ -9037,7 +9591,7 @@ inline cl_int enqueueReadImage(
         row_pitch,
         slice_pitch,
         ptr,
-        events, 
+        events,
         event);
 }
 
@@ -9055,7 +9609,8 @@ inline cl_int enqueueWriteImage(
     cl_int error;
     CommandQueue queue = CommandQueue::getDefault(&error);
 
-    if (error != CL_SUCCESS) {
+    if (error != CL_SUCCESS)
+    {
         return error;
     }
 
@@ -9067,7 +9622,7 @@ inline cl_int enqueueWriteImage(
         row_pitch,
         slice_pitch,
         ptr,
-        events, 
+        events,
         event);
 }
 
@@ -9083,7 +9638,8 @@ inline cl_int enqueueCopyImage(
     cl_int error;
     CommandQueue queue = CommandQueue::getDefault(&error);
 
-    if (error != CL_SUCCESS) {
+    if (error != CL_SUCCESS)
+    {
         return error;
     }
 
@@ -9109,7 +9665,8 @@ inline cl_int enqueueCopyImageToBuffer(
     cl_int error;
     CommandQueue queue = CommandQueue::getDefault(&error);
 
-    if (error != CL_SUCCESS) {
+    if (error != CL_SUCCESS)
+    {
         return error;
     }
 
@@ -9135,7 +9692,8 @@ inline cl_int enqueueCopyBufferToImage(
     cl_int error;
     CommandQueue queue = CommandQueue::getDefault(&error);
 
-    if (error != CL_SUCCESS) {
+    if (error != CL_SUCCESS)
+    {
         return error;
     }
 
@@ -9149,13 +9707,13 @@ inline cl_int enqueueCopyBufferToImage(
         event);
 }
 
-
 inline cl_int flush(void)
 {
     cl_int error;
     CommandQueue queue = CommandQueue::getDefault(&error);
 
-    if (error != CL_SUCCESS) {
+    if (error != CL_SUCCESS)
+    {
         return error;
     }
 
@@ -9167,10 +9725,10 @@ inline cl_int finish(void)
     cl_int error;
     CommandQueue queue = CommandQueue::getDefault(&error);
 
-    if (error != CL_SUCCESS) {
+    if (error != CL_SUCCESS)
+    {
         return error;
-    } 
-
+    }
 
     return queue.finish();
 }
@@ -9188,178 +9746,164 @@ private:
     friend class KernelFunctor;
 
 public:
-    EnqueueArgs(NDRange global) : 
-      queue_(CommandQueue::getDefault()),
-      offset_(NullRange), 
-      global_(global),
-      local_(NullRange)
+    EnqueueArgs(NDRange global)
+        : queue_(CommandQueue::getDefault()),
+          offset_(NullRange),
+          global_(global),
+          local_(NullRange)
     {
-
     }
 
-    EnqueueArgs(NDRange global, NDRange local) : 
-      queue_(CommandQueue::getDefault()),
-      offset_(NullRange), 
-      global_(global),
-      local_(local)
+    EnqueueArgs(NDRange global, NDRange local)
+        : queue_(CommandQueue::getDefault()),
+          offset_(NullRange),
+          global_(global),
+          local_(local)
     {
-
     }
 
-    EnqueueArgs(NDRange offset, NDRange global, NDRange local) : 
-      queue_(CommandQueue::getDefault()),
-      offset_(offset), 
-      global_(global),
-      local_(local)
+    EnqueueArgs(NDRange offset, NDRange global, NDRange local)
+        : queue_(CommandQueue::getDefault()),
+          offset_(offset),
+          global_(global),
+          local_(local)
     {
-
     }
 
-    EnqueueArgs(Event e, NDRange global) : 
-      queue_(CommandQueue::getDefault()),
-      offset_(NullRange), 
-      global_(global),
-      local_(NullRange)
+    EnqueueArgs(Event e, NDRange global)
+        : queue_(CommandQueue::getDefault()),
+          offset_(NullRange),
+          global_(global),
+          local_(NullRange)
     {
         events_.push_back(e);
     }
 
-    EnqueueArgs(Event e, NDRange global, NDRange local) : 
-      queue_(CommandQueue::getDefault()),
-      offset_(NullRange), 
-      global_(global),
-      local_(local)
+    EnqueueArgs(Event e, NDRange global, NDRange local)
+        : queue_(CommandQueue::getDefault()),
+          offset_(NullRange),
+          global_(global),
+          local_(local)
     {
         events_.push_back(e);
     }
 
-    EnqueueArgs(Event e, NDRange offset, NDRange global, NDRange local) : 
-      queue_(CommandQueue::getDefault()),
-      offset_(offset), 
-      global_(global),
-      local_(local)
+    EnqueueArgs(Event e, NDRange offset, NDRange global, NDRange local)
+        : queue_(CommandQueue::getDefault()),
+          offset_(offset),
+          global_(global),
+          local_(local)
     {
         events_.push_back(e);
     }
 
-    EnqueueArgs(const vector<Event> &events, NDRange global) : 
-      queue_(CommandQueue::getDefault()),
-      offset_(NullRange), 
-      global_(global),
-      local_(NullRange),
-      events_(events)
+    EnqueueArgs(const vector<Event>& events, NDRange global)
+        : queue_(CommandQueue::getDefault()),
+          offset_(NullRange),
+          global_(global),
+          local_(NullRange),
+          events_(events)
     {
-
     }
 
-    EnqueueArgs(const vector<Event> &events, NDRange global, NDRange local) : 
-      queue_(CommandQueue::getDefault()),
-      offset_(NullRange), 
-      global_(global),
-      local_(local),
-      events_(events)
+    EnqueueArgs(const vector<Event>& events, NDRange global, NDRange local)
+        : queue_(CommandQueue::getDefault()),
+          offset_(NullRange),
+          global_(global),
+          local_(local),
+          events_(events)
     {
-
     }
 
-    EnqueueArgs(const vector<Event> &events, NDRange offset, NDRange global, NDRange local) : 
-      queue_(CommandQueue::getDefault()),
-      offset_(offset), 
-      global_(global),
-      local_(local),
-      events_(events)
+    EnqueueArgs(const vector<Event>& events, NDRange offset, NDRange global, NDRange local)
+        : queue_(CommandQueue::getDefault()),
+          offset_(offset),
+          global_(global),
+          local_(local),
+          events_(events)
     {
-
     }
 
-    EnqueueArgs(CommandQueue &queue, NDRange global) : 
-      queue_(queue),
-      offset_(NullRange), 
-      global_(global),
-      local_(NullRange)
+    EnqueueArgs(CommandQueue& queue, NDRange global)
+        : queue_(queue),
+          offset_(NullRange),
+          global_(global),
+          local_(NullRange)
     {
-
     }
 
-    EnqueueArgs(CommandQueue &queue, NDRange global, NDRange local) : 
-      queue_(queue),
-      offset_(NullRange), 
-      global_(global),
-      local_(local)
+    EnqueueArgs(CommandQueue& queue, NDRange global, NDRange local)
+        : queue_(queue),
+          offset_(NullRange),
+          global_(global),
+          local_(local)
     {
-
     }
 
-    EnqueueArgs(CommandQueue &queue, NDRange offset, NDRange global, NDRange local) : 
-      queue_(queue),
-      offset_(offset), 
-      global_(global),
-      local_(local)
+    EnqueueArgs(CommandQueue& queue, NDRange offset, NDRange global, NDRange local)
+        : queue_(queue),
+          offset_(offset),
+          global_(global),
+          local_(local)
     {
-
     }
 
-    EnqueueArgs(CommandQueue &queue, Event e, NDRange global) : 
-      queue_(queue),
-      offset_(NullRange), 
-      global_(global),
-      local_(NullRange)
+    EnqueueArgs(CommandQueue& queue, Event e, NDRange global)
+        : queue_(queue),
+          offset_(NullRange),
+          global_(global),
+          local_(NullRange)
     {
         events_.push_back(e);
     }
 
-    EnqueueArgs(CommandQueue &queue, Event e, NDRange global, NDRange local) : 
-      queue_(queue),
-      offset_(NullRange), 
-      global_(global),
-      local_(local)
+    EnqueueArgs(CommandQueue& queue, Event e, NDRange global, NDRange local)
+        : queue_(queue),
+          offset_(NullRange),
+          global_(global),
+          local_(local)
     {
         events_.push_back(e);
     }
 
-    EnqueueArgs(CommandQueue &queue, Event e, NDRange offset, NDRange global, NDRange local) : 
-      queue_(queue),
-      offset_(offset), 
-      global_(global),
-      local_(local)
+    EnqueueArgs(CommandQueue& queue, Event e, NDRange offset, NDRange global, NDRange local)
+        : queue_(queue),
+          offset_(offset),
+          global_(global),
+          local_(local)
     {
         events_.push_back(e);
     }
 
-    EnqueueArgs(CommandQueue &queue, const vector<Event> &events, NDRange global) : 
-      queue_(queue),
-      offset_(NullRange), 
-      global_(global),
-      local_(NullRange),
-      events_(events)
+    EnqueueArgs(CommandQueue& queue, const vector<Event>& events, NDRange global)
+        : queue_(queue),
+          offset_(NullRange),
+          global_(global),
+          local_(NullRange),
+          events_(events)
     {
-
     }
 
-    EnqueueArgs(CommandQueue &queue, const vector<Event> &events, NDRange global, NDRange local) : 
-      queue_(queue),
-      offset_(NullRange), 
-      global_(global),
-      local_(local),
-      events_(events)
+    EnqueueArgs(CommandQueue& queue, const vector<Event>& events, NDRange global, NDRange local)
+        : queue_(queue),
+          offset_(NullRange),
+          global_(global),
+          local_(local),
+          events_(events)
     {
-
     }
 
-    EnqueueArgs(CommandQueue &queue, const vector<Event> &events, NDRange offset, NDRange global, NDRange local) : 
-      queue_(queue),
-      offset_(offset), 
-      global_(global),
-      local_(local),
-      events_(events)
+    EnqueueArgs(CommandQueue& queue, const vector<Event>& events, NDRange offset, NDRange global, NDRange local)
+        : queue_(queue),
+          offset_(offset),
+          global_(global),
+          local_(local),
+          events_(events)
     {
-
     }
 };
 
-
 //----------------------------------------------------------------------------------------------
-
 
 /**
  * Type safe kernel functor.
@@ -9389,17 +9933,19 @@ private:
     {
     }
 
-
 public:
-    KernelFunctor(Kernel kernel) : kernel_(kernel)
-    {}
+    KernelFunctor(Kernel kernel)
+        : kernel_(kernel)
+    {
+    }
 
     KernelFunctor(
         const Program& program,
         const string name,
-        cl_int * err = NULL) :
-        kernel_(program, name.c_str(), err)
-    {}
+        cl_int* err = NULL)
+        : kernel_(program, name.c_str(), err)
+    {
+    }
 
     //! \brief Return type of the functor
     typedef Event result_type;
@@ -9409,13 +9955,13 @@ public:
      * @param args Launch parameters of the kernel.
      * @param t0... List of kernel arguments based on the template type of the functor.
      */
-    Event operator() (
+    Event operator()(
         const EnqueueArgs& args,
         Ts... ts)
     {
         Event event;
         setArgs<0>(std::forward<Ts>(ts)...);
-        
+
         args.queue_.enqueueNDRangeKernel(
             kernel_,
             args.offset_,
@@ -9433,10 +9979,10 @@ public:
     * @param t0... List of kernel arguments based on the template type of the functor.
     * @param error Out parameter returning the error code from the execution.
     */
-    Event operator() (
+    Event operator()(
         const EnqueueArgs& args,
         Ts... ts,
-        cl_int &error)
+        cl_int& error)
     {
         Event event;
         setArgs<0>(std::forward<Ts>(ts)...);
@@ -9448,18 +9994,18 @@ public:
             args.local_,
             &args.events_,
             &event);
-        
+
         return event;
     }
 
 #if CL_HPP_TARGET_OPENCL_VERSION >= 200
-    cl_int setSVMPointers(const vector<void*> &pointerList)
+    cl_int setSVMPointers(const vector<void*>& pointerList)
     {
         return kernel_.setSVMPointers(pointerList);
     }
 
     template<typename T0, typename... T1s>
-    cl_int setSVMPointers(const T0 &t0, T1s... ts)
+    cl_int setSVMPointers(const T0& t0, T1s... ts)
     {
         return kernel_.setSVMPointers(t0, ts...);
     }
@@ -9472,47 +10018,48 @@ public:
 };
 
 namespace compatibility {
-    /**
+/**
      * Backward compatibility class to ensure that cl.hpp code works with cl2.hpp.
      * Please use KernelFunctor directly.
      */
-    template<typename... Ts>
-    struct make_kernel
+template<typename... Ts>
+struct make_kernel
+{
+    typedef KernelFunctor<Ts...> FunctorType;
+
+    FunctorType functor_;
+
+    make_kernel(
+        const Program& program,
+        const string name,
+        cl_int* err = NULL)
+        : functor_(FunctorType(program, name, err))
     {
-        typedef KernelFunctor<Ts...> FunctorType;
+    }
 
-        FunctorType functor_;
+    make_kernel(
+        const Kernel kernel)
+        : functor_(FunctorType(kernel))
+    {
+    }
 
-        make_kernel(
-            const Program& program,
-            const string name,
-            cl_int * err = NULL) :
-            functor_(FunctorType(program, name, err))
-        {}
+    //! \brief Return type of the functor
+    typedef Event result_type;
 
-        make_kernel(
-            const Kernel kernel) :
-            functor_(FunctorType(kernel))
-        {}
+    //! \brief Function signature of kernel functor with no event dependency.
+    typedef Event type_(
+        const EnqueueArgs&,
+        Ts...);
 
-        //! \brief Return type of the functor
-        typedef Event result_type;
-
-        //! \brief Function signature of kernel functor with no event dependency.
-        typedef Event type_(
-            const EnqueueArgs&,
-            Ts...);
-
-        Event operator()(
-            const EnqueueArgs& enqueueArgs,
-            Ts... args)
-        {
-            return functor_(
-                enqueueArgs, args...);
-        }
-    };
+    Event operator()(
+        const EnqueueArgs& enqueueArgs,
+        Ts... args)
+    {
+        return functor_(
+            enqueueArgs, args...);
+    }
+};
 } // namespace compatibility
-
 
 //----------------------------------------------------------------------------------------------------------------------
 

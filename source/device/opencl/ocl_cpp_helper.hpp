@@ -57,7 +57,7 @@ extern "C" {
 #define ALIGN_UP4(x)   ROUND_UP((x), 4)
 #define ALIGN_UP8(x)   ROUND_UP((x), 8)
 
-#define CL_TARGET_OPENCL_VERSION 200
+#define CL_TARGET_OPENCL_VERSION      200
 #define CL_HPP_TARGET_OPENCL_VERSION  110
 #define CL_HPP_MINIMUM_OPENCL_VERSION 110
 #pragma GCC diagnostic push
@@ -65,6 +65,5 @@ extern "C" {
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include "device/opencl/include/CL/cl2.hpp"
 #pragma GCC diagnostic pop
-
 
 #endif //TENGINE_LITE_SOURCE_DEVICE_OPENCL_OCL_CPP_HELPER_HPP_

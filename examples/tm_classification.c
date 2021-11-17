@@ -59,20 +59,23 @@ int tengine_classify(const char* model_file, const char* image_file, int img_h, 
     }
     fprintf(stderr, "tengine-lite library version: %s\n", get_tengine_version());
     graph_t graph;
-    if (use_opencl){
-      context_t ocl_context = create_context("ocl", 1);
-      int rtt = add_context_device(ocl_context, "OCL");
-      if (0 > rtt)
-      {
-        fprintf(stderr, "add_context_device OpenCL failed.\n");
-        return -1;
-      }
+    if (use_opencl)
+    {
+        context_t ocl_context = create_context("ocl", 1);
+        int rtt = add_context_device(ocl_context, "OCL");
+        if (0 > rtt)
+        {
+            fprintf(stderr, "add_context_device OpenCL failed.\n");
+            return -1;
+        }
 
-      /* create graph, load tengine model xxx.tmfile */
-      graph = create_graph(ocl_context, "tengine", model_file);
-    } else {
-      /* create graph, load tengine model xxx.tmfile */
-      graph = create_graph(NULL, "tengine", model_file);
+        /* create graph, load tengine model xxx.tmfile */
+        graph = create_graph(ocl_context, "tengine", model_file);
+    }
+    else
+    {
+        /* create graph, load tengine model xxx.tmfile */
+        graph = create_graph(NULL, "tengine", model_file);
     }
 
     if (NULL == graph)

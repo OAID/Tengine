@@ -56,7 +56,6 @@ private:
     std::shared_ptr<cl::Image> gpu_source;
     std::shared_ptr<cl::Image> gpu_dest;
 
-
     cl::Kernel source_transform;
     cl::Kernel dot_mul;
     cl::Kernel dest_transform;
@@ -72,7 +71,6 @@ private:
     uint32_t max_work_group_size_source;
     uint32_t max_work_group_size_dot;
     uint32_t max_work_group_size_dest;
-
 };
 
 #endif //TENGINE_LITE_SOURCE_DEVICE_OPENCL_OPPACK4_OCL_WINOGRAD_HPP_

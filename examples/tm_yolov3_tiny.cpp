@@ -377,20 +377,20 @@ int main(int argc, char* argv[])
 
     /* create graph, load tengine model xxx.tmfile */
     graph_t graph = nullptr;
-    if(use_opencl)
+    if (use_opencl)
     {
-      context_t ocl_context = create_context("ocl", 1);
-      int rtt = add_context_device(ocl_context, "OCL");
-      if (0 > rtt)
-      {
-        fprintf(stderr, "add_context_device OpenCL failed.\n");
-        return -1;
-      }
-      graph = create_graph(ocl_context, "tengine", model_file);
+        context_t ocl_context = create_context("ocl", 1);
+        int rtt = add_context_device(ocl_context, "OCL");
+        if (0 > rtt)
+        {
+            fprintf(stderr, "add_context_device OpenCL failed.\n");
+            return -1;
+        }
+        graph = create_graph(ocl_context, "tengine", model_file);
     }
     else
     {
-      graph = create_graph(nullptr, "tengine", model_file);
+        graph = create_graph(nullptr, "tengine", model_file);
     }
     if (graph == nullptr)
     {

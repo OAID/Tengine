@@ -42,12 +42,10 @@ private:
 
     std::vector<cl::Kernel> concat_multi_kernels;
     std::vector<uint32_t> concat_multi_max_group_size;
-    std::vector<std::vector<uint32_t>> concat_multi_local_size;
-    std::vector<std::vector<uint32_t>> concat_multi_global_size;
+    std::vector<std::vector<uint32_t> > concat_multi_local_size;
+    std::vector<std::vector<uint32_t> > concat_multi_global_size;
 
-
-
-    std::vector<std::shared_ptr<cl::Buffer>> concat_input_buffers;
+    std::vector<std::shared_ptr<cl::Buffer> > concat_input_buffers;
 
     // 0 image concat4  input_num = 2
     // 1 image concat123 input_num = 2
