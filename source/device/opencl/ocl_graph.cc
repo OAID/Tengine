@@ -25,21 +25,18 @@
 #include "ocl_graph.hpp"
 #include "ocl_executor.hpp"
 
-extern "C"
-{
+extern "C" {
 #include "graph/tensor.h"
 #include "graph/node.h"
 #include "graph/graph.h"
 #include "graph/subgraph.h"
 }
 
-
 int ocl_dev_init(struct device* dev)
 {
     (void)dev;
     return 0;
 }
-
 
 int ocl_dev_prerun(struct device* dev, struct subgraph* subgraph, void* options)
 {
@@ -49,13 +46,11 @@ int ocl_dev_prerun(struct device* dev, struct subgraph* subgraph, void* options)
     return engine->OCLEnginePreRun(subgraph);
 }
 
-
 int ocl_dev_run(struct device* dev, struct subgraph* subgraph)
 {
     auto engine = (OCLEngine*)subgraph->device_graph;
     return engine->OCLEngineRun(subgraph);
 }
-
 
 int ocl_dev_postrun(struct device* dev, struct subgraph* subgraph)
 {
@@ -65,7 +60,6 @@ int ocl_dev_postrun(struct device* dev, struct subgraph* subgraph)
 
     return 0;
 }
-
 
 int ocl_dev_release(struct device* dev)
 {

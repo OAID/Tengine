@@ -305,9 +305,10 @@ int main(int argc, char* argv[])
 
     int repeat_count = 1;
     int num_thread = 1;
+    bool use_opencl = 0;
 
     int res;
-    while ((res = getopt(argc, argv, "m:i:r:t:h:")) != -1)
+    while ((res = getopt(argc, argv, "m:i:r:t:h:l:")) != -1)
     {
         switch (res)
         {
@@ -326,6 +327,9 @@ int main(int argc, char* argv[])
         case 'h':
             show_usage();
             return 0;
+        case 'l':
+            use_opencl = std::strtoul(optarg, nullptr, 10);
+            break;
         default:
             break;
         }
@@ -372,7 +376,22 @@ int main(int argc, char* argv[])
     fprintf(stderr, "tengine-lite library version: %s\n", get_tengine_version());
 
     /* create graph, load tengine model xxx.tmfile */
-    graph_t graph = create_graph(nullptr, "tengine", model_file);
+    graph_t graph = nullptr;
+    if(use_opencl)
+    {
+      context_t ocl_context = create_context("ocl", 1);
+      int rtt = add_context_device(ocl_context, "OCL");
+      if (0 > rtt)
+      {
+        fprintf(stderr, "add_context_device OpenCL failed.\n");
+        return -1;
+      }
+      graph = create_graph(ocl_context, "tengine", model_file);
+    }
+    else
+    {
+      graph = create_graph(nullptr, "tengine", model_file);
+    }
     if (graph == nullptr)
     {
         fprintf(stderr, "Create graph failed.\n");

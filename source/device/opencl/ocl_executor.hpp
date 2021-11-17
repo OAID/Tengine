@@ -19,89 +19,82 @@
 
 /*
  * Copyright (c) 2021, Open AI Lab
- * Author: lswang@openailab.com
+ * Author: hbshi@openailab.com
  */
+#pragma once
 
-extern "C" {
-#include "api/c_api.h"
-#include "device/device.h"
-#include "graph/tensor.h"
-#include "graph/node.h"
-#include "graph/graph.h"
-#include "graph/subgraph.h"
-#include "executer/executer.h"
-#include "optimizer/split.h"
-#include "module/module.h"
-#include "utility/vector.h"
-#include "utility/log.h"
-}
+#include "ocl_cpp_helper.hpp"
 
-#include <map>
-#include <algorithm>
-#include <iomanip>
-#include <iostream>
-#include <tuple>
-#include <vector>
-
-#include <CL/cl.h>
-
-#include <cmath>
-
-typedef std::map<uint32_t, cl_mem> dict_uint2clmem;
-
-struct OCLqueue
-{
-    std::string name;
-    int dims;
-    cl_kernel queue_kernel;
-    cl_event enentPoint;
-    size_t* queue_global_work_size;
-    size_t* queue_local_work_size;
-};
+typedef uint64_t gpu_mem_handle;
+class ocl_node_creator;
+class ocl_convertor;
+class ocl_node;
 
 class OCLEngine
 {
 public:
-    //    OCLEngine();
-    //    ~OCLEngine() = default;
+    OCLEngine();
+    ~OCLEngine();
 
     int OCLEnginePreRun(struct subgraph* subgraph);
     int OCLEngineRun(struct subgraph* subgraph);
     void OCLEnginePostRun();
 
+public:
+    uint64_t get_max_work_group_size(const cl::Kernel& kernel);
+    std::vector<uint32_t> get_max_work_item_sizes();
+    cl::Kernel build_kernel(const std::string& program_name, const std::string& kernel_name, const std::set<std::string>& options);
+
 private:
     bool init();
-    bool build_kernel(const char* filename, const char* kernel_name);
-    bool OCLTensorMap(struct graph* ir_graph, int ir_tensor_idx, cl_mem_flags flag);
-    int BuildTensor(struct subgraph* subgraph);
-    int BuildKernel(struct subgraph* subgraph);
-
-    bool AddClipNode(struct node* ir_node);
-    bool AddConcatNode(struct node* ir_node);
-    bool AddConvolutionNode(struct node* ir_node);
-    bool AddDropoutNode(struct node* ir_node);
-    bool AddEltwiseNode(struct node* ir_node);
-    bool AddFlattenNode(struct node* ir_node);
-    bool AddFullyConnectionNode(struct node* node);
-    bool AddPoolingNode(struct node* ir_node);
-    bool AddReluNode(struct node* ir_node);
-    bool AddReshapeNode(struct node* ir_node);
-    bool AddSliceNode(struct node* ir_node);
+    void build_tensor_gpu_map(struct subgraph* subgraph);
+    void allocate_gpu_mem(struct tensor* ir_tensor, int tensor_index, cl_mem_flags);
 
 private:
-    cl_int status;
-    cl_platform_id platform;
-    cl_device_id* devices;
-    cl_context context;
-    cl_command_queue commandQueue;
-
-    cl_program program;
-    cl_kernel kernel;
+    std::shared_ptr<cl::Context> engine_context;
+    std::shared_ptr<cl::Device> engine_device;
+    std::shared_ptr<cl::CommandQueue> engine_command_queue;
+    std::shared_ptr<ocl_convertor> engine_convertor;
 
 public:
-    dict_uint2clmem ocl_tensor_map;
-    std::vector<struct OCLqueue> queue_list;
+    const cl::CommandQueue& get_command_queue() const;
+    const cl::Context& get_context() const;
+    ocl_convertor& get_converter();
+    uint64_t gpu_global_memory_cache_size;
+    uint32_t gpu_compute_unit;
+    uint32_t gpu_max_frequent;
+
+private:
+    std::map<int, uint64_t> gpu_mem_map;
+    std::pair<int, std::shared_ptr<cl::Buffer>> temp_buffer_up_down;
 
 public:
-    int bin_num;
+    std::vector<std::shared_ptr<ocl_node> > exe_ocl_node_list;
+
+public:
+    static std::map<int, ocl_node_creator*>* s_ocl_node_creator_map;
+    static void add_ocl_node_creator(int op_type, ocl_node_creator* creator);
+    void upload_input_nc4hw(tensor* ir_tensor, int ir_tensor_idx);
+    uint64_t get_gpu_mem_by_idx(int idx);
+    void set_gpu_mem_by_idx(int idx, uint64_t mem_handle);
+    double get_cost_time(cl::Event* event);
+    void download_output(tensor* tensor, int ir_tensor_idx);
+    void open_command_queue_profile();
+    void close_command_queue_profile();
+    void alloc_temp_buffer(int len);
 };
+
+class ocl_node_creator
+{
+public:
+    ocl_node_creator() = default;
+    virtual ~ocl_node_creator() = default;
+    virtual ocl_node* creator(OCLEngine* engine, struct node* ir_node) = 0;
+};
+
+#define REGISTER_OCL_OP(type, T)                  \
+    void ocl_##type##_creator()                   \
+    {                                             \
+        T* t = new T;                             \
+        OCLEngine::add_ocl_node_creator(type, t); \
+    }

@@ -42,7 +42,7 @@
 #define DEFAULT_CPU_AFFINITY 255
 
 int tengine_classify(const char* model_file, const char* image_file, int img_h, int img_w, const float* mean,
-                     const float* scale, int loop_count, int num_thread, int affinity)
+                     const float* scale, int loop_count, int num_thread, int affinity, int use_opencl)
 {
     /* set runtime options */
     struct options opt;
@@ -58,9 +58,23 @@ int tengine_classify(const char* model_file, const char* image_file, int img_h, 
         return -1;
     }
     fprintf(stderr, "tengine-lite library version: %s\n", get_tengine_version());
+    graph_t graph;
+    if (use_opencl){
+      context_t ocl_context = create_context("ocl", 1);
+      int rtt = add_context_device(ocl_context, "OCL");
+      if (0 > rtt)
+      {
+        fprintf(stderr, "add_context_device OpenCL failed.\n");
+        return -1;
+      }
 
-    /* create graph, load tengine model xxx.tmfile */
-    graph_t graph = create_graph(NULL, "tengine", model_file);
+      /* create graph, load tengine model xxx.tmfile */
+      graph = create_graph(ocl_context, "tengine", model_file);
+    } else {
+      /* create graph, load tengine model xxx.tmfile */
+      graph = create_graph(NULL, "tengine", model_file);
+    }
+
     if (NULL == graph)
     {
         fprintf(stderr, "Create graph failed.\n");
@@ -174,9 +188,10 @@ int main(int argc, char* argv[])
     int img_w = 0;
     float mean[3] = {-1.f, -1.f, -1.f};
     float scale[3] = {0.f, 0.f, 0.f};
+    int use_opencl = 0;
 
     int res;
-    while ((res = getopt(argc, argv, "m:i:l:g:s:w:r:t:a:h")) != -1)
+    while ((res = getopt(argc, argv, "m:i:l:g:s:w:r:t:a:h:l")) != -1)
     {
         switch (res)
         {
@@ -205,6 +220,9 @@ int main(int argc, char* argv[])
             break;
         case 'a':
             cpu_affinity = atoi(optarg);
+            break;
+        case 'l':
+            use_opencl = atoi(optarg);
             break;
         case 'h':
             show_usage();
@@ -260,7 +278,7 @@ int main(int argc, char* argv[])
         fprintf(stderr, "Mean value not specified, use default   %.1f, %.1f, %.1f\n", mean[0], mean[1], mean[2]);
     }
 
-    if (tengine_classify(model_file, image_file, img_h, img_w, mean, scale, loop_count, num_thread, cpu_affinity) < 0)
+    if (tengine_classify(model_file, image_file, img_h, img_w, mean, scale, loop_count, num_thread, cpu_affinity, use_opencl) < 0)
         return -1;
 
     return 0;
