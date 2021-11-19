@@ -14,6 +14,7 @@ Tengine Lite 的 examples 将提供简单的、好玩的 demo。
 - [yolov5s 目标检测任务](#yolov5s目标检测任务---tm_yolov5scpp)
 - [nanodet 目标检测任务](#nanodet目标检测任务---tm_nanodet_mcpp)
 - [efficientdet 目标检测任务](#efficientdet目标检测任务---tm_efficientdetc)
+- [yolox 目标检测任务](#yolox目标检测任务---tm_yoloxcpp)
 - [openpose 人体姿态识别任务](#openpose人体姿态识别任务---tm_openposecpp)
 - [hrnet 人体姿态识别任务](#hrnet人体姿态识别任务---tm_hrnetcpp)
 - [crnn 汉字识别任务](#汉字识别任务---tm_crnncpp)
@@ -368,6 +369,33 @@ Repeat 1 times, thread 1, avg time 598.86 ms, max_time 598.86 ms, min_time 598.8
 ```
 
 ![](https://z3.ax1x.com/2021/07/08/RqxsmR.jpg)
+
+## yolox目标检测任务 - [tm_yolox.cpp](tm_yolox.cpp)
+
+使用图片：
+
+![](https://z3.ax1x.com/2021/06/30/RBVdq1.jpg)
+
+```bash
+$ export LD_LIBRARY_PATH=./build/install/lib
+$ ./build/install/bin/tm_yolox -m ../models/yolox_nano.tmfile -i ../images/ssd_dog.jpg -r 1 -t 1
+```
+结果如下：
+
+```bash
+tengine-lite library version: 1.5-dev
+Repeat 1 times, thread 1, avg time 97.64 ms, max_time 97.64 ms, min_time 97.64 ms
+--------------------------------------
+detection num: 3
+16:  85%, [ 132,  216,  318,  545], dog
+ 1:  83%, [ 112,  140,  568,  427], bicycle
+ 2:  69%, [ 466,   77,  693,  168], car
+
+```
+
+![](https://z3.ax1x.com/2021/11/19/IHwcJ1.jpg)
+
+
 
 
 ## openpose人体姿态识别任务 - [tm_openpose.cpp](tm_openpose.cpp)
