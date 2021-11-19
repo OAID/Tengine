@@ -15,6 +15,7 @@ Tengine Lite's examples providing simple yet fancy demos.
   - [YoloV5s Object Detection Task](#yolov5s-object-detection-task---tm_yolov5scpp)
   - [NanoDet Object Detection Task](#nanodet-object-detection-task---tm_nanodet_mcpp)
   - [EfficientDet Object Detection Task](#efficientdet-object-detection-task---tm_efficientdetc)
+  - [Yolox Object Detection Task](#yolox-object-detection-task---tm_yoloxcpp)
   - [OpenPose Human Pose Estimation Task](#openpose-human-pose-estimation-task---tm_openposecpp)
   - [HRNet Human Pose Estimation Task](#hrnet-human-pose-estimation-task---tm_hrnetcpp)
   - [CRNN Chinese character recognition](#chinese-character-recognition-task---tm_crnncpp)
@@ -373,6 +374,33 @@ Repeat 1 times, thread 1, avg time 598.86 ms, max_time 598.86 ms, min_time 598.8
 ```
 
 ![](https://z3.ax1x.com/2021/07/08/RqxsmR.jpg)
+
+## Yolox Object Detection Task - [tm_yolox.cpp](tm_yolox.cpp)
+
+We use this image:
+
+![](https://z3.ax1x.com/2021/06/30/RBVdq1.jpg)
+
+```bash
+$ export LD_LIBRARY_PATH=./build/install/lib
+$ ./build/install/bin/tm_yolox -m ../models/yolox_nano.tmfile -i ../images/ssd_dog.jpg -r 1 -t 1
+```
+output：
+
+```bash
+tengine-lite library version: 1.5-dev
+Repeat 1 times, thread 1, avg time 97.64 ms, max_time 97.64 ms, min_time 97.64 ms
+--------------------------------------
+detection num: 3
+16:  85%, [ 132,  216,  318,  545], dog
+ 1:  83%, [ 112,  140,  568,  427], bicycle
+ 2:  69%, [ 466,   77,  693,  168], car
+
+```
+
+![](https://z3.ax1x.com/2021/11/19/IHwcJ1.jpg)
+
+
 
 ## OpenPose Human Pose Estimation Task - [tm_openpose.cpp](tm_openpose.cpp)
 
