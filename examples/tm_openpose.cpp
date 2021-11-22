@@ -66,15 +66,15 @@ void post_process_pose(cv::Mat img, cv::Mat frameCopy, float threshold, float* o
     for (int n = 0; n < num; n++)
     {
         cv::Point maxloc;
-        int piexlNums = H * W;
+        int pixelNums = H * W;
         double prob = -1;
-        for (int piexl = 0; piexl < piexlNums; ++piexl)
+        for (int pixel = 0; pixel < pixelNums; ++pixel)
         {
-            if (outdata[piexl] > prob)
+            if (outdata[pixel] > prob)
             {
-                prob = outdata[piexl];
-                maxloc.y = (int)piexl / H;
-                maxloc.x = (int)piexl % W;
+                prob = outdata[pixel];
+                maxloc.y = (int)pixel / H;
+                maxloc.x = (int)pixel % W;
             }
         }
         cv::Point2f p(-1, -1);
@@ -90,7 +90,7 @@ void post_process_pose(cv::Mat img, cv::Mat frameCopy, float threshold, float* o
         }
         points[n] = p;
         std::cout << n << ":" << p << std::endl;
-        outdata += piexlNums;
+        outdata += pixelNums;
     }
 
     int nPairs = sizeof(POSE_PAIRS) / sizeof(POSE_PAIRS[0]);

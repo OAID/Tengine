@@ -84,7 +84,7 @@ image make_image(int w, int h, int c);
 image make_empty_image(int w, int h, int c);
 
 /**
- * return ture if file exist
+ * return true if file exist
  * @param [in] file_name: file name
  * @return 1: success, 0: fail.
  */
@@ -223,7 +223,7 @@ image tranpose(image src);
 void draw_circle(image im, int x, int y, int radius, int r, int g, int b);
 
 /**
- *  do subtract between two image (image a and imge b)
+ *  do subtract between two image (image a and image b)
  * @param [in] a: input image
  * @param [in] b: input image
  * @param [out] c: output image

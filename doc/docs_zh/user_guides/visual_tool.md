@@ -46,7 +46,7 @@ type: 数据类型，此处为 FP32 格式；维度信息，此模型为 [10,3,2
 
 a)  prob:
 
-name: 输出 tenso r的名称，如此处为 prob; 
+name: 输出 tensor 的名称，如此处为 prob; 
 type: 数据类型，此处为 FP32 格式；维度信息位置，须经过 infershape 后由 Tengine 计算得到输出尺寸。
 
 ##  模型绘图

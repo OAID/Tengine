@@ -406,7 +406,7 @@ int main(int argc, char* argv[])
     image img = imread(image_file);
     int output_node_num = get_graph_output_node_number(graph);
 
-    /* save detection reslult */
+    /* save detection result */
     std::vector<detection> detections;
 
     /* decode layer one by one*/

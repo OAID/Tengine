@@ -15,7 +15,7 @@ Benchmark 是评估目标硬件平台网络模型运行速度的简单途径，�
 2. 将原始框架模型转换为 tmfile benchmark 专用模型，以 Caffe 框架的 mobilenet_v1 举例：
 
    ```shell
-   $ ./comvert_tm_tool -f caffe -p mobilenet_v1.prototxt -m mobilenet_v1.caffemodel -o mobilenet_v1_benchmark.tmfile
+   $ ./convert_tm_tool -f caffe -p mobilenet_v1.prototxt -m mobilenet_v1.caffemodel -o mobilenet_v1_benchmark.tmfile
    ```
 
    我们已经提前转换了一小部分评估模型在 [benchmark/models](benchmark/models) 中。
