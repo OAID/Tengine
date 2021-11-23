@@ -246,7 +246,7 @@ image file : images/carvana01.jpg
 img_h, img_w, scale[3], mean[3] : 512 512 , 0.004 0.004 0.004, 0.0 0.0 0.0
 Repeat 1 times, thread 1, avg time 4861.93 ms, max_time 4861.93 ms, min_time 4861.93 ms
 --------------------------------------
-segmentatation result is save as unet_out.png
+segmentation result is save as unet_out.png
 ```
 
 ![](https://z3.ax1x.com/2021/07/01/Rs8YjI.png)

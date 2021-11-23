@@ -506,7 +506,7 @@ int tengine_detect(const char* model_file, const char* image_file, int img_h, in
     free(anchors_y0);
     free(anchors_y1);
 
-    // filter boxes wiht confidence threshold
+    // filter boxes with confidence threshold
     Box_t* proposals_over_threshold = malloc(sizeof(Box_t) * num_proposals_over_threshold);
     int proposals_over_threshold_idx = 0;
     for (int i = 0; i < num_anchors; i++)

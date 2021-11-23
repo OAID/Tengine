@@ -88,7 +88,7 @@ int getFeature(const char* imagefile, float* feature)
     return outsize;
 }
 
-void normlize(float* feature, int size)
+void normalize(float* feature, int size)
 {
     float norm = 0;
     for (int i = 0; i < size; ++i)
@@ -167,8 +167,8 @@ int main(int argc, char* argv[])
         fprintf(stderr, "getFeature feature out len error");
     }
 
-    normlize(featurea.data(), feature_len);
-    normlize(featureb.data(), feature_len);
+    normalize(featurea.data(), feature_len);
+    normalize(featureb.data(), feature_len);
 
     float sim = 0;
     for (int i = 0; i < feature_len; ++i)

@@ -15,7 +15,7 @@ $ export TM_FOR_BENCHMARK=1
 - Convert the original framework model to a dedicated tmfile benchmark model, using mobilenet_v1 of the Caffe framework as an example:
 
 ```
-$ ./comvert_tm_tool -f caffe -p mobilenet_v1.prototxt -m mobilenet_v1.caffemodel -o mobilenet_v1_benchmark.tmfile
+$ ./convert_tm_tool -f caffe -p mobilenet_v1.prototxt -m mobilenet_v1.caffemodel -o mobilenet_v1_benchmark.tmfile
 ```
 
 We have already converted a small part of the evaluation models in benchmark/models in advance.
