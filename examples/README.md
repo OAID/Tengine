@@ -7,7 +7,7 @@ Tengine Lite 的 examples 将提供简单的、好玩的 demo。
 - [人脸关键点检测任务](#人脸关键点检测任务---tm_landmarkcpp)
 - [ssd 目标检测任务](#ssd-目标检测任务---tm_mobilenet_ssdc)
 - [retinaface 人脸检测任务](#retinaface-人脸检测任务---tm_retinafacecpp)
-- [scrfd 人脸检测任务](#scrfd-人脸检测任务---tm_scrfd.cpp)
+- [scrfd 人脸检测任务](#scrfd-人脸检测任务---tm_scrfdcpp)
 - [yolact 实例分割任务](#yolact-实例分割任务---tm_yolactcpp)
 - [unet 图像分割任务](#unet-图像分割任务---tm_unetcpp)
 - [yolov3 目标检测任务](#yolov3-目标检测任务---tm_yolov3cpp)
