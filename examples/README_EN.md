@@ -201,7 +201,7 @@ BOX 0.98:( 290.004 , 104.453 ),( 37.6346 , 46.7777 )
 ![](https://z3.ax1x.com/2021/07/01/Rrs6LF.jpg)
 
 
-## Scrfd  Face Detection Task - [tm_scrfd.cpp](tm_scrfd.cpp)
+## Scrfd Face Detection Task - [tm_scrfd.cpp](tm_scrfd.cpp)
 
 We use this image:
 
