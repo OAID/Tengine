@@ -1502,5 +1502,5 @@ void ncnn_serializer::register_op_load()
     op_load_map["DeconvolutionDepthWise"] = std::pair<int, op_load_t>(OP_DECONV, load_deconv);
 }
 /*
-*   OPERAOTR REGISTER FUNCTION DEFINE FOR NCNN SERIALIZER END
+*   OPERATOR REGISTER FUNCTION DEFINE FOR NCNN SERIALIZER END
 */

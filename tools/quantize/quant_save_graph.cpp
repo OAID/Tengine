@@ -784,7 +784,7 @@ int save_graph_u8_perchannel(const char* model_file, const char* scale_file, con
 
     fprintf(stderr, "[Quant Tools Info]: Step 4, quantize activation tensor done.\n");
 
-    /* Set the params of acitvation ir_tensor */
+    /* Set the params of activation ir_tensor */
     for (int i = 0; i < ir_graph->tensor_num; i++)
     {
         struct tensor* ir_tensor = ir_graph->tensor_list[i];
