@@ -15,18 +15,14 @@ SET(_OCL_ROOT ${CMAKE_SOURCE_DIR}/source/device/opencl)
 
 # 2.  add header file path
 LIST (APPEND _DEV_OCL_HEADER_PATH           ${_OCL_ROOT})
-LIST (APPEND _DEV_OCL_HEADER_PATH           ${OPENCL_INCLUDE_DIRS})
-
-
-# 3.  add linking lib searching path
-LIST (APPEND _DEV_OCL_LINK_PATH             ${OPENCL_LIBRARY})
-
+LIST (APPEND _DEV_OCL_HEADER_PATH           ${_OCL_ROOT}/include)
 
 # 4.  add source files
 AUX_SOURCE_DIRECTORY("${_OCL_ROOT}"         _OCL_BASE_SOURCE)
-AUX_SOURCE_DIRECTORY("${_OCL_ROOT}/op"      _OCL_OPS_SOURCE)
+AUX_SOURCE_DIRECTORY("${_OCL_ROOT}/oppack4"  _OCL_OPS_SOURCE_PACK4)
 LIST (APPEND _DEV_OCL_DEVICE_SOURCE         ${_OCL_BASE_SOURCE})
 LIST (APPEND _DEV_OCL_DEVICE_SOURCE         ${_OCL_OPS_SOURCE})
+LIST (APPEND _DEV_OCL_DEVICE_SOURCE         ${_OCL_OPS_SOURCE_PACK4})
 
 
 # 5.  add build options for cpu device
@@ -37,17 +33,23 @@ IF (TENGINE_COMPILER_GCC OR TENGINE_COMPILER_CLANG)
     ENDIF()
 ENDIF()
 
-
 # 5.2 is Microsoft Visual C++
 IF (TENGINE_COMPILER_MSVC)
 ENDIF()
 
 
 # 6.  add link options
-
+OPTION(TENGINE_OPENCL_PROFILE_TIME "enable opencl profile time" OFF)
+IF (TENGINE_OPENCL_PROFILE_TIME)
+    LIST (APPEND _DEV_OCL_COMPILER_DEFINES OPENCL_PROFILE_TIME)
+ENDIF ()
 
 # 7.  add link libs
-LIST (APPEND _DEV_OCL_LINK_LIBRARIES   "libOpenCL.so")
+FIND_PACKAGE(OpenCL)
+IF(NOT OpenCL_FOUND)
+    message(WARNING "please set cmake -DOpenCL_LIBRARY=user/lib/... manual")
+ENDIF()
+LIST (APPEND _DEV_OCL_LINK_LIBRARIES  ${OpenCL_LIBRARY})
 
 
 # 8. set all to cmake cache

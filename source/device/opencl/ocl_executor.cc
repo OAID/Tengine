@@ -19,196 +19,187 @@
 
 /*
  * Copyright (c) 2021, OPEN AI LAB
- * Author: hhchen@openailab.com
+ * Author: hbshi@openailab.com
  */
 
 #include "ocl_executor.hpp"
+#include "ocl_node.hpp"
+#include "ocl_convertor.hpp"
 #include "ocl_helper.hpp"
+#include <../examples/common/common.h>
 
-extern "C"
-{
+extern "C" {
 #include "operator/op.h"
 #include "convolution_param.h"
 }
 
+void register_all_ocl_creator();
+
+std::map<int, ocl_node_creator*>* OCLEngine::s_ocl_node_creator_map = new std::map<int, ocl_node_creator*>();
 
 bool OCLEngine::init()
 {
-    this->queue_list.clear();
-    bin_num = -1;
+    std::vector<cl::Platform> platforms;
+    cl_int res = cl::Platform::get(&platforms);
+    if (platforms.empty() || res != CL_SUCCESS)
+    {
+        return false;
+    }
+    cl::Platform::setDefault(platforms[0]);
+    std::vector<cl::Device> all_devices;
+    res = platforms[0].getDevices(CL_DEVICE_TYPE_GPU, &all_devices);
+    if (all_devices.empty() || res != CL_SUCCESS)
+    {
+        return false;
+    }
+    engine_device = std::make_shared<cl::Device>(all_devices[0]);
+    engine_context = std::make_shared<cl::Context>(*engine_device, nullptr, nullptr, nullptr, &res);
+    engine_command_queue = std::make_shared<cl::CommandQueue>(*engine_context, *engine_device, 0, &res);
+    engine_convertor = std::make_shared<ocl_convertor>(this);
 
-    /**Step 1: Getting platforms and choose an available one(first).*/
-    getPlatform(platform);
+    const std::string device_name = engine_device->getInfo<CL_DEVICE_NAME>();
+    const std::string vendor_name = engine_device->getInfo<CL_DEVICE_VENDOR>();
+    engine_device->getInfo(CL_DEVICE_GLOBAL_MEM_CACHE_SIZE, &gpu_global_memory_cache_size);
+    engine_device->getInfo(CL_DEVICE_MAX_COMPUTE_UNITS, &gpu_compute_unit);
+    engine_device->getInfo(CL_DEVICE_MAX_CLOCK_FREQUENCY, &gpu_max_frequent);
 
-    /**Step 2:Query the platform and choose the first GPU device if has one.*/
-    devices=getCl_device_id(platform);
-
-    /**Step 3: Create context.*/
-    context = clCreateContext(NULL,1, devices,NULL,NULL,NULL);
-
-    /**Step 4: Creating command queue associate with the context.*/
-    commandQueue = clCreateCommandQueue(context, devices[0], CL_QUEUE_PROFILING_ENABLE, NULL);
-
+    TLOG_ERR("device name:%s device_vendor:%s \n", device_name.c_str(), vendor_name.c_str());
     return true;
 }
 
-bool OCLEngine::build_kernel(const char *filename, const char *kernel_name)
+int OCLEngine::OCLEnginePreRun(struct subgraph* subgraph)
 {
-    /**Step 5: Create program object */
-    std::string sourceStr ;
-    status = convertToString(filename, sourceStr);
-    const char *source = sourceStr.c_str();
-
-    size_t sourceSize[] = {strlen(source)};
-    program = clCreateProgramWithSource(context, 1, &source, sourceSize, NULL);
-
-    /**Step 6: Build program. */
-    status=clBuildProgram(program, 1, devices,NULL,NULL,NULL);
-    if (status != CL_SUCCESS)
-    {
-        TLOG_INFO("Log: clBuildProgram status %d\n",status);
-        size_t len;
-        char buffer[8 * 1024];
-
-        TLOG_INFO("Error: Failed to build program executable!\n");
-        clGetProgramBuildInfo(program, devices[0], CL_PROGRAM_BUILD_LOG, sizeof(buffer), buffer, &len);
-        TLOG_INFO("%s\n", buffer);
-        return false;
-    }
-//    else
-//        TLOG_INFO("Log: clBuildProgram SUCCESS\n");
-
-    unsigned char *programBinary;
-    FILE *pf;
-    bin_num += 1;
-    char binaryFileName[200] = "";
-    strcat(binaryFileName, std::to_string(bin_num).c_str());
-    strcat(binaryFileName, ".bin");
-
-    // ???? build ? program ???
-    size_t programBinarySize;
-    status = clGetProgramInfo(program, CL_PROGRAM_BINARY_SIZES, sizeof(cl_device_id), &programBinarySize, NULL); // ?? build ? program ???
-    if (status != CL_SUCCESS)
-    {
-        TLOG_INFO("Log: clGetProgramInfo0 status %d\n",status);
-        return false;
-    }
-    programBinary = (unsigned char *)malloc(sizeof(unsigned char)*programBinarySize);
-    status = clGetProgramInfo(program, CL_PROGRAM_BINARIES, sizeof(unsigned char *), &programBinary, NULL);      // ????
-    if (status != CL_SUCCESS)
-    {
-        TLOG_INFO("Log: clGetProgramInfo1 status %d\n",status);
-        return false;
-    }
-
-    // ??clCreateProgramWithBinary ??? program
-    program = clCreateProgramWithBinary(context, 1, devices, &programBinarySize, (const unsigned char **)&programBinary, NULL, NULL);
-    status = clBuildProgram(program, 1, devices, NULL, NULL, NULL);
-    if (status != CL_SUCCESS)
-    {
-        TLOG_INFO("Log: clBuildProgram status %d\n",status);
-        return false;
-    }
-
-    /**Step 7: Create kernel object */
-    kernel = clCreateKernel(program, kernel_name, NULL);
-
-    return true;
-}
-
-int OCLEngine::BuildKernel(struct subgraph* subgraph)
-{
+    //set_log_level(LOG_INFO);
+    //    dump_sub_graph(subgraph);
     struct graph* ir_graph = subgraph->graph;
-
-    /**Step 8: Create kernel object */
-   for (int i = 0; i < subgraph->node_num; i++)
-   {
-       uint16_t node_id = subgraph->node_list[i];
-       struct node* ir_node = get_ir_graph_node(ir_graph, node_id);
-       auto op_type = ir_node->op.type;
-
-        switch (op_type)
+    // allocate var type tensor into map
+    build_tensor_gpu_map(subgraph);
+    open_command_queue_profile();
+    // new node
+    for (int i = 0; i < subgraph->node_num; ++i)
+    {
+        uint16_t node_id = subgraph->node_list[i];
+        struct node* ir_node = get_ir_graph_node(ir_graph, node_id);
+        auto op_type = ir_node->op.type;
+        if (op_type == OP_CONST || op_type == OP_INPUT)
         {
-            case OP_CLIP:
-                this->AddClipNode(ir_node);
-                break;
-            case OP_CONCAT:
-                this->AddConcatNode(ir_node);
-                break;
-            case OP_CONST:
-            case OP_INPUT:
-                continue;
-            case OP_CONV:
-                this->AddConvolutionNode(ir_node);
-                break;
-            case OP_DROPOUT:
-                this->AddDropoutNode(ir_node);
-                break;
-            case OP_ELTWISE:
-                this->AddEltwiseNode(ir_node);
-                break;
-            case OP_FC:
-                this->AddFullyConnectionNode(ir_node);
-                break;
-            case OP_FLATTEN:
-                this->AddFlattenNode(ir_node);
-                break;
-//            case OP_PERMUTE:
-//                this->AddPermuteNode(ir_node);
-//                break;
-            case OP_POOL:
-                this->AddPoolingNode(ir_node);
-                break;
-            case OP_RELU:
-                this->AddReluNode(ir_node);
-                break;
-            case OP_RESHAPE:
-                this->AddReshapeNode(ir_node);
-                break;
-            case OP_SLICE:
-                this->AddSliceNode(ir_node);
-                break;
-//            case OP_SOFTMAX:
-//                this->AddSoftmaxNode(ir_node);
-            default:
-                TLOG_INFO("Tengine OpenCL GPU: Cannot support OP(%d).\n", ir_node->index);
-                break;
+            continue;
         }
-   }
+        auto ocl_creator = s_ocl_node_creator_map->find(op_type);
+        if (ocl_creator == s_ocl_node_creator_map->end())
+        {
+            TLOG_ERR("ocl do not support type:%d current now \n", op_type);
+            continue;
+        }
+        exe_ocl_node_list.push_back(std::shared_ptr<ocl_node>(ocl_creator->second->creator(this, ir_node)));
+    }
 
-//   /** Test Hello World */
-//    this->AddHelloWorldNode();
+    // node prerun
+    for (auto& _ocl_node : exe_ocl_node_list)
+    {
+        _ocl_node->pre_run();
+    }
+#ifndef OPENCL_PROFILE_TIME
+    close_command_queue_profile();
+#endif
     return 0;
 }
 
-bool OCLEngine::OCLTensorMap(struct graph* ir_graph, int ir_tensor_idx, cl_mem_flags flag)
+int OCLEngine::OCLEngineRun(struct subgraph* subgraph)
 {
-    auto iter = this->ocl_tensor_map.find(ir_tensor_idx);
-    struct tensor* ir_tensor = get_ir_graph_tensor(ir_graph, ir_tensor_idx);
-
-    cl_mem clBuffer;
-    if ( TENSOR_TYPE_CONST == ir_tensor->tensor_type || TENSOR_TYPE_DEP == ir_tensor->tensor_type )
+    struct graph* ir_graph = subgraph->graph;
+    for (int i = 0; i < subgraph->input_num; ++i)
     {
-//        TLOG_INFO("Upload weight/bias %s\n",ir_tensor->name);
-        clBuffer = clCreateBuffer(context, CL_MEM_READ_WRITE , ir_tensor->elem_num * ir_tensor->elem_size, NULL, NULL);
+        int ir_tensor_idx = subgraph->input_tensor_list[i];
+        struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_tensor_idx);
+        upload_input_nc4hw(input_tensor, ir_tensor_idx);
+#if 0
+        // print input
+        printf("input ------------------ \n");
+        uint32_t input_w = input_tensor->dims[3] * UP_DIV(input_tensor->dims[1], 4);
+        uint32_t input_h = input_tensor->dims[2];
+        std::vector<float> input_debug(input_w * input_h * 4);
+        uint64_t mem = gpu_mem_map.find(ir_tensor_idx)->second;
+        get_command_queue().enqueueReadImage(*(cl::Image*)mem, CL_TRUE, {0, 0, 0}, {input_w, input_h, 1}, input_w * sizeof(float) * 4, 0, input_debug.data());
+        int idx_debug_input = 0;
+        for (int i = 0; i < 3; ++i)
+        {
+            for (int j = 0; j < input_w; ++j)
+            {
+                for (int k = 0; k < 4; ++k)
+                {
+                    printf("%f ", input_debug[idx_debug_input]);
+                    idx_debug_input++;
+                }
+                printf(" ");
+            }
+            printf("\n");
+        }
+        //    uint32_t output_w = width * UP_DIV(output_channel, 4);
+        //    uint32_t output_h = height;
+        //    std::vector<float> output_debug(output_w * output_h * 4);
+        //    engine->get_command_queue().enqueueReadImage(*(cl::Image*)handle_output, CL_TRUE, {0, 0, 0}, {output_w, output_h, 0}, output_w * sizeof(float) * 4, 0, output_debug.data());
+        //    int idx_debug_output = 0;
+        //    for (int i = 0; i < output_h; ++i)
+        //    {
+        //        for (int j = 0; j < input_w; ++j)
+        //        {
+        //            for (int k = 0; k < 4; ++k)
+        //            {
+        //                printf("%f ", output_debug[idx_debug_output]);
+        //                idx_debug_output++;
+        //            }
+        //            printf(" ");
+        //        }
+        //        printf("\n");
+        //    }
+
+#endif
     }
-    else
-        clBuffer = clCreateBuffer(context, flag , ir_tensor->elem_num * ir_tensor->elem_size, NULL, NULL);
 
-    this->ocl_tensor_map[ir_tensor_idx] = clBuffer;
+    for (auto& _ocl_node : exe_ocl_node_list)
+    {
+        _ocl_node->run(subgraph);
+    }
 
-    return true;
+    for (int i = 0; i < subgraph->output_num; ++i)
+    {
+        int ir_tensor_idx = subgraph->output_tensor_list[i];
+        struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_tensor_idx);
+        if (output_tensor->data == nullptr)
+        {
+            //            TLOG_INFO("Log:download data malloc \n");
+            auto* fp32_data = (float*)malloc(output_tensor->elem_size * output_tensor->elem_num);
+            output_tensor->data = fp32_data;
+        }
+        download_output(output_tensor, ir_tensor_idx);
+    }
+    engine_command_queue->finish();
+    engine_command_queue->flush();
+    return 0;
 }
 
-int OCLEngine::BuildTensor(struct subgraph* subgraph)
+void OCLEngine::OCLEnginePostRun()
+{
+}
+
+OCLEngine::OCLEngine()
+{
+    init();
+    register_all_ocl_creator();
+}
+
+void OCLEngine::build_tensor_gpu_map(struct subgraph* subgraph)
 {
     struct graph* ir_graph = subgraph->graph;
 
     for (uint8_t i = 0; i < subgraph->input_num; i++)
     {
         int ir_tensor_idx = subgraph->input_tensor_list[i];
-        this->OCLTensorMap(ir_graph, ir_tensor_idx, CL_MEM_READ_WRITE|CL_MEM_COPY_HOST_PTR);
+        struct tensor* ir_tensor = get_ir_graph_tensor(ir_graph, ir_tensor_idx);
+        this->allocate_gpu_mem(ir_tensor, ir_tensor_idx, CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR);
     }
+
     for (int i = 0; i < subgraph->node_num; i++)
     {
         uint16_t node_id = subgraph->node_list[i];
@@ -216,156 +207,288 @@ int OCLEngine::BuildTensor(struct subgraph* subgraph)
         for (int j = 0; j < ir_node->input_num; j++)
         {
             int ir_tensor_idx = ir_node->input_tensors[j];
-            this->OCLTensorMap(ir_graph, ir_tensor_idx, CL_MEM_READ_WRITE);
+            struct tensor* ir_tensor = get_ir_graph_tensor(ir_graph, ir_tensor_idx);
+            this->allocate_gpu_mem(ir_tensor, ir_tensor_idx, CL_MEM_READ_WRITE);
         }
         for (int j = 0; j < ir_node->output_num; j++)
         {
             int ir_tensor_idx = ir_node->output_tensors[j];
-            this->OCLTensorMap(ir_graph, ir_tensor_idx, CL_MEM_READ_WRITE);
+            struct tensor* ir_tensor = get_ir_graph_tensor(ir_graph, ir_tensor_idx);
+            this->allocate_gpu_mem(ir_tensor, ir_tensor_idx, CL_MEM_READ_WRITE);
         }
     }
-
-//    /** Test Hello World */
-////    cl_mem inputBuffer = clCreateBuffer(context, CL_MEM_READ_ONLY|CL_MEM_COPY_HOST_PTR, (NUM) * sizeof(float),(void *) input, NULL);
-//    cl_mem inputBuffer = clCreateBuffer(context, CL_MEM_WRITE_ONLY , NUM * sizeof(float), NULL, NULL);
-//    cl_mem outputBuffer = clCreateBuffer(context, CL_MEM_WRITE_ONLY , NUM * sizeof(float), NULL, NULL);
-//
-//    this->ocl_tensor_map[0] = inputBuffer;
-//    this->ocl_tensor_map[1] = outputBuffer;
-    return 0;
 }
 
-int OCLEngine::OCLEnginePreRun(struct subgraph* subgraph)
+void OCLEngine::add_ocl_node_creator(int op_type, ocl_node_creator* creator)
 {
-//    get_device_message();
-    // dump_sub_graph(subgraph);
-
-    /* init opencl setting */
-    this->init();
-
-    /* build opencl tensor */
-    this->BuildTensor(subgraph);
-
-    /* build opencl kernel */
-    this->BuildKernel(subgraph);
-
-    return 0;
-};
-
-int OCLEngine::OCLEngineRun(struct subgraph* subgraph)
-{
-    struct graph* ir_graph = subgraph->graph;
-
-    /* upload data */
-    TLOG_INFO("Upload date\n");
-    for (uint8_t i = 0; i < subgraph->input_num; i++)
+    if (s_ocl_node_creator_map->find(op_type) != s_ocl_node_creator_map->end())
     {
-        int ir_tensor_idx = subgraph->input_tensor_list[i];
-        struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_tensor_idx);
-        cl_event enentPoint;
-        CHECK_ENQUEUE_BUFFER_STATUS(clEnqueueWriteBuffer(commandQueue, this->ocl_tensor_map[ir_tensor_idx], CL_TRUE, 0, input_tensor->elem_num * input_tensor->elem_size, input_tensor->data, 0, NULL, &enentPoint));
-        clWaitForEvents(1,&enentPoint); ///wait
-        clReleaseEvent(enentPoint);
+        TLOG_INFO("add_ocl_node_creator: %d befor", op_type);
+        return;
     }
+    TLOG_INFO("add_ocl_node_creator: %d \n", op_type);
+    s_ocl_node_creator_map->insert(std::make_pair(op_type, creator));
+}
 
-    /* run */
-    /**Step 10: Running the kernel.*/
-    if (queue_list.empty())
+void OCLEngine::allocate_gpu_mem(struct tensor* ir_tensor, int tensor_index, cl_mem_flags flags)
+{
+    auto iter = gpu_mem_map.find(tensor_index);
+    if (iter != gpu_mem_map.end())
     {
-        TLOG_INFO("queue_list is empty\n");
+        TLOG_INFO("has allocate gpu_mem: %d before \n", tensor_index);
+        return;
+    }
+    auto type = ir_tensor->tensor_type;
+    if (TENSOR_TYPE_CONST == type || TENSOR_TYPE_DEP == type || TENSOR_TYPE_UNKNOWN)
+    {
+        return;
+    }
+    int N, C, H, W;
+    N = ir_tensor->dims[0];
+    C = ir_tensor->dims[1];
+    H = ir_tensor->dims[2];
+    W = ir_tensor->dims[3];
+    size_t image_width = UP_DIV(C, 4) * W;
+    size_t image_height = N * H;
+    cl_channel_type data_type = CL_FLOAT;
+    auto image = new cl::Image2D(*this->engine_context, flags, cl::ImageFormat(CL_RGBA, data_type), image_width, image_height, 0, nullptr, nullptr);
+    gpu_mem_map.insert(std::make_pair(tensor_index, (gpu_mem_handle)image));
+}
+
+cl::Kernel OCLEngine::build_kernel(const std::string& program_name, const std::string& kernel_name, const std::set<std::string>& options)
+{
+    char* cl_env = getenv("ROOT_PATH");
+    std::string path = std::string(cl_env);
+    path += "/source/device/opencl/cl4/";
+    path += program_name + ".cl";
+
+    std::string build_option_str;
+    build_option_str = "-DFLOAT=float -DFLOAT4=float4 -DFLOAT8=float8 -DRI_F=read_imagef -DFLOAT16=float16 -DWI_F=write_imagef -DCONVERT_FLOAT4=convert_float4";
+    for (auto& option : options)
+    {
+        build_option_str += " " + option;
+    }
+    build_option_str += " -cl-mad-enable";
+
+    std::ifstream source_kernel_file(path.c_str());
+    std::string source_file((std::istreambuf_iterator<char>(source_kernel_file)), std::istreambuf_iterator<char>());
+    cl::Program::Sources sources;
+    sources.push_back(source_file);
+    cl::Program program = cl::Program(*engine_context, sources);
+    cl_int res;
+    res = program.build({*engine_device}, build_option_str.c_str());
+    if (res != CL_SUCCESS)
+    {
+        if (program.getBuildInfo<CL_PROGRAM_BUILD_STATUS>(*engine_device) == CL_BUILD_ERROR)
+        {
+            std::string build_log = program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(*engine_device);
+            TLOG_ERR("program build log: %s \n", build_log.c_str());
+        }
+    }
+    cl::Kernel kernel = cl::Kernel(program, kernel_name.c_str(), &res);
+    if (res == CL_SUCCESS)
+    {
+        TLOG_INFO("build %s success \n", kernel_name.c_str());
+    }
+    else
+    {
+        TLOG_ERR("build %s fail res:%d \n", kernel_name.c_str(), res);
+    }
+    return kernel;
+}
+
+uint64_t OCLEngine::get_max_work_group_size(const cl::Kernel& kernel)
+{
+    uint64_t max_work_group_size = 0;
+    kernel.getWorkGroupInfo(*engine_device, CL_KERNEL_WORK_GROUP_SIZE, &max_work_group_size);
+    return max_work_group_size;
+}
+
+const cl::CommandQueue& OCLEngine::get_command_queue() const
+{
+    return *engine_command_queue;
+}
+
+void OCLEngine::upload_input_nc4hw(tensor* ir_tensor, int ir_tensor_idx)
+{
+    auto need_size = (int)ir_tensor->elem_num * ir_tensor->elem_size;
+    alloc_temp_buffer(need_size);
+    engine_command_queue->enqueueWriteBuffer(*temp_buffer_up_down.second, CL_TRUE, 0, need_size, ir_tensor->data);
+
+    if (gpu_mem_map.find(ir_tensor_idx) == gpu_mem_map.end())
+    {
+        TLOG_ERR("error in find input tensor gpu mem \n");
+        return;
+    }
+    auto input_gpu_mem = gpu_mem_map.find(ir_tensor_idx)->second;
+    get_converter().nchw_buffer_to_image(ir_tensor, temp_buffer_up_down.second.get(), (cl::Image*)input_gpu_mem, false);
+    //
+    //TLOG_INFO("upload_input_nc4hw : %lld \n", input_gpu_mem);
+}
+
+void OCLEngine::download_output(struct tensor* ir_tensor, int ir_tensor_idx)
+{
+    auto need_size = (int)ir_tensor->elem_num * ir_tensor->elem_size;
+    alloc_temp_buffer(need_size);
+    if (gpu_mem_map.find(ir_tensor_idx) == gpu_mem_map.end())
+    {
+        TLOG_ERR("error in find output tensor gpu mem why???\n");
+        return;
+    }
+    auto input_gpu_mem = gpu_mem_map.find(ir_tensor_idx)->second;
+    int N, C, H, W;
+    N = ir_tensor->dims[0];
+    C = ir_tensor->dims[1];
+    H = ir_tensor->dims[2];
+    W = ir_tensor->dims[3];
+    int image_width = UP_DIV(C, 4) * W;
+    int image_height = N * H;
+    get_converter().image_to_buffer(ir_tensor, (cl::Image*)input_gpu_mem, temp_buffer_up_down.second.get(), image_width, image_height);
+    engine_command_queue->enqueueReadBuffer(*temp_buffer_up_down.second, CL_TRUE, 0, need_size, ir_tensor->data, nullptr, nullptr);
+
+    //    float* ptr = (float*)ir_tensor->data;
+    //    int idx = 0;
+    //    for (int i = 0; i < 3; ++i)
+    //    {
+    //        for (int j = 0; j < 10; ++j)
+    //        {
+    //            for (int k = 0; k < 10; ++k)
+    //            {
+    //                printf("%.4f ", ptr[idx]);
+    //                idx ++;
+    //            }
+    //            printf("\n");
+    //        }
+    //    }
+}
+
+const cl::Context& OCLEngine::get_context() const
+{
+    return *engine_context;
+}
+
+ocl_convertor& OCLEngine::get_converter()
+{
+    return *engine_convertor;
+}
+
+uint64_t OCLEngine::get_gpu_mem_by_idx(int idx)
+{
+    if (gpu_mem_map.find(idx) == gpu_mem_map.end())
+    {
+        TLOG_ERR("eror find gpu mem do not init before, why?");
         return 0;
     }
-    int term = 0;
-    TLOG_INFO("queue_list size %d\n",queue_list.size());
-    cl_event enentPoint;
-    for (int i = 0; i<queue_list.size(); ++i)
+    return gpu_mem_map.find(idx)->second;
+}
+std::vector<uint32_t> OCLEngine::get_max_work_item_sizes()
+{
+    int dims = 3;
+    cl_int res = engine_device->getInfo(CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS, &dims);
+    if (res != CL_SUCCESS)
     {
-//        TLOG_INFO("term %d\n",term++);
-        auto it = queue_list[i];
-        TLOG_INFO("queue_work_size %s %d %d\n",it.name.c_str(), it.queue_global_work_size[0], it.queue_local_work_size[0]);
-//        double start0 = get_current_time();
-        cl_event enentPoint;
-        it.enentPoint = enentPoint;
-        CHECK_ENQUEUE_KERNEL_STATUS(clEnqueueNDRangeKernel(commandQueue, it.queue_kernel, it.dims, NULL, it.queue_global_work_size, it.queue_local_work_size, 0, NULL, &enentPoint) );
-//        if (0 == (i+1) % 10)
-//            clFinish(commandQueue);
-//        clWaitForEvents(1,&enentPoint); ///wait
-//        clFinish(commandQueue);
-//        double end0 = get_current_time();
-//        double cur0 = end0 - start0;
-//        TLOG_INFO("time %s %lf\n",it.name.c_str(), cur0);
-
-//        size_t len;
-//        cl_ulong queued;
-//        cl_ulong submit;
-//        cl_ulong start;
-//        cl_ulong end;
-//        clGetEventProfilingInfo(enentPoint, CL_PROFILING_COMMAND_QUEUED, sizeof(queued)*2, &queued, &len);
-//        clGetEventProfilingInfo(enentPoint, CL_PROFILING_COMMAND_SUBMIT, sizeof(submit)*2, &submit, &len);
-//        clGetEventProfilingInfo(enentPoint, CL_PROFILING_COMMAND_START, sizeof(start)*2, &start, &len);
-//        clGetEventProfilingInfo(enentPoint, CL_PROFILING_COMMAND_END, sizeof(end)*2, &end, &len);
-//        auto time = (end - start) / 1000000.0;
-//        TLOG_INFO("time %lf\n",time);
-//        TLOG_INFO("time queued %ld\n", queued);
-//        TLOG_INFO("time submit %ld\n", submit);
-//        TLOG_INFO("time start  %ld\n", start);
-//        TLOG_INFO("time end    %ld\n\n", end);
-
-//        clReleaseEvent(enentPoint);
+        TLOG_ERR("getInfo(CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS error \n");
     }
-    clFinish(commandQueue);
-//    clReleaseEvent(enentPoint);
-
-    /* download data */
-    /**Step 11: Read the cout put back to host memory.*/
-    TLOG_INFO("Download date\n");
-    for (uint8_t i = 0; i < subgraph->output_num; i++)
+    if (dims > 3)
     {
-        int ir_tensor_idx = subgraph->output_tensor_list[i];
-        struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_tensor_idx);
-        if (output_tensor->data == NULL)
-        {
-            TLOG_INFO("Log:download data malloc\n");
-            float* fp32_data = (float*)malloc(output_tensor->elem_size * output_tensor->elem_num);
-            output_tensor->data = fp32_data;
-        }
-        cl_event enentPoint;
-        CHECK_ENQUEUE_BUFFER_STATUS(clEnqueueReadBuffer(commandQueue, this->ocl_tensor_map[ir_tensor_idx], CL_TRUE, 0, output_tensor->elem_num * output_tensor->elem_size, output_tensor->data, 0, NULL, &enentPoint) );
-        clWaitForEvents(1,&enentPoint); ///wait
-        clReleaseEvent(enentPoint);
-
-        float* data_out = (float*)output_tensor->data;
-        std::cout<<"data out "<<output_tensor->name<<" "<<data_out[0]<<std::endl;
+        std::vector<uint32_t> work_item(3, 8);
+        return work_item;
+    }
+    cl::vector<cl::size_type> _work_item(dims, 1);
+    res = engine_device->getInfo(CL_DEVICE_MAX_WORK_ITEM_SIZES, &_work_item);
+    if (res != CL_SUCCESS)
+    {
+        TLOG_ERR("getInfo(CL_DEVICE_MAX_WORK_ITEM_SIZES error \n");
     }
 
-
-#ifdef DEBUG_DATA
-    for (auto iter = this->gpu_addr_map.begin(); iter != this->gpu_addr_map.end(); iter++)
+    std::vector<uint32_t> work_item(dims, 1);
+    for (int i = 0; i < dims; ++i)
     {
-        struct tensor* ir_tensor = get_ir_graph_tensor(ir_graph, iter->first);
-        cudaMemcpy(ir_tensor->data, iter->second, ir_tensor->elem_num * ir_tensor->elem_size, cudaMemcpyDeviceToHost);
+        work_item[i] = _work_item[i];
     }
-#endif
-
-    return 0;
+    return work_item;
 }
 
-void OCLEngine::OCLEnginePostRun()
+double OCLEngine::get_cost_time(cl::Event* event)
 {
-    /**Step 12: Clean the resources.*/
-    status = clReleaseKernel(kernel);//*Release kernel.
-    status = clReleaseProgram(program);    //Release the program object.
-
-    for (auto iter = this->ocl_tensor_map.begin(); iter != this->ocl_tensor_map.end(); iter++)
+    if (nullptr == event)
     {
-        clReleaseMemObject(iter->second);
+        TLOG_ERR("why event nullptr? \n");
+        return 0;
     }
-    status = clReleaseCommandQueue(commandQueue);//Release  Command queue.
-    status = clReleaseContext(context);//Release context.
-
-    if (devices != NULL)
+    cl_int res = event->wait();
+    if (res != CL_SUCCESS)
     {
-        free(devices);
-        devices = NULL;
+        TLOG_ERR("error in event->wait get_cost_time \n");
     }
-};
+    double start_nano = event->getProfilingInfo<CL_PROFILING_COMMAND_START>();
+    double end_nano = event->getProfilingInfo<CL_PROFILING_COMMAND_END>();
+    return (end_nano - start_nano) / 1000.0;
+}
+void OCLEngine::open_command_queue_profile()
+{
+    engine_command_queue->finish();
+    engine_command_queue.reset();
+    cl_command_queue_properties properties = CL_QUEUE_PROFILING_ENABLE;
+    cl_int res;
+    engine_command_queue = std::make_shared<cl::CommandQueue>(*engine_context, *engine_device, properties, &res);
+    if (res != CL_SUCCESS)
+    {
+        TLOG_ERR("OCLEngine::open_command_queue_profile error \n");
+    }
+}
+void OCLEngine::close_command_queue_profile()
+{
+    engine_command_queue->finish();
+    engine_command_queue.reset();
+    cl_command_queue_properties properties = 0;
+    cl_int res;
+    engine_command_queue = std::make_shared<cl::CommandQueue>(*engine_context, *engine_device, properties, &res);
+    if (res != CL_SUCCESS)
+    {
+        TLOG_ERR("OCLEngine::open_command_queue_profile error \n");
+    }
+}
+void OCLEngine::set_gpu_mem_by_idx(int idx, uint64_t handle)
+{
+    if (gpu_mem_map.find(idx) == gpu_mem_map.end())
+    {
+        TLOG_ERR("cannot find gpu mem set mem no mean \n");
+    }
+    auto iter = gpu_mem_map.find(idx);
+    if (handle != iter->second)
+    {
+        auto ptr = (cl::Image2D*)iter->second;
+        auto mem = (cl_mem)ptr->get();
+        clReleaseMemObject(mem);
+    }
+    iter->second = handle;
+}
+
+void OCLEngine::alloc_temp_buffer(int len)
+{
+    if (temp_buffer_up_down.second != nullptr && temp_buffer_up_down.first >= len)
+    {
+        return;
+    }
+    temp_buffer_up_down.first = len;
+    temp_buffer_up_down.second = std::make_shared<cl::Buffer>(get_context(), CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR, len);
+}
+
+OCLEngine::~OCLEngine()
+{
+    temp_buffer_up_down.second.reset();
+    std::set<uint64_t> mem_release_set;
+    for (auto& iter : gpu_mem_map)
+    {
+        mem_release_set.insert(iter.second);
+    }
+    for (auto handle : mem_release_set)
+    {
+        auto ptr = (cl::Memory*)handle;
+        auto mem = (cl_mem)ptr->get();
+        clReleaseMemObject(mem);
+    }
+    gpu_mem_map.clear();
+    exe_ocl_node_list.clear();
+}

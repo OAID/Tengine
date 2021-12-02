@@ -694,6 +694,7 @@ tm_uoffset_t SaveTmLstmOp(void* const start_ptr, tm_uoffset_t* cur_pos, ir_node_
     tm_param.output_act = p->output_act;
     tm_param.cellin_act = p->cellin_act;
     tm_param.cellout_act = p->cellout_act;
+    tm_param.mxnet_flag = p->mxnet_flag;
 
     TM2_Operator tm_op;
     SetTmOperator(&tm_op, TM2_OPTYPE_LSTM, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_LstmParam)));

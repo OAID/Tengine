@@ -66,7 +66,7 @@ nvdla::priv::canonical_ast::Node * ODLAEngine::AddFullyConnectionNode(struct nod
         {
             if (weight_tensor->quant_param_num != weight_tensor->dims[0])
             {
-                fprintf(stderr, "Tengine: Unsupported weight quant channel of conv(id: %d, name: %s).\n", ir_node->index, ir_node->name);
+                fprintf(stderr, "Tengine: Unsupported weight quant channel of fc(id: %d, name: %s).\n", ir_node->index, ir_node->name);
                 return nullptr;
             }
 
@@ -104,7 +104,7 @@ nvdla::priv::canonical_ast::Node * ODLAEngine::AddFullyConnectionNode(struct nod
             break;
         }
         default:
-            fprintf(stderr, "Tengine: Unsupported weight quant data type(%d) of conv(id: %d, name: %s).\n", weight_tensor->data_type, ir_node->index, ir_node->name);
+            fprintf(stderr, "Tengine: Unsupported weight quant data type(%d) of fc(id: %d, name: %s).\n", weight_tensor->data_type, ir_node->index, ir_node->name);
             return nullptr;
     }
 
@@ -147,7 +147,7 @@ nvdla::priv::canonical_ast::Node * ODLAEngine::AddFullyConnectionNode(struct nod
                 break;
             }
             default:
-                fprintf(stderr, "Tengine: Unsupported weight quant data type(%d) of conv(id: %d, name: %s).\n", bias_tensor->data_type, ir_node->index, ir_node->name);
+                fprintf(stderr, "Tengine: Unsupported weight quant data type(%d) of fc(id: %d, name: %s).\n", bias_tensor->data_type, ir_node->index, ir_node->name);
                 return nullptr;
         }
 

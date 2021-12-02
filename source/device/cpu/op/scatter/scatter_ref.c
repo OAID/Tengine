@@ -98,7 +98,7 @@ static int ref_scatter_fp32(float* input, float* output, int* indices, float* up
 {
     int axis = op_param->axis;
     bool is_onnx = op_param->is_onnx;
-    TLOG_ERR("indices %f %f \n", updates[0], updates[1]);
+    TLOG_ERR("updates %f %f \n", updates[0], updates[1]);
     TLOG_ERR("indices %d %d \n", indices[0], indices[1]);
     int outSize = 1;
     for (int i = 0; i < op_param->dim_size; i++)

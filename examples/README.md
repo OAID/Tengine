@@ -7,6 +7,7 @@ Tengine Lite 的 examples 将提供简单的、好玩的 demo。
 - [人脸关键点检测任务](#人脸关键点检测任务---tm_landmarkcpp)
 - [ssd 目标检测任务](#ssd-目标检测任务---tm_mobilenet_ssdc)
 - [retinaface 人脸检测任务](#retinaface-人脸检测任务---tm_retinafacecpp)
+- [scrfd 人脸检测任务](#scrfd-人脸检测任务---tm_scrfdcpp)
 - [yolact 实例分割任务](#yolact-实例分割任务---tm_yolactcpp)
 - [unet 图像分割任务](#unet-图像分割任务---tm_unetcpp)
 - [yolov3 目标检测任务](#yolov3-目标检测任务---tm_yolov3cpp)
@@ -14,6 +15,7 @@ Tengine Lite 的 examples 将提供简单的、好玩的 demo。
 - [yolov5s 目标检测任务](#yolov5s目标检测任务---tm_yolov5scpp)
 - [nanodet 目标检测任务](#nanodet目标检测任务---tm_nanodet_mcpp)
 - [efficientdet 目标检测任务](#efficientdet目标检测任务---tm_efficientdetc)
+- [yolox 目标检测任务](#yolox目标检测任务---tm_yoloxcpp)
 - [openpose 人体姿态识别任务](#openpose人体姿态识别任务---tm_openposecpp)
 - [hrnet 人体姿态识别任务](#hrnet人体姿态识别任务---tm_hrnetcpp)
 - [crnn 汉字识别任务](#汉字识别任务---tm_crnncpp)
@@ -64,6 +66,7 @@ install
 │   ├── tm_nanodet_m
 │   ├── tm_openpose
 │   ├── tm_retinaface
+│   ├── tm_scrfd
 │   ├── tm_ultraface
 │   ├── tm_unet
 │   ├── tm_yolact
@@ -192,6 +195,34 @@ BOX 0.98:( 290.004 , 104.453 ),( 37.6346 , 46.7777 )
 
 ![](https://z3.ax1x.com/2021/07/01/Rrs6LF.jpg)
 
+## scrfd 人脸检测任务 - [tm_scrfd.cpp](tm_scrfd.cpp)
+
+使用图片：
+
+![](https://z3.ax1x.com/2021/11/25/oAaGVS.jpg)
+
+```bash
+$ export LD_LIBRARY_PATH=./build/install/lib
+$ ./build/install/bin/tm_scrfd -m models/scrfd_2.5g_kps.tmfile -i images/face5.jpg -r 1 -t 1
+```
+结果如下：
+
+```bash
+tengine-lite library version: 1.5-dev
+Repeat 1 times, thread 1, avg time 289.97 ms, max_time 289.97 ms, min_time 289.97 ms
+--------------------------------------
+detection num: 5
+0.90917 at 199.37 54.92 28.52 x 38.12
+0.89985 at 70.50 29.96 32.26 x 41.25
+0.88838 at 111.36 48.00 33.53 x 46.77
+0.88484 at 247.54 51.15 30.21 x 37.29
+0.83953 at 149.23 49.48 27.89 x 38.50
+
+
+```
+
+![](https://z3.ax1x.com/2021/11/25/oAUxN4.jpg)
+
 ## yolact 实例分割任务 - [tm_yolact.cpp](tm_yolact.cpp)
 
 使用图片：
@@ -240,7 +271,7 @@ image file : images/carvana01.jpg
 img_h, img_w, scale[3], mean[3] : 512 512 , 0.004 0.004 0.004, 0.0 0.0 0.0
 Repeat 1 times, thread 1, avg time 4861.93 ms, max_time 4861.93 ms, min_time 4861.93 ms
 --------------------------------------
-segmentatation result is save as unet_out.png
+segmentation result is save as unet_out.png
 ```
 
 ![](https://z3.ax1x.com/2021/07/01/Rs8YjI.png)
@@ -368,6 +399,33 @@ Repeat 1 times, thread 1, avg time 598.86 ms, max_time 598.86 ms, min_time 598.8
 ```
 
 ![](https://z3.ax1x.com/2021/07/08/RqxsmR.jpg)
+
+## yolox目标检测任务 - [tm_yolox.cpp](tm_yolox.cpp)
+
+使用图片：
+
+![](https://z3.ax1x.com/2021/06/30/RBVdq1.jpg)
+
+```bash
+$ export LD_LIBRARY_PATH=./build/install/lib
+$ ./build/install/bin/tm_yolox -m ../models/yolox_nano.tmfile -i ../images/ssd_dog.jpg -r 1 -t 1
+```
+结果如下：
+
+```bash
+tengine-lite library version: 1.5-dev
+Repeat 1 times, thread 1, avg time 97.64 ms, max_time 97.64 ms, min_time 97.64 ms
+--------------------------------------
+detection num: 3
+16:  85%, [ 132,  216,  318,  545], dog
+ 1:  83%, [ 112,  140,  568,  427], bicycle
+ 2:  69%, [ 466,   77,  693,  168], car
+
+```
+
+![](https://z3.ax1x.com/2021/11/19/IHwcJ1.jpg)
+
+
 
 
 ## openpose人体姿态识别任务 - [tm_openpose.cpp](tm_openpose.cpp)

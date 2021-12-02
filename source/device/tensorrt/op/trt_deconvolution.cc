@@ -103,7 +103,7 @@ bool TensorRTEngine::AddDeConvolutionNode(struct graph* ir_graph, struct node *n
             break;
         }
         default:
-            fprintf(stderr, "Tengine: Unsupported weight quant data type(%d) of conv(id: %d, name: %s).\n", deconv_weight->data_type, node->index, node->name);
+            fprintf(stderr, "Tengine: Unsupported weight quant data type(%d) of deconv(id: %d, name: %s).\n", deconv_weight->data_type, node->index, node->name);
             return false;
     }
 
@@ -143,7 +143,7 @@ bool TensorRTEngine::AddDeConvolutionNode(struct graph* ir_graph, struct node *n
                 break;
             }
             default:
-                fprintf(stderr, "Tengine: Unsupported weight quant data type(%d) of conv(id: %d, name: %s).\n",
+                fprintf(stderr, "Tengine: Unsupported weight quant data type(%d) of deconv(id: %d, name: %s).\n",
                         deconv_bias->data_type, node->index, node->name);
                 return false;
         }

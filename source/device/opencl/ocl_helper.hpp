@@ -23,8 +23,11 @@
  */
 
 #pragma once
-
+#if defined(__APPLE__) || defined(MACOS)
+#include <OpenCL/opencl.h>
+#else
 #include <CL/cl.h>
+#endif
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>

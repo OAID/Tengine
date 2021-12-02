@@ -967,7 +967,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
                                    input_chan_0, input_hw_0, input1_count4, exec_graph->num_thread, input_hw_1, eltwise_param);
         else
         {
-            TLOG_ERR("Input data type %d not to be supported.\n", output_tensor->data_type);
+            TLOG_ERR("Output data type %d not to be supported.\n", output_tensor->data_type);
             return -1;
         }
 

@@ -68,7 +68,7 @@ void eltwisesum_gpu_kernel(struct graph* ir_graph, struct node* ir_node, dict_ui
 
 void CUDAEngine::AddEltwiseNode(struct graph* ir_graph, struct node* ir_node)
 {
-    TLOG_INFO("Tengine GPU: Support OP(%d) OP_RELU.\n", ir_node->index);
+    TLOG_INFO("Tengine GPU: Support OP(%d) OP_ELTWISE.\n", ir_node->index);
     eltwisesum_gpu_kernel(ir_graph, ir_node, this->gpu_addr_map);
     this->ops.push_back(std::bind(&eltwisesum_gpu_kernel, ir_graph, ir_node, this->gpu_addr_map));
 }
