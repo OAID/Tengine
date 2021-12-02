@@ -1369,5 +1369,5 @@ void caffe_serializer::register_op_load()
     op_load_map["Reduction"] = std::pair<int, op_load_t>(OP_REDUCTION, load_reduction);
 }
 /*
-*   OPERAOTR REGISTER FUNCTION DEFINE FOR CAFFE SERIALIZER END
+*   OPERATOR REGISTER FUNCTION DEFINE FOR CAFFE SERIALIZER END
 */

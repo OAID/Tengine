@@ -2306,5 +2306,5 @@ void onnx_serializer::register_op_load()
     op_load_map["Gelu"] = std::pair<int, op_load_t>(OP_GELU, load_no_param);
 }
 /*
-*   OPERAOTR REGISTER FUNCTION DEFINE FOR ONNX SERIALIZER END
+*   OPERATOR REGISTER FUNCTION DEFINE FOR ONNX SERIALIZER END
 */

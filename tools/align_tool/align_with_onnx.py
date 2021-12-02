@@ -133,7 +133,7 @@ class AlignOnnx():
         save results of onnx
         :param outputs: list of outputs name
         :param result: onnx inference result
-        :param const_name: onnx const name that shuold not contain in output node
+        :param const_name: onnx const name that should not contain in output node
         :return:
         """
         check_make_folder(self.export_path)
@@ -150,7 +150,7 @@ class AlignOnnx():
 
     def _write_data(self, text_path, data):
         """
-        too dificult to write, I don't want to do this again.  :(
+        too difficult to write, I don't want to do this again.  :(
         If anyone has better way to realizing, pls tell me or PR.
         """
         shape_str = '{' + ' '.join([str(i) for i in data.shape]) + '}'
@@ -280,7 +280,7 @@ class AlignOnnx():
                         try:
                             sf_ndarray = result[outputs.index(name[0])]
                         except:
-                            print(f"load onnx output fiaeld {name}")
+                            print(f"load onnx output failed {name}")
                             return
 
                         # calculate distance
@@ -327,7 +327,7 @@ def main():
     print("is save result        : %s" % (args.s))
     print("save text path        : %s" % (args.sp))
     print("is align by layer     : %s" % (args.a))
-    print("tengine ouput path    : %s" % (args.to))
+    print("tengine output path   : %s" % (args.to))
     print("tengine model         : %s" % (args.tm))
 
     align = AlignOnnx(args.m, args.s, args.sp, args.a, args.to, args.tm)
