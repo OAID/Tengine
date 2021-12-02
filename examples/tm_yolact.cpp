@@ -69,11 +69,11 @@ void get_input_data_cv(const cv::Mat& sample, float* input_data, int img_h, int 
     cv::Mat img;
     if (sample.channels() == 4)
     {
-        cv::cvtColor(sample, img, cv::COLOR_BGRA2BGR);
+        cv::cvtColor(sample, img, cv::COLOR_BGRA2RGB);
     }
     else if (sample.channels() == 1)
     {
-        cv::cvtColor(sample, img, cv::COLOR_GRAY2BGR);
+        cv::cvtColor(sample, img, cv::COLOR_GRAY2RGB);
     }
     else if (sample.channels() == 3)
     {
