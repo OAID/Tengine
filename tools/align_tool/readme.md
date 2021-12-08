@@ -44,7 +44,7 @@ input onnx model      : mnist_sim.onnx
 is save result        : True
 save text path        : ./output_onnx
 is align by layer     : True
-tengine ouput path    : None
+tengine output path   : None
 tengine model         : mnist.tmfile
 onnx inference over
 -------------------------------------------------
