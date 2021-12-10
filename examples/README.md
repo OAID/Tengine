@@ -19,7 +19,7 @@ Tengine Lite 的 examples 将提供简单的、好玩的 demo。
 - [openpose 人体姿态识别任务](#openpose人体姿态识别任务---tm_openposecpp)
 - [hrnet 人体姿态识别任务](#hrnet人体姿态识别任务---tm_hrnetcpp)
 - [crnn 汉字识别任务](#汉字识别任务---tm_crnncpp)
-- [seghuman 人像分割任务](#人像分割任务---tm_seghuman)
+- [seghuman 人像分割任务](#人像分割任务---tm_seghumancpp)
   
 除单张图片单模型推理级的任务外，Tengine Lite 还提供了基于视频流/图片流 pipeline 级别的功能演示
 
@@ -539,7 +539,9 @@ Repeat 1 times, thread 1, avg time 23.30 ms, max_time 23.30 ms, min_time 23.30 m
 ## 人像分割任务 - [tm_seghuman.cpp](tm_seghuman.cpp)
 
 模型文件：`paddleSegSim.tmfile`
+
 测试图片：`human_image.jpg`
+
 测试图片：
 
 ![](https://s1.ax1x.com/2021/12/09/offIJK.jpg)
@@ -557,6 +559,7 @@ Repeat 1 times, avg time 123.766 ms, max_time 123.766 ms, min_time 123.766 ms
 ```
 
 ![](https://s1.ax1x.com/2021/12/09/of4XPP.jpg)
+
 人像分割结果会保存为图片，名称为：seg_human_result.jpg
 
 
