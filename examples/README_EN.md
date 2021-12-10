@@ -21,6 +21,7 @@ Tengine Lite's examples providing simple yet fancy demos.
   - [HRNet Human Pose Estimation Task](#hrnet-human-pose-estimation-task---tm_hrnetcpp)
   - [CRNN Chinese character recognition](#chinese-character-recognition-task---tm_crnncpp)
   - [PaddleSeg Human Segmentation](#human-segmentation-task---tm_seghumancpp)
+
 In addition to single-image single-model-inference example, Tengine Lite gives pipeline application based on video and image stream.
 
   - [Distance Estimation](#Distance-Estimation)
