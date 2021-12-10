@@ -269,7 +269,8 @@ void draw_box_3d_object(const char* image_file, const std::vector<box_3d_object>
             }
             if (j == 0)
             {
-                cv::Point poly_points[0][4];
+                // cv::Point poly_points[0][4];             // dimension can not be 0
+                cv::Point poly_points[1][4];
                 poly_points[0][0] = cv::Point(object.coo[face_idx[0][0]][0], object.coo[face_idx[0][0]][1]);
                 poly_points[0][1] = cv::Point(object.coo[face_idx[0][1]][0], object.coo[face_idx[0][1]][1]);
                 poly_points[0][2] = cv::Point(object.coo[face_idx[0][2]][0], object.coo[face_idx[0][2]][1]);
