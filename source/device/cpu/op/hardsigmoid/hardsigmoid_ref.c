@@ -67,6 +67,51 @@ int ref_hardsigmoid_fp32(struct tensor* input_tensor, struct tensor* output_tens
     return 0;
 }
 
+int ref_hardsigmoid_uint8(struct tensor* input_tensor, struct tensor* output_tensor, float alpha, float beta)
+{
+    int total_size = input_tensor->elem_num;
+
+    // dequant
+    uint8_t* input_data = (uint8_t*)input_tensor->data;
+    uint8_t* out_data = (uint8_t*)output_tensor->data;
+    float input_scale = input_tensor->scale;
+    float output_scale = output_tensor->scale;
+    int32_t input_zero = input_tensor->zero_point;
+    int32_t output_zero = output_tensor->zero_point;
+
+    float* data_fp32 = (float*)sys_malloc(total_size * sizeof(float));
+
+    for (int i = 0; i < total_size; i++)
+        data_fp32[i] = ((float)input_data[i] - (float)input_zero) * input_scale;
+
+    float lower = -beta / alpha;
+    float upper = (1.f / alpha) + lower;
+    for (int i = 0; i < total_size; i++)
+    {
+        if (data_fp32[i] < lower)
+            data_fp32[i] = 0.f;
+        else if (data_fp32[i] > upper)
+            data_fp32[i] = 1.f;
+        else
+            data_fp32[i] = data_fp32[i] * alpha + beta;
+    }
+
+    // quant
+    for (int i = 0; i < total_size; i++)
+    {
+        int udata = round(data_fp32[i] / output_scale + output_zero);
+        if (udata > 255)
+            udata = 255;
+        else if (udata < 0)
+            udata = 0;
+        out_data[i] = udata;
+    }
+
+    sys_free(data_fp32);
+
+    return 0;
+}
+
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     struct node* ir_node = exec_node->ir_node;
@@ -79,6 +124,8 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     int ret = -1;
     if (input_tensor->data_type == TENGINE_DT_FP32)
         ret = ref_hardsigmoid_fp32(input_tensor, output_tensor, param->alpha, param->beta);
+    else if (input_tensor->data_type == TENGINE_DT_UINT8)
+        ret = ref_hardsigmoid_uint8(input_tensor, output_tensor, param->alpha, param->beta);
     else
     {
         TLOG_ERR("Input data type %d not to be supported.\n", input_tensor->data_type);

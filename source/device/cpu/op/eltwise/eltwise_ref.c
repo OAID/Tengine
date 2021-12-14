@@ -333,12 +333,27 @@ static int ref_eltwise_uint8(struct tensor* output_tensor, struct tensor* input_
 
     if (input_tensor1 != NULL)
     {
-        input1_uint8 = (uint8_t*)input_tensor1->data;
-        in_scale1 = input_tensor1->scale;
-        in_zero1 = input_tensor1->zero_point;
-        in1 = (float*)sys_malloc(input_tensor1->elem_num * sizeof(float));
-        for (int i = 0; i < input_tensor1->elem_num; i++)
-            in1[i] = (input1_uint8[i] - in_zero1) * in_scale1;
+        if (input_tensor1->data_type == TENGINE_DT_UINT8)
+        {
+            input1_uint8 = (uint8_t*)input_tensor1->data;
+            in_scale1 = input_tensor1->scale;
+            in_zero1 = input_tensor1->zero_point;
+            in1 = (float*)sys_malloc(input_tensor1->elem_num * sizeof(float));
+            for (int i = 0; i < input_tensor1->elem_num; i++)
+                in1[i] = (input1_uint8[i] - in_zero1) * in_scale1;
+        }
+        else if (input_tensor1->data_type == TENGINE_DT_FP32)
+        {
+            float* input1_float32 = (float*)input_tensor1->data;
+            in1 = (float*)sys_malloc(input_tensor1->elem_num * sizeof(float));
+            for (int i = 0; i < input_tensor1->elem_num; i++)
+                in1[i] = input1_float32[i];
+        }
+        else
+        {
+            TLOG_ERR("Input data type %d not to be supported.\n", input_tensor1->data_type);
+            return -1;
+        }
     }
     /* eltwise operator */
     switch (type)
