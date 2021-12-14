@@ -20,7 +20,8 @@ Tengine Lite's examples providing simple yet fancy demos.
   - [OpenPose Human Pose Estimation Task](#openpose-human-pose-estimation-task---tm_openposecpp)
   - [HRNet Human Pose Estimation Task](#hrnet-human-pose-estimation-task---tm_hrnetcpp)
   - [CRNN Chinese character recognition](#chinese-character-recognition-task---tm_crnncpp)
-  
+  - [PaddleSeg Human Segmentation](#human-segmentation-task---tm_seghumancpp)
+
 In addition to single-image single-model-inference example, Tengine Lite gives pipeline application based on video and image stream.
 
   - [Distance Estimation](#Distance-Estimation)
@@ -540,6 +541,34 @@ Repeat 1 times, thread 1, avg time 23.30 ms, max_time 23.30 ms, min_time 23.30 m
 ```
 
 The result of ocr recognition is displayed in terminal, you may also modify the source code to save it to file.
+
+
+## Human segmentation task - [tm_seghuman.cpp](tm_seghuman.cpp)
+
+model file：`paddleSegSim.tmfile`
+
+image file：`human_image.jpg`
+
+image file：
+
+![](https://s1.ax1x.com/2021/12/09/offIJK.jpg)
+
+```bash
+$ export LD_LIBRARY_PATH=./build/install/lib
+$ ./build/install/bin/tm_seghuman -m models/paddleSegSim.tmfile -i images/human_image.jpeg
+```
+
+result：
+
+```bash
+tengine-lite library version: 1.5-dev
+Repeat 1 times, avg time 123.766 ms, max_time 123.766 ms, min_time 123.766 ms
+```
+
+![](https://s1.ax1x.com/2021/12/09/of4XPP.jpg)
+
+segmentation result image is saved as seg_human_result.jpg.
+
 
 ## Distance Estimation
 
