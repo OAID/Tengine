@@ -371,6 +371,29 @@ int onnx_serializer::load_constant_tensor(ir_graph_t* graph, const onnx::GraphPr
                     }
                 }
             }
+            else if(tensor_data_type == TENGINE_DT_FP32)
+            {
+                // to support float type constant data loading
+                int tensor_size = ir_tensor->elem_num * sizeof(float_t);
+                ir_tensor->data = sys_malloc(tensor_size);
+                float_t* mem_buf = (float_t*)ir_tensor->data;
+                if (onnx_tensor.has_raw_data())
+                {
+                    float_t* raw_data = (float_t*)onnx_tensor.raw_data().data();
+                    for (int j = 0; j < ir_tensor->elem_num; j++)
+                    {
+                        mem_buf[j] = raw_data[j];
+                    }
+                }
+                else
+                {
+                    int32_t* raw_data = (int32_t*)onnx_tensor.int32_data().data();
+                    for (int j = 0; j < ir_tensor->elem_num; j++)
+                    {
+                        mem_buf[j] = raw_data[j];
+                    }
+                }
+            }
             else
             {
                 int tensor_size = ir_tensor->elem_num * sizeof(uint8_t);
