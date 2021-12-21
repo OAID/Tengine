@@ -64,7 +64,23 @@ int batchnorm_run(struct tensor* output_tensor, struct tensor* input_tensor, flo
 {
     int batch_number = input_tensor->dims[0];
     int channel_num = input_tensor->dims[1];
-    int channel_size = (input_tensor->dims[2]) * (input_tensor->dims[3]);
+    int channel_size;
+    if (4 == input_tensor->dim_num)
+    {
+        channel_size = (input_tensor->dims[2]) * (input_tensor->dims[3]);
+    }
+    else if (3 == input_tensor->dim_num)
+    {
+        channel_size = (input_tensor->dims[2]);
+    }
+    else if (2 == input_tensor->dim_num)
+    {
+        channel_size = 1;
+    }
+    else
+    {
+        return -1;
+    }
     int img_size = channel_num * channel_size;
 
     const float* input = (const float*)input_tensor->data;

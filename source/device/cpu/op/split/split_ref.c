@@ -69,6 +69,11 @@ int ref_split_uint8(struct tensor* input_tensor, struct tensor* output_tensor, s
 {
     uint8_t* input_data = (uint8_t*)input_tensor->data;
     uint8_t* output_data = (uint8_t*)output_tensor->data;
+    float input_scale = input_tensor->scale;
+    float output_scale = output_tensor->scale;
+    int32_t input_zero = input_tensor->zero_point;
+    int32_t output_zero = output_tensor->zero_point;
+    float rescale = input_scale / output_scale;
 
     if (split_param->is_caffe)
     {
@@ -84,7 +89,15 @@ int ref_split_uint8(struct tensor* input_tensor, struct tensor* output_tensor, s
         {
             int in_offset = (n * in_slice + *slice_index) * slice_size;
             int out_offset = n * out_slice * slice_size;
-            memcpy(output_data + out_offset, input_data + in_offset, (size_t)slice_size * out_slice * sizeof(uint8_t));
+            for (size_t i = 0; i < slice_size * out_slice * sizeof(uint8_t); i++)
+            {
+                int udata = roundf((input_data[in_offset + i] - input_zero) * rescale + output_zero);
+                if (udata > 255)
+                    udata = 255;
+                else if (udata < 0)
+                    udata = 0;
+                output_data[i] = udata;
+            }
         }
 
         *slice_index += out_slice;
@@ -148,6 +161,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct split_param* split_param = (struct split_param*)ir_node->op.param_mem;
 
     /* the follow codes need to be checked ! */
+    /* maybe int8 need dequant and quant */
     int slice_axis = split_param->axis;
     int num_slices = 1;
     int slice_size = 1;
