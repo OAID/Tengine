@@ -57,7 +57,8 @@ int QuantTool::data_free_quant()
     }
 
     struct graph* graphn = (struct graph*)graph;
-    struct node_graph* node_proto = (struct node_graph*)sys_malloc(sizeof(struct node_graph) * graphn->node_num);
+    // struct node_graph* node_proto = (struct node_graph*)sys_malloc(sizeof(struct node_graph) * graphn->node_num);     // crash access node_proto.input_node_list
+    std::vector<node_graph> node_proto(graphn->node_num);
 
     for (int i = 0; i < graphn->node_num; i++)
     {
@@ -252,10 +253,15 @@ int QuantTool::data_free_quant()
                                 ops_range[ops] = pow(layer0_range[ops] * layer1_range[ops] * layer2_range[ops], 1.0 / 3);
                             }
 
-                            float S01[dims1];
-                            float S01_F[dims1];
-                            float S12[dims1];
-                            float S12_F[dims1];
+                            // float S01[dims1];         // dims1 should be constant
+                            // float S01_F[dims1];
+                            // float S12[dims1];
+                            // float S12_F[dims1];
+                            float* S01 = new float[dims1];
+                            float* S01_F = new float[dims1];
+                            float* S12 = new float[dims1];
+                            float* S12_F = new float[dims1];     
+                            
                             for (int ops = 0; ops < dims1; ops++)
                             {
                                 if (ops_range[ops] == 0)
@@ -336,6 +342,16 @@ int QuantTool::data_free_quant()
                                     }
                                 }
                             }
+                            delete[] S01;        // free the memory
+                            S01 = NULL;
+                            delete[] S01_F;
+                            S01_F = NULL;
+                            delete[] S12;
+                            S12 = NULL;
+                            delete[] S12_F;
+                            S12_F = NULL;
+                            delete[] ops_range;
+                            ops_range = NULL;
                         }
                     }
                 }
@@ -424,14 +440,19 @@ int QuantTool::data_free_quant()
                                         //////////////////////////////////////////////////////////////////////////////////
 
                                         // layer ops sqrt
-                                        float ops_range[dims1];
+                                        // float ops_range[dims1];   // dims1 should be constant
+                                        float* ops_range = new float[dims1];
+                                        
                                         for (int ops = 0; ops < dims1; ops++)
                                         {
                                             ops_range[ops] = sqrt(layer0_range[ops] * layer1_range[ops]);
                                         }
 
-                                        float S01[dims1];
-                                        float S01_F[dims1];
+                                        // float S01[dims1];    
+                                        // float S01_F[dims1];
+                                        float* S01 = new float[dims1];
+                                        float* S01_F = new float[dims1];   
+                                        
                                         for (int ops = 0; ops < dims1; ops++)
                                         {
                                             if (ops_range[ops] == 0)
@@ -485,6 +506,12 @@ int QuantTool::data_free_quant()
                                                 }
                                             }
                                         }
+                                        delete[] S01;    // free the memory
+                                        S01 = NULL;
+                                        delete[] S01_F;
+                                        S01_F = NULL;
+                                        delete[] ops_range;
+                                        ops_range = NULL;
                                     }
                                 }
                             }
