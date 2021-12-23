@@ -247,7 +247,8 @@ int QuantTool::data_free_quant()
                             //////////////////////////////////////////////////////////////////////////////////
 
                             // layer ops sqrt
-                            float ops_range[dims1];
+                            // float ops_range[dims1];
+                            float* ops_range = new float[dims1];
                             for (int ops = 0; ops < dims1; ops++)
                             {
                                 ops_range[ops] = pow(layer0_range[ops] * layer1_range[ops] * layer2_range[ops], 1.0 / 3);
