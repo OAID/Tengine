@@ -371,7 +371,7 @@ int onnx_serializer::load_constant_tensor(ir_graph_t* graph, const onnx::GraphPr
                     }
                 }
             }
-            else if(tensor_data_type == TENGINE_DT_FP32)
+            else if (tensor_data_type == TENGINE_DT_FP32)
             {
                 // to support float type constant data loading
                 int tensor_size = ir_tensor->elem_num * sizeof(float_t);

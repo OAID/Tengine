@@ -59,7 +59,7 @@ int QuantTool::data_free_quant()
     struct graph* graphn = (struct graph*)graph;
     // struct node_graph* node_proto = (struct node_graph*)sys_malloc(sizeof(struct node_graph) * graphn->node_num);  // crash access node_proto.input_node_list
     std::vector<node_graph> node_proto(graphn->node_num);
-    
+
     for (int i = 0; i < graphn->node_num; i++)
     {
         struct node* n = graphn->node_list[i]; //ir node
@@ -261,8 +261,8 @@ int QuantTool::data_free_quant()
                             float* S01 = new float[dims1];
                             float* S01_F = new float[dims1];
                             float* S12 = new float[dims1];
-                            float* S12_F = new float[dims1];   
-                            
+                            float* S12_F = new float[dims1];
+
                             for (int ops = 0; ops < dims1; ops++)
                             {
                                 if (ops_range[ops] == 0)
@@ -343,7 +343,7 @@ int QuantTool::data_free_quant()
                                     }
                                 }
                             }
-                            delete[] S01;     // free the memory
+                            delete[] S01; // free the memory
                             S01 = NULL;
                             delete[] S01_F;
                             S01_F = NULL;
@@ -452,7 +452,7 @@ int QuantTool::data_free_quant()
                                         // float S01_F[dims1];
                                         float* S01 = new float[dims1];
                                         float* S01_F = new float[dims1];
-                                        
+
                                         for (int ops = 0; ops < dims1; ops++)
                                         {
                                             if (ops_range[ops] == 0)
@@ -506,7 +506,7 @@ int QuantTool::data_free_quant()
                                                 }
                                             }
                                         }
-                                        delete[] S01;    // free the memory
+                                        delete[] S01; // free the memory
                                         S01 = NULL;
                                         delete[] S01_F;
                                         S01_F = NULL;
