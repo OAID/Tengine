@@ -129,7 +129,7 @@ void get_input_data_cv(const char* image_file, float* input_data, int img_c, int
         img.convertTo(img, CV_32FC3);
 
         // Generate a gray image for letterbox using opencv
-        cv::Mat resize_img(letterbox_cols, letterbox_rows, CV_32FC3, cv::Scalar(0.5 / scale[0] + mean[0], 0.5 / scale[1] + mean[1], 0.5 / scale[2] + mean[2]));
+        cv::Mat resize_img;
         int top = (letterbox_rows - resize_rows) / 2;
         int bot = (letterbox_rows - resize_rows + 1) / 2;
         int left = (letterbox_cols - resize_cols) / 2;
@@ -252,60 +252,50 @@ void get_input_data_cv(const char* image_file, float* input_data, int img_c, int
             }
         }
     }
-    else if (letterbox_rows > 0)
+    else if (letterbox_rows > 0 && letterbox_cols > 0)
     {
-        float letterbox_size = (float)letterbox_rows;
-        int resize_h = 0;
-        int resize_w = 0;
-        if (img.rows > img.cols)
+        float scale_letterbox;
+        int resize_rows;
+        int resize_cols;
+        if ((letterbox_rows * 1.0 / img.rows) < (letterbox_cols * 1.0 / img.cols))
         {
-            resize_h = letterbox_size;
-            resize_w = int(img.cols * (letterbox_size / img.rows));
+            scale_letterbox = letterbox_rows * 1.0 / img.rows;
         }
         else
         {
-            resize_h = int(img.rows * (letterbox_size / img.cols));
-            resize_w = letterbox_size;
+            scale_letterbox = letterbox_cols * 1.0 / img.cols;
         }
+        resize_cols = int(scale_letterbox * img.cols);
+        resize_rows = int(scale_letterbox * img.rows);
 
-        float* img_data = nullptr;
-
-        cv::resize(img, img, cv::Size(resize_w, resize_h));
+        cv::resize(img, img, cv::Size(resize_cols, resize_rows));
         img.convertTo(img, CV_32FC3);
-        cv::Mat img_new(letterbox_size, letterbox_size, CV_32FC3,
-                        cv::Scalar(0.5 / scale[0] + mean[0], 0.5 / scale[1] + mean[1], 0.5 / scale[2] + mean[2]));
-        int dh = int((letterbox_size - resize_h) / 2);
-        int dw = int((letterbox_size - resize_w) / 2);
+        
+        // Letterbox filling
+        cv::Mat resize_img;
+        int top = (letterbox_rows - resize_rows) / 2;
+        int bot = (letterbox_rows - resize_rows + 1) / 2;
+        int left = (letterbox_cols - resize_cols) / 2;
+        int right = (letterbox_cols - resize_cols + 1) / 2;
 
-        for (int h = 0; h < resize_h; h++)
-        {
-            for (int w = 0; w < resize_w; w++)
-            {
-                for (int c = 0; c < 3; ++c)
-                {
-                    int in_index = h * resize_w * 3 + w * 3 + c;
-                    int out_index = (dh + h) * letterbox_size * 3 + (dw + w) * 3 + c;
-
-                    ((float*)img_new.data)[out_index] = ((float*)img.data)[in_index];
-                }
-            }
-        }
-
+        cv::copyMakeBorder(img, resize_img, top, bot, left, right, cv::BORDER_CONSTANT, cv::Scalar(0.5 / scale[0] + mean[0], 0.5 / scale[1] + mean[1], 0.5 / scale[2] + mean[2]));
+        
         if (img_c == 3)
-            img_new.convertTo(img_new, CV_32FC3);
+            resize_img.convertTo(resize_img, CV_32FC3);
         else if (img_c == 1)
-            img_new.convertTo(img_new, CV_32FC1);
-        img_data = (float*)img_new.data;
+            resize_img.convertTo(resize_img, CV_32FC1);
+        float* img_data = (float*)resize_img.data;
 
-        int hw = img_h * img_w;
-        for (int h = 0; h < img_h; h++)
+        /* nhwc to nchw */
+        for (int h = 0; h < letterbox_rows; h++)
         {
-            for (int w = 0; w < img_w; w++)
+            for (int w = 0; w < letterbox_cols; w++)
             {
                 for (int c = 0; c < img_c; c++)
                 {
-                    input_data[c * hw + h * img_w + w] = (*img_data - mean[c]) * scale[c];
-                    img_data++;
+                    int in_index = h * letterbox_cols * img_c + w * img_c + c;
+                    int out_index = c * letterbox_rows * letterbox_cols + h * letterbox_cols + w;
+                    input_data[out_index] = (img_data[in_index] - mean[c]) * scale[c];
                 }
             }
         }
