@@ -175,7 +175,7 @@ bf16_t fp32_to_bf16(fp32_t package);
 
 #if __ARM_FEATURE_FP16_VECTOR_ARITHMETIC
 #define fp16_to_fp32(data) ({ float f = data; f; })
-    #define fp32_to_fp16(data) ({ __fp16 f = data; f; })
+#define fp32_to_fp16(data) ({ __fp16 f = data; f; })
 #else
 /*!
 * @brief  Convert a number from float16 to float32.

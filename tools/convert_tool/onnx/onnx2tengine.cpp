@@ -318,13 +318,10 @@ int onnx_serializer::load_constant_tensor(ir_graph_t* graph, const onnx::GraphPr
 
         const std::string& op = node.op_type();
 
-        if ((op == "Reshape" || op == "Gather" ||
-            op == "Div" || op == "Resize" ||
-            op == "Upsample" || op == "Clip") &&
-            (node.input_size() > 1))
+        if ((op == "Reshape" || op == "Gather" || op == "Div" || op == "Resize" || op == "Upsample" || op == "Clip") && (node.input_size() > 1))
         {
             // iter over constant inputs and create ir_tensor for constant tensor
-            for(int inp_idx = 0; inp_idx < node.input_size(); ++inp_idx)
+            for (int inp_idx = 0; inp_idx < node.input_size(); ++inp_idx)
             {
                 if (node_tensor.count(node.input(inp_idx)) == 0)
                     continue;
@@ -377,7 +374,7 @@ int onnx_serializer::load_constant_tensor(ir_graph_t* graph, const onnx::GraphPr
                         }
                     }
                 }
-                else if(tensor_data_type == TENGINE_DT_FP32)
+                else if (tensor_data_type == TENGINE_DT_FP32)
                 {
                     // to support float type constant data loading
                     int tensor_size = ir_tensor->elem_num * sizeof(float_t);

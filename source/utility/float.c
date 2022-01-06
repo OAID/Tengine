@@ -138,7 +138,7 @@ fp16_t fp32_to_fp16(fp32_t value)
                 data.exp = 0;
                 data.sign = package->sign;
             }
-                // means underflow
+            // means underflow
             else
             {
                 data.value = 0;
