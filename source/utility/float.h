@@ -121,7 +121,11 @@ typedef union fp64_pack
 #endif
 
 #ifdef __ARM_ARCH
+#if __ARM_FEATURE_FP16_VECTOR_ARITHMETIC
 typedef __fp16 fp16_t;
+#else
+typedef fp16_pack_t fp16_t;
+#endif
 #else
 typedef fp16_pack_t fp16_t;
 #endif
@@ -168,6 +172,28 @@ fp32_t bf16_to_fp32(bf16_t package);
 bf16_t fp32_to_bf16(fp32_t package);
 
 #ifdef __ARM_ARCH
+
+#if __ARM_FEATURE_FP16_VECTOR_ARITHMETIC
 #define fp16_to_fp32(data) ({ float f = data; f; })
-#define fp32_to_fp16(data) ({ __fp16 f = data; f; })
+    #define fp32_to_fp16(data) ({ __fp16 f = data; f; })
+#else
+/*!
+* @brief  Convert a number from float16 to float32.
+*
+* @param [in]  package: Input float16 precision number.
+*
+* @return  The converted float32 precision number.
+*/
+fp32_t fp16_to_fp32(fp16_t package);
+
+/*!
+* @brief  Convert a number from float32 to float16.
+*
+* @param [in]  package: Input float32 precision number.
+*
+* @return  The converted float16 precision number.
+*/
+fp16_t fp32_to_fp16(fp32_t package);
+#endif
+
 #endif
