@@ -270,7 +270,7 @@ void get_input_data_cv(const char* image_file, float* input_data, int img_c, int
 
         cv::resize(img, img, cv::Size(resize_cols, resize_rows));
         img.convertTo(img, CV_32FC3);
-        
+
         // Letterbox filling
         cv::Mat resize_img;
         int top = (letterbox_rows - resize_rows) / 2;
@@ -279,7 +279,7 @@ void get_input_data_cv(const char* image_file, float* input_data, int img_c, int
         int right = (letterbox_cols - resize_cols + 1) / 2;
 
         cv::copyMakeBorder(img, resize_img, top, bot, left, right, cv::BORDER_CONSTANT, cv::Scalar(0.5 / scale[0] + mean[0], 0.5 / scale[1] + mean[1], 0.5 / scale[2] + mean[2]));
-        
+
         if (img_c == 3)
             resize_img.convertTo(resize_img, CV_32FC3);
         else if (img_c == 1)

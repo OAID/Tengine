@@ -65,7 +65,8 @@ typedef struct BoxInfo
 } BoxInfo;
 inline float fast_exp(float x)
 {
-    union {
+    union
+    {
         uint32_t i;
         float f;
     } v{};
@@ -82,20 +83,21 @@ template<typename _Tp>
 static int activation_function_softmax(const _Tp* src, _Tp* dst, int length)
 {
     const _Tp alpha = *std::max_element(src, src + length);
-    _Tp denominator{ 0 };
+    _Tp denominator{0};
 
-    for (int i = 0; i < length; ++i) {
+    for (int i = 0; i < length; ++i)
+    {
         dst[i] = fast_exp(src[i] - alpha);
         denominator += dst[i];
     }
 
-    for (int i = 0; i < length; ++i) {
+    for (int i = 0; i < length; ++i)
+    {
         dst[i] /= denominator;
     }
 
     return 0;
 }
-
 
 static void generate_grid_center_priors(const int input_height, const int input_width, std::vector<int>& strides, std::vector<CenterPrior>& center_priors)
 {
@@ -118,19 +120,18 @@ static void generate_grid_center_priors(const int input_height, const int input_
     }
 }
 
-
 static void nms(std::vector<BoxInfo>& input_boxes, float NMS_THRESH)
 {
     std::sort(input_boxes.begin(), input_boxes.end(), [](BoxInfo a, BoxInfo b) { return a.score > b.score; });
     std::vector<float> vArea(input_boxes.size());
-    for (int i = 0; i < int(input_boxes.size()); ++i) 
+    for (int i = 0; i < int(input_boxes.size()); ++i)
     {
         vArea[i] = (input_boxes.at(i).x2 - input_boxes.at(i).x1 + 1)
-            * (input_boxes.at(i).y2 - input_boxes.at(i).y1 + 1);
+                   * (input_boxes.at(i).y2 - input_boxes.at(i).y1 + 1);
     }
-    for (int i = 0; i < int(input_boxes.size()); ++i) 
+    for (int i = 0; i < int(input_boxes.size()); ++i)
     {
-        for (int j = i + 1; j < int(input_boxes.size());) 
+        for (int j = i + 1; j < int(input_boxes.size());)
         {
             float xx1 = (std::max)(input_boxes[i].x1, input_boxes[j].x1);
             float yy1 = (std::max)(input_boxes[i].y1, input_boxes[j].y1);
@@ -140,12 +141,12 @@ static void nms(std::vector<BoxInfo>& input_boxes, float NMS_THRESH)
             float h = (std::max)(float(0), yy2 - yy1 + 1);
             float inter = w * h;
             float ovr = inter / (vArea[i] + vArea[j] - inter);
-            if (ovr >= NMS_THRESH) 
+            if (ovr >= NMS_THRESH)
             {
                 input_boxes.erase(input_boxes.begin() + j);
                 vArea.erase(vArea.begin() + j);
             }
-            else 
+            else
             {
                 j++;
             }
@@ -179,10 +180,10 @@ static BoxInfo disPred2Bbox(const float* dfl_det, int label, float score, int x,
     float ymax = (std::min)(ct_y + dis_pred[3], (float)letterbox_rows);
 
     //std::cout << xmin << "," << ymin << "," << xmax << "," << xmax << "," << std::endl;
-    return BoxInfo { xmin, ymin, xmax, ymax, score, label };
+    return BoxInfo{xmin, ymin, xmax, ymax, score, label};
 }
 
-static void decode_infer(const float* feats_ptr, std::vector<CenterPrior>& center_priors, float threshold, std::vector<std::vector<BoxInfo>>& results)
+static void decode_infer(const float* feats_ptr, std::vector<CenterPrior>& center_priors, float threshold, std::vector<std::vector<BoxInfo> >& results)
 {
     const int num_points = center_priors.size();
 
@@ -205,7 +206,7 @@ static void decode_infer(const float* feats_ptr, std::vector<CenterPrior>& cente
         }
         if (score > threshold)
         {
-            const float* bbox_pred = feats_ptr + idx * (num_class + + 4 * (reg_max + 1)) + num_class;
+            const float* bbox_pred = feats_ptr + idx * (num_class + +4 * (reg_max + 1)) + num_class;
             results[cur_label].push_back(disPred2Bbox(bbox_pred, cur_label, score, ct_x, ct_y, stride));
         }
     }
@@ -291,7 +292,7 @@ static int get_input_data_letter(const char* image_file, float* input_data, int 
 
     img.convertTo(img, CV_32FC3);
     // Generate a gray image for letterbox using opencv
-    cv::Mat img_new(letterbox_rows, letterbox_cols, CV_32FC3, cv::Scalar(0, 0, 0) );
+    cv::Mat img_new(letterbox_rows, letterbox_cols, CV_32FC3, cv::Scalar(0, 0, 0));
     int top = (letterbox_rows - resize_rows) / 2;
     int bot = (letterbox_rows - resize_rows + 1) / 2;
     int left = (letterbox_cols - resize_cols) / 2;
@@ -333,7 +334,7 @@ int main(int argc, char* argv[])
     const char* image_file = nullptr;
 
     int img_c = 3;
-    const float mean[3] = {103.53f, 116.28f, 123.675f };
+    const float mean[3] = {103.53f, 116.28f, 123.675f};
     const float scale[3] = {0.017429f, 0.017507f, 0.017125f};
 
     int repeat_count = 1;
@@ -413,7 +414,7 @@ int main(int argc, char* argv[])
     }
 
     int img_size = letterbox_rows * letterbox_cols * img_c;
-    int dims[] = {1, 3, letterbox_rows, letterbox_cols };
+    int dims[] = {1, 3, letterbox_rows, letterbox_cols};
     std::vector<float> input_data(img_size);
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
@@ -476,10 +477,10 @@ int main(int argc, char* argv[])
 
     /* postprocess */
     std::vector<CenterPrior> center_priors;
-    std::vector<int> strides = { 8, 16, 32, 64 };
+    std::vector<int> strides = {8, 16, 32, 64};
     generate_grid_center_priors(letterbox_rows, letterbox_cols, strides, center_priors);
 
-    std::vector<std::vector<BoxInfo>> results;
+    std::vector<std::vector<BoxInfo> > results;
     results.resize(num_class);
     decode_infer(p_data, center_priors, prob_threshold, results);
 
@@ -487,11 +488,11 @@ int main(int argc, char* argv[])
     for (int i = 0; i < (int)results.size(); i++)
     {
         nms(results[i], nms_threshold);
-        if(results.size() == 0)
+        if (results.size() == 0)
             continue;
         else
         {
-            for(int j = 0; j < results[i].size(); j++)
+            for (int j = 0; j < results[i].size(); j++)
             {
                 Object obj;
                 obj.rect.x = results[i][j].x1;
@@ -505,7 +506,7 @@ int main(int argc, char* argv[])
         }
     }
     /* draw the result */
-    
+
     float scale_letterbox;
     int resize_rows;
     int resize_cols;
