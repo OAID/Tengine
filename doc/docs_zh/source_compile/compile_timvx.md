@@ -195,10 +195,57 @@ $ make -j`nproc` && make install
 如果是交叉编译，那么请参考前面 [2.5.3 准备 VIM3/VIM3L 较早版本的编译] 部分准备交叉工具链并进行编译即可。
 
 
-### 2.6 编译 NXP i.MX 8M Plus linux 平台
+
+
+### 2.6 编译 EAIS-750E Linux平台
+EAIS-750E是**OPEN AI LAB**官方推出的工业智能盒子，主控使用Amlogic A311D芯片，也是Tengine的参考开发平台。系统Linux系统包含 NPU 驱动(6.4.4.3AAA)和Tengine-Lite v1.5库( `/usr/lib` 目录下)，可以直接调用。如果为了学习调试Tengine或者为了升级Github最新版本，可以手动在盒子上本地编译。
+
+\- 下载TIM-VX和Tengine代码仓库
+```bash
+$ git clone https://github.com/VeriSilicon/TIM-VX.git
+$ git clone https://github.com/OAID/Tengine.git
+$ cd Tengine
+$ cp -rf ../TIM-VX/include ./source/device/tim-vx/
+$ cp -rf ../TIM-VX/src ./source/device/tim-vx/
+```
+
+\- 准备编译环境    编译依赖的系统库在EAIS-750E板载/usr/lib/下能搜索到，因此只需要拷贝头文件
+```bash
+$ wget -c https://github.com/VeriSilicon/TIM-VX/releases/download/v1.1.28/aarch64_A311D_D312513_A294074_R311680_T312233_O312045.tgz
+$ tar zxvf aarch64_A311D_D312513_A294074_R311680_T312233_O312045.tgz
+$ mv aarch64_A311D_D312513_A294074_R311680_T312233_O312045 prebuild-sdk-a311d
+$ cd <tengine-lite-root-dir>
+$ mkdir -p ./3rdparty/tim-vx/include
+$ mkdir -p ./3rdparty/tim-vx/lib/aarch64
+$ cp -rf ../prebuild-sdk-a311d/include/*  ./3rdparty/tim-vx/include/
+```
+
+\- 如遇到cmake版本不够，更新板子上的cmake版本
+```bash
+$ sudo apt-get autoremove cmake
+$ wget https://cmake.org/files/v3.22/cmake-3.22.0-linux-aarch64.tar.gz
+$ tar -xzvf cmake-3.22.0-linux-aarch64.tar.gz
+$ sudo mv cmake-3.22.0-linux-aarch64 /opt/cmake-3.22
+$ ln -sf /opt/cmake-3.22/bin/*  /usr/bin/
+$ cmake --version
+```
+
+\- 编译Tengine
+```bash
+$ cd <tengine-lite-root-dir>
+$ mkdir build && cd build
+$ cmake -DTENGINE_ENABLE_TIM_VX=ON ..
+$ make -j`nproc` && make install
+```
+
+编译完成后，将build/install/lib/libtengine-lite.so 文件拷贝到/usr/lib/下替换原有库完成安装。
+
+
+
+### 2.7 编译 NXP i.MX 8M Plus linux 平台
 以 i.MX 8M Plus 的官方开发板 [8MPLUSLPD4-EVK](https://www.nxp.com/design/development-boards/i-mx-evaluation-and-development-boards/evaluation-kit-for-the-i-mx-8m-plus-applications-processor:8MPLUSLPD4-EVK) 为例，优先推荐在板子上本地编译的方法进行编译，准备工作较为简单。
 
-#### 2.6.1 准备代码
+#### 2.7.1 准备代码
 和前面 VIM3/VIM3L 的本地编译准备过程相同，参考代码如下：
 ``` bash
 $ cd <tengine-lite-root-dir>
@@ -206,7 +253,7 @@ $ cp -rf ../TIM-VX/include  ./source/device/tim-vx/
 $ cp -rf ../TIM-VX/src      ./source/device/tim-vx/
 ```
 
-#### 2.6.2 准备 3rdparty 依赖
+#### 2.7.2 准备 3rdparty 依赖
 准备过程和 VIM3/VIM3L 本地编译 NPU 最新版本相同，只需要准备 3rdparty 的 include 文件夹即可。
 
 ``` bash
@@ -219,7 +266,7 @@ $ mkdir -p ./3rdparty/tim-vx/lib/aarch64
 $ cp -rf ../prebuild-sdk-s905d3/include/*  ./3rdparty/tim-vx/include/
 ```
 
-#### 2.6.3 编译
+#### 2.7.3 编译
 ```bash
 $ cd <tengine-lite-root-dir>
 $ mkdir build && cd build
@@ -228,12 +275,12 @@ $ make -j`nproc` && make install
 ```
 完成编译后，即可考虑测试一下 example 的内容，或进行其他相关开发工作了。
 
-### 2.7 编译 Rockchip RV1109/RV1126 buildroot 平台
+### 2.8 编译 Rockchip RV1109/RV1126 buildroot 平台
 瑞芯微的 RV1109/RV1126 芯片只有 buildroot，没有完整系统的概念，所以不能进行本地编译，只能交叉编译。
 解压缩 RockChip 提供(或板卡厂商代为提供)的 RV1109/RV1126 SDK 后，在 prebuilt 目录里面可以找到交叉编译的工具链 gcc-arm-8.3-2019.03-x86_64-arm-linux-gnueabihf (另一套 linaro 的不是用来编译应用的，忽略)。
 在 SDK 的 `external/rknpu/drivers/linux-armhf-puma/usr/lib` 目录下的文件，就是我们需要的 NPU 编译依赖库。
 
-#### 2.7.1 准备代码
+#### 2.8.1 准备代码
 和前面 VIM3/VIM3L 的本地编译准备过程相同，参考命令如下：
 
 ```bash
@@ -242,7 +289,7 @@ $ cp -rf ../TIM-VX/include  ./source/device/tim-vx/
 $ cp -rf ../TIM-VX/src      ./source/device/tim-vx/
 ```
 
-#### 2.7.2 准备3rdparty 依赖
+#### 2.8.2 准备3rdparty 依赖
 准备的 `include` 目录和 VIM3/VIM3L 本地编译 NPU 最新版本相同，下载一份 perbuild SDK，将其中的 `include` 文件夹复制到 `3rdparty/tim-vx` 目录。
 依赖的 lib 目录下的文件需要从前面 SDK 中解压出来的 `external/rknpu/drivers/linux-armhf-puma/usr/lib` 目录提取。将该目录下的文件全部(实际上不需要全部复制，FAQ 有文件列表)复制到 `3rdparty/tim-vx/lib/aarch32` 文件夹下即可。
 完整过程的参考命令如下：
@@ -260,7 +307,7 @@ $ cp -rf <rk_sdk_npu_lib>/*                 ./3rdparty/tim-vx/lib/aarch32/
 注意，`<rk_sdk_npu_lib>` 是指 SDK 解压出来的 `external/rknpu/drivers/linux-armhf-puma/usr/lib` 的完整路径，需要按实际情况进行修改。
 
 
-#### 2.7.3 编译
+#### 2.8.3 编译
 准备交叉编译工具链，需要设置环境变量 `PATH` 使其能够找到工具链的 gcc/g++，参考命令如下：
 
 ``` bash
@@ -280,14 +327,14 @@ $ make -j`nproc` && make install
 编译完成后，提取 install 目录下的文件到板子上测试即可。需要注意的是，部分 OpenCV 依赖的 example 在这个过程中不会编译，需要先准备好交叉编译的 OpenCV，并正确设置 OpenCV_DIR 到环境变量中方可打开这部分 example 的编译。
 
 
-### 2.8 编译 Amlogic C305X/C308X buildroot 平台
+### 2.9 编译 Amlogic C305X/C308X buildroot 平台
 TODO：还没拿到最新的 SDK(如果您有欢迎提供我们测试，自行测试请参考 RV1109/RV1126 的编译过程)...
 
-### 2.9 编译 Android 32bit 平台
+### 2.10 编译 Android 32bit 平台
 目前只有 VIM3/VIM3L 和 i.MX 8M Plus 的 EVK 正式支持 Android 系统，编译时需要使用 NDK 进行编译。编译之前需要准备 3rdparty 的全部文件。
 3rdparty 的结构同前面 Linux 的情况一致，但此时提取到的 so 放置的目录是 `3rdparty/tim-vx/lib/android`。
 
-#### 2.9.1 准备代码
+#### 2.10.1 准备代码
 代码准备和前面典型的 Linux 准备过程相同，参考代码如下：
 ``` bash
 $ cd <tengine-lite-root-dir>
@@ -295,7 +342,7 @@ $ cp -rf ../TIM-VX/include  ./source/device/tim-vx/
 $ cp -rf ../TIM-VX/src      ./source/device/tim-vx/
 ```
 
-#### 2.9.2 准备 3rdparty
+#### 2.10.2 准备 3rdparty
 假定采用下载的预编译 Android 库，参考准备的命令如下：
 ``` bash
 $ wget -c https://github.com/VeriSilicon/TIM-VX/releases/download/v1.1.28/arm_android9_A311D_6.4.3.tgz
@@ -309,7 +356,7 @@ $ cp -rf ../prebuild-sdk-android/lib/*      ./3rdparty/tim-vx/lib/android/
 ```
 使用的 Android 系统内置的 NPU 驱动版本和相关的 so 不一定和下载到的 `6.4.3` 版本匹配，只需要保证不低于这个版本即可。如果确有问题，可以根据下载到的压缩包解压缩出来的 lib 目录里面的文件做列表，从板卡中用 adb pull 命令从 `/vendor/lib/` 目录中提取一套出来，放入 3rdparty 的相应目录里。
 
-#### 2.9.3 编译
+#### 2.10.3 编译
 ```bash
 $ export ANDROID_NDK=<your-ndk-root-dir>
 $ cd <tengine-lite-root-dir>
@@ -505,7 +552,7 @@ vi /vendor/etc/public.libraries.txt   # 编辑许可文件
 如果对 vi 和相关命令不熟悉，可以考虑 `adb pull /vendor/etc/public.libraries.txt` 拉到 PC 上进行修改，然后再 `adb push public.libraries.txt /vendor/etc/` 推送回板卡。
 
 ## 附：部分支持的板卡链接
-A311D:  [Khadas VIM3](https://www.khadas.com/vim3)  
+A311D:  [Khadas VIM3](https://www.khadas.com/vim3)  [EAIS-750E](https://www.yuque.com/william-apmjq/vob7gl/sh946b)
 S905D3: [Khadas VIM3L](https://www.khadas.com/vim3l)  
 i.MX 8M Plus: [8MPLUSLPD4-EVK](https://www.nxp.com/design/development-boards/i-mx-evaluation-and-development-boards/evaluation-kit-for-the-i-mx-8m-plus-applications-processor:8MPLUSLPD4-EVK)  
 C308X: [桐烨 C308X AI IPC](https://item.taobao.com/item.htm?id=628474396097)  
