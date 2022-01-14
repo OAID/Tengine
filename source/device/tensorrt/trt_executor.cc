@@ -84,7 +84,7 @@ TensorRTEngine::TensorRTEngine()
 
     this->precision = nvinfer1::DataType::kFLOAT;
 
-    this->option.dev_name = TRT_DEVICE_NAME;
+    this->option.dev_name = (char *)TRT_DEVICE_NAME;
     this->option.precision = TENGINE_DT_FP32;
     this->option.gpu_index = 0;
     this->option.dla_index = -1;
