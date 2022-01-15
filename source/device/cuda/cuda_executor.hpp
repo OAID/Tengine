@@ -27,6 +27,7 @@
 #include <map>
 #include <vector>
 #include <functional>
+#include <cstdio>
 
 extern "C" {
 #include "graph/node.h"
