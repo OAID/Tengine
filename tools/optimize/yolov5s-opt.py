@@ -45,14 +45,14 @@ from onnxsim import simplify
 
 def parse_args():
     parser = argparse.ArgumentParser(description='YOLOv5 Optimize Tool Parameters')
-    
-    parser.add_argument('--input', help='input model path', default='./yolov5s.onnx', type=str)  
+
+    parser.add_argument('--input', help='input model path', default='./yolov5s.onnx', type=str)
     parser.add_argument('--output', help='output model path', default='./yolov5s-opt.onnx', type=str)
     parser.add_argument('--in_tensor', help='input tensor name', default='167', type=str)
     parser.add_argument('--out_tensor', help='output tensor names', default='381,420,459', type=str)
     parser.add_argument('--cut_focus', action='store_false', help='cut focus from model if true')
     parser.add_argument('--verbose', action='store_true', help='show verbose info')
-    
+
     args = parser.parse_args()
     return args
 
@@ -69,14 +69,14 @@ def cut_focus_output(input_node, in_name, out_name):
         out_name:   output cut tensor value names
     Returns:
         new_nodes:  the new node
-    """     
+    """
     node_dict = {} # output node name
     for i in range(len(input_node)):
         node_dict[input_node[i].output[0]] = i
     if args.verbose:
         # (key, value): (output node[0] name, index)
         print("[Verbose] node_dict:", node_dict)
-    
+
     # cut output nodes
     output_pass = np.zeros((len(input_node)), dtype=np.int)
     for i in range(len(out_name)):
@@ -111,7 +111,7 @@ def fusion_hardswish(input_node):
         input_node: the nodes of ONNX model
     Returns:
         the new node
-    """     
+    """
     del_list = []
     for i in range(len(input_node) - 1):
         if (input_node[i].op_type == 'Sigmoid' and input_node[i+1].op_type == 'Mul'):
@@ -123,6 +123,47 @@ def fusion_hardswish(input_node):
         del input_node[del_list[i]]
 
     return input_node
+
+def fusion_hardswish_into_1op(input_node):
+    """
+    using hardswish replace the add+clip+div+mul
+
+    Args:
+        input_node: the nodes of ONNX model
+    Returns:
+        the new node
+    """
+    new_nodes = []
+    new_list = []
+    tmp_list = []
+    for i in range(len(input_node)):
+        if input_node[i].op_type == "Add" and \
+            input_node[i+1].op_type == "Clip" and \
+            input_node[i+2].op_type == "Div" and \
+            input_node[i+3].op_type == "Mul":
+            suffix = input_node[i+3].name.split("_")[-1]
+            new_node = onnx.helper.make_node(
+                name=f"hardswish_{suffix}",
+                inputs=input_node[i].input[:1],
+                outputs=input_node[i+3].output,
+                op_type="Sigmoid"
+            )
+            new_node.op_type = "HardSwish"
+            new_nodes.append(new_node)
+            tmp_list.append(None)
+        tmp_list.append(input_node[i])
+
+    # in order to keep tapology sort order
+    i = 0
+    while i < len(tmp_list):
+        if tmp_list[i] == None:
+            new_list.append(new_nodes.pop(0))
+            i += 5 # skip add+clip+div+mul
+        else:
+            new_list.append(tmp_list[i])
+            i += 1
+
+    return new_list
 
 
 def keep_or_del_elem(obj, elem_name_list, keep=False):
@@ -188,6 +229,7 @@ def main():
     # op fusion, using HardSwish replace the Sigmoid and Mul
     print("[Quant Tools Info]: Step 2, Using hardswish replace the sigmoid and mul.")
     new_nodes = fusion_hardswish(new_nodes)
+    new_nodes = fusion_hardswish_into_1op(new_nodes)
 
     # rebuild new model, set the input and outputs nodes
     print("[Quant Tools Info]: Step 3, Rebuild onnx graph nodes.")
