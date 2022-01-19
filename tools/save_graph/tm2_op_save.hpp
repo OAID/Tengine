@@ -2,6 +2,7 @@
 #define __TM2_OP_SAVE_HPP__
 
 #include <functional>
+#include <cstdlib>
 extern "C" {
 #include "utility/vector.h"
 #include "serializer/tmfile/tm2_format.h"
