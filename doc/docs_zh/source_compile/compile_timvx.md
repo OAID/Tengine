@@ -13,7 +13,7 @@
 ## 2. 如何编译
 ### 2.1 依赖项
 依赖项有三部分：
-> 第一部分是 TIM-VX 的源码，代码仓库在下方；
+> 第一部分是 TIM-VX 的源码，代码仓库在下方；目前TIM-VX版本更新较快，Tengine适配的TIM-VX版本为68b5acb，下载完TIM-VX后，需要切换至该版本。 
 > 第二部分是 芯片对应板卡的 galcore.ko 的版本，对于 linux 平台，最低版本是 6.4.3.p0.286725；对于 Android 平台，最低版本是 6.4.3.279124+1。
 > 第三部分是 TIM-VX 的依赖库，主要是直接依赖的 libCLC.so libGAL.so libOpenVX.so libOpenVXU.so libVSC.so libArchModelSw.so 等，不同的芯片最后的库文件依赖有可能是不完全相同的(比如 Android 上依赖的是 libarchmodelSw.so)，要根据拿到的 SDK 进行灵活调整。
 
@@ -28,6 +28,8 @@
 #### 2.3.1 拉取 TIM-VX
 ```bash 
 $ git clone https://github.com/VeriSilicon/TIM-VX.git
+$ cd TIM-VX
+$ git checkout 68b5acb
 ```
 
 #### 2.3.2 拉取 Tengine-Lite
