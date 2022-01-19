@@ -37,12 +37,14 @@ int benchmark_threads = 1;
 int benchmark_model = -1;
 int benchmark_cluster = 0;
 int benchmark_mask = 0xFFFF;
+std::string benchmark_device = "";
+context_t s_context;
 
 
 int benchmark_graph(options_t* opt, const char* name, const char* file, int height, int width, int channel, int batch)
 {
     // create graph, load tengine model xxx.tmfile
-    graph_t graph = create_graph(nullptr, "tengine", file);
+    graph_t graph = create_graph(s_context, "tengine", file);
     if (nullptr == graph)
     {
         fprintf(stderr, "Tengine Benchmark: Create graph failed.\n");
@@ -144,6 +146,7 @@ int main(int argc, char* argv[])
     cmd.add<int>("cpu_cluster", 'p', "cpu cluster [0:auto, 1:big, 2:middle, 3:little]", false, 0);
     cmd.add<int>("model", 's', "benchmark which model, \"-1\" means all models", false, -1);
     cmd.add<int>("cpu_mask", 'a', "benchmark on masked cpu core(s)", false, -1);
+    cmd.add<std::string>("device", 'd', "device name (should be upper-case)", false);
 
     cmd.parse_check(argc, argv);
 
@@ -152,12 +155,25 @@ int main(int argc, char* argv[])
     benchmark_model = cmd.get<int>("model");
     benchmark_cluster = cmd.get<int>("cpu_cluster");
     benchmark_mask = cmd.get<int>("cpu_mask");
+    benchmark_device = cmd.get<std::string>("device");
+    if (benchmark_device.empty())
+    {
+        benchmark_device = "CPU";
+    }
+    else
+    {
+        for (int i = 0; i < benchmark_device.length(); i++)
+        {
+            benchmark_device[i] = ::toupper(benchmark_device[i]);
+        }
+    }
 
     fprintf(stdout, "Tengine benchmark:\n");
     fprintf(stdout, "  loops:    %d\n", benchmark_loop);
     fprintf(stdout, "  threads:  %d\n", benchmark_threads);
     fprintf(stdout, "  cluster:  %d\n", benchmark_cluster);
     fprintf(stdout, "  affinity: 0x%X\n", benchmark_mask);
+    fprintf(stdout, "  device:   %s\n", benchmark_device.c_str());
 
     // initialize tengine
     if (0 != init_tengine())
@@ -166,6 +182,17 @@ int main(int argc, char* argv[])
         return -1;
     }
     fprintf(stdout, "Tengine-lite library version: %s\n", get_tengine_version());
+
+    s_context = create_context("ctx", benchmark_device.empty() ? 0 : 1);
+    if (!benchmark_device.empty())
+    {
+        int ret = set_context_device(s_context, benchmark_device.c_str(), nullptr, 0);
+        if (0 != ret)
+        {
+            fprintf(stderr, "Set context device failed: %d.\n", ret);
+            return false;
+        }
+    }
 
     struct options opt;
     opt.num_thread = benchmark_threads;
@@ -253,6 +280,7 @@ int main(int argc, char* argv[])
     }
 
     /* release tengine */
+    destroy_context(s_context);
     release_tengine();
     fprintf(stderr, "ALL TEST DONE.\n");
 
