@@ -21,6 +21,7 @@ extern "C" {
 #include "eltwise_param.h"
 #include "batchnorm_param.h"
 #include "fc_param.h"
+#include "clip_param.h"
 }
 
 int graph_opt(graph_t graph);

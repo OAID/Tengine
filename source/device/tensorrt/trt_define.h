@@ -24,6 +24,9 @@
 
 #pragma once
 
+#include <iostream>
+#include <string>
+
 #define TRT_DEVICE_NAME "TensorRT"
 
 #define EXPORT_BEGIN  extern "C" {

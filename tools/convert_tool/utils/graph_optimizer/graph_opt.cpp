@@ -628,12 +628,18 @@ static int fuse_conv_relu_common(ir_graph_t* graph)
     for (size_t i = 0; i < graph->node_num; i++)
     {
         ir_node_t* relu_node = get_ir_graph_node(graph, i);
-        if (relu_node->op.type != OP_RELU && relu_node->op.type != OP_RELU6)
+        if (relu_node->op.type != OP_RELU && relu_node->op.type != OP_RELU6 && relu_node->op.type != OP_CLIP)
             continue;
         if (relu_node->op.type == OP_RELU)
         {
             struct relu_param* relu_param = (struct relu_param*)relu_node->op.param_mem;
             if (relu_param->negative_slope != 0.f)
+                continue;
+        }
+        if (relu_node->op.type == OP_CLIP)
+        {
+            struct clip_param* clip_param = (struct clip_param*)relu_node->op.param_mem;
+            if (clip_param->min != 0.f && clip_param->max != 6.f)
                 continue;
         }
         ir_tensor_t* conv_tensor = get_ir_graph_tensor(graph, relu_node->input_tensors[0]);
@@ -654,7 +660,7 @@ static int fuse_conv_relu_common(ir_graph_t* graph)
         struct conv_param* conv_param = (struct conv_param*)conv_node->op.param_mem;
         if (relu_node->op.type == OP_RELU)
             conv_param->activation = 0;
-        if (relu_node->op.type == OP_RELU6)
+        if (relu_node->op.type == OP_RELU6 || relu_node->op.type == OP_CLIP)
             conv_param->activation = 6;
 
         /* delete relu node */

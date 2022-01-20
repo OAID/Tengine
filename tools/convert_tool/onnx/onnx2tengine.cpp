@@ -318,106 +318,110 @@ int onnx_serializer::load_constant_tensor(ir_graph_t* graph, const onnx::GraphPr
 
         const std::string& op = node.op_type();
 
-        if ((op == "Reshape" || op == "Gather" || op == "Div" || op == "Resize" || op == "Upsample"))
+        if ((op == "Reshape" || op == "Gather" || op == "Div" || op == "Resize" || op == "Upsample" || op == "Clip") && (node.input_size() > 1))
         {
-            if (node_tensor.count(node.input(1)) == 0)
-                continue;
-            const onnx::TensorProto& onnx_tensor = node_tensor[node.input(1)];
-            std::pair<std::string, bool> t(node.input(1), 0);
-            tensor_check.insert(t);
-            int tensor_data_type = get_onnx_tensor_data_type(onnx_tensor);
-            if (tensor_data_type < 0)
+            // iter over constant inputs and create ir_tensor for constant tensor
+            for (int inp_idx = 0; inp_idx < node.input_size(); ++inp_idx)
             {
-                return -1;
-            }
+                if (node_tensor.count(node.input(inp_idx)) == 0)
+                    continue;
+                const onnx::TensorProto& onnx_tensor = node_tensor[node.input(inp_idx)];
+                std::pair<std::string, bool> t(node.input(inp_idx), 0);
+                tensor_check.insert(t);
+                int tensor_data_type = get_onnx_tensor_data_type(onnx_tensor);
+                if (tensor_data_type < 0)
+                {
+                    return -1;
+                }
 
-            const char* name = node.input(1).c_str();
-            int dim_num = onnx_tensor.dims_size();
-            std::vector<int> dims(dim_num);
-            for (int j = 0; j < dim_num; j++)
-            {
-                dims[j] = onnx_tensor.dims(j);
-            }
+                const char* name = node.input(inp_idx).c_str();
+                int dim_num = onnx_tensor.dims_size();
+                std::vector<int> dims(dim_num);
+                for (int j = 0; j < dim_num; j++)
+                {
+                    dims[j] = onnx_tensor.dims(j);
+                }
 
-            // create ir tensor
-            ir_tensor_t* ir_tensor = create_ir_tensor(graph, name, tensor_data_type);
-            if (ir_tensor == NULL)
-            {
-                fprintf(stderr, "create ir tensor failed!\n");
-                return -1;
-            }
-            set_ir_tensor_shape(ir_tensor, dims.data(), dim_num);
-            ir_tensor->tensor_type = TENSOR_TYPE_CONST;
-            // set tensor data
-            if (7 == onnx_tensor.data_type())
-            {
-                int tensor_size = ir_tensor->elem_num * sizeof(int64_t);
-                ir_tensor->data = sys_malloc(tensor_size);
-                int64_t* mem_buf = (int64_t*)ir_tensor->data;
-                if (onnx_tensor.has_raw_data())
+                // create ir tensor
+                ir_tensor_t* ir_tensor = create_ir_tensor(graph, name, tensor_data_type);
+                if (ir_tensor == NULL)
                 {
-                    int64_t* raw_data = (int64_t*)onnx_tensor.raw_data().data();
-                    for (int j = 0; j < ir_tensor->elem_num; j++)
+                    fprintf(stderr, "create ir tensor failed!\n");
+                    return -1;
+                }
+                set_ir_tensor_shape(ir_tensor, dims.data(), dim_num);
+                ir_tensor->tensor_type = TENSOR_TYPE_CONST;
+                // set tensor data
+                if (7 == onnx_tensor.data_type())
+                {
+                    int tensor_size = ir_tensor->elem_num * sizeof(int64_t);
+                    ir_tensor->data = sys_malloc(tensor_size);
+                    int64_t* mem_buf = (int64_t*)ir_tensor->data;
+                    if (onnx_tensor.has_raw_data())
                     {
-                        mem_buf[j] = raw_data[j];
+                        int64_t* raw_data = (int64_t*)onnx_tensor.raw_data().data();
+                        for (int j = 0; j < ir_tensor->elem_num; j++)
+                        {
+                            mem_buf[j] = raw_data[j];
+                        }
+                    }
+                    else
+                    {
+                        int64_t* raw_data = (int64_t*)onnx_tensor.int64_data().data();
+                        for (int j = 0; j < ir_tensor->elem_num; j++)
+                        {
+                            mem_buf[j] = raw_data[j];
+                        }
+                    }
+                }
+                else if (tensor_data_type == TENGINE_DT_FP32)
+                {
+                    // to support float type constant data loading
+                    int tensor_size = ir_tensor->elem_num * sizeof(float_t);
+                    ir_tensor->data = sys_malloc(tensor_size);
+                    float_t* mem_buf = (float_t*)ir_tensor->data;
+                    if (onnx_tensor.has_raw_data())
+                    {
+                        float_t* raw_data = (float_t*)onnx_tensor.raw_data().data();
+                        for (int j = 0; j < ir_tensor->elem_num; j++)
+                        {
+                            mem_buf[j] = raw_data[j];
+                        }
+                    }
+                    else
+                    {
+                        int32_t* raw_data = (int32_t*)onnx_tensor.int32_data().data();
+                        for (int j = 0; j < ir_tensor->elem_num; j++)
+                        {
+                            mem_buf[j] = raw_data[j];
+                        }
                     }
                 }
                 else
                 {
-                    int64_t* raw_data = (int64_t*)onnx_tensor.int64_data().data();
-                    for (int j = 0; j < ir_tensor->elem_num; j++)
+                    int tensor_size = ir_tensor->elem_num * sizeof(uint8_t);
+                    ir_tensor->data = sys_malloc(tensor_size);
+                    uint8_t* mem_buf = (uint8_t*)ir_tensor->data;
+                    if (onnx_tensor.has_raw_data())
                     {
-                        mem_buf[j] = raw_data[j];
+                        uint8_t* raw_data = (uint8_t*)onnx_tensor.raw_data().data();
+                        for (int j = 0; j < ir_tensor->elem_num; j++)
+                        {
+                            mem_buf[j] = raw_data[j];
+                        }
+                    }
+                    else
+                    {
+                        uint8_t* raw_data = (uint8_t*)onnx_tensor.int32_data().data();
+                        for (int j = 0; j < ir_tensor->elem_num; j++)
+                        {
+                            mem_buf[j] = raw_data[j];
+                        }
                     }
                 }
+                ir_node_t* ir_node = create_ir_node(graph, name, OP_CONST, OP_VERSION);
+                set_ir_node_output_tensor(ir_node, 0, ir_tensor);
             }
-            else if (tensor_data_type == TENGINE_DT_FP32)
-            {
-                // to support float type constant data loading
-                int tensor_size = ir_tensor->elem_num * sizeof(float_t);
-                ir_tensor->data = sys_malloc(tensor_size);
-                float_t* mem_buf = (float_t*)ir_tensor->data;
-                if (onnx_tensor.has_raw_data())
-                {
-                    float_t* raw_data = (float_t*)onnx_tensor.raw_data().data();
-                    for (int j = 0; j < ir_tensor->elem_num; j++)
-                    {
-                        mem_buf[j] = raw_data[j];
-                    }
-                }
-                else
-                {
-                    int32_t* raw_data = (int32_t*)onnx_tensor.int32_data().data();
-                    for (int j = 0; j < ir_tensor->elem_num; j++)
-                    {
-                        mem_buf[j] = raw_data[j];
-                    }
-                }
-            }
-            else
-            {
-                int tensor_size = ir_tensor->elem_num * sizeof(uint8_t);
-                ir_tensor->data = sys_malloc(tensor_size);
-                uint8_t* mem_buf = (uint8_t*)ir_tensor->data;
-                if (onnx_tensor.has_raw_data())
-                {
-                    uint8_t* raw_data = (uint8_t*)onnx_tensor.raw_data().data();
-                    for (int j = 0; j < ir_tensor->elem_num; j++)
-                    {
-                        mem_buf[j] = raw_data[j];
-                    }
-                }
-                else
-                {
-                    uint8_t* raw_data = (uint8_t*)onnx_tensor.int32_data().data();
-                    for (int j = 0; j < ir_tensor->elem_num; j++)
-                    {
-                        mem_buf[j] = raw_data[j];
-                    }
-                }
-            }
-            ir_node_t* ir_node = create_ir_node(graph, name, OP_CONST, OP_VERSION);
-            set_ir_node_output_tensor(ir_node, 0, ir_tensor);
         }
     }
 
