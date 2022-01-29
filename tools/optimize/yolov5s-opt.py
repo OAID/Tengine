@@ -22,7 +22,8 @@ https://github.com/ultralytics/yolov5
 1. Remove the focus nodes of prepare process;
 2. Remove the YOLO detection nodes of postprocess;
 3. Fusion the activation HardSwish node replace the Sigmoid and Mul;
-4. Update input/output tensor.
+4. Fusion add+clip+div+mul ops into one HardSwish op;
+5. Update input/output tensor.
 
 This tool is based on ONNX Framework.
 Usage:
@@ -34,6 +35,7 @@ Author:
     xwwang@openailab.com, initial
     hhchen@openailab.com, update
     qinhj@lsec.cc.ac.cn, update
+    yejunxian@dm-ai.com, update
 """
 
 import numpy as np
