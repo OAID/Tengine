@@ -51,8 +51,13 @@ Tengine 核心代码由 4 个模块组成：
 ### 转换工具
 
 - [预编译版本](https://github.com/OAID/Tengine/releases/download/lite-v1.2/convert_tool.zip) ：提供 Ubuntu 18.04 系统上预编译好的模型转换工具；
-- [在线转换版本](https://convertmodel.com/#outputFormat=tengine) ：基于 WebAssembly 实现（浏览器本地转换，模型不会上传）；
-- [源码编译](https://github.com/OAID/Tengine-Convert-Tools) ：参考 **Tengine-Convert-Tools** 项目编译生成，建议采用。
+- [在线转换版本](https://convertmodel.com/#outputFormat=tengine) ：基于 WebAssembly 实现（浏览器本地转换，模型不会上传；
+- [源码编译](https://github.com/OAID/Tengine/tree/tengine-lite/tools/convert_tool) ：建议在服务器或者PC上编译，指令如下：
+  ```
+  mkdir build && cd build
+  cmake -DTENGINE_BUILD_CONVERT_TOOL=ON ..
+  make -j`nproc`
+  ```
 
 ### 量化工具
 

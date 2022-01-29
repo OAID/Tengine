@@ -23,7 +23,6 @@
  */
 
 #include "utility/float.h"
-#include <math.h>
 
 #define BF16_EXP_MAX (256 - 1)  //  2^8 - 1
 #define FP16_EXP_MAX (32 - 1)   //  2^5 - 1
@@ -37,7 +36,8 @@
 #define FP32_NAN ((FP32_EXP_MAX << 23) + 1)
 #define FP32_INF ((FP32_EXP_MAX << 23) + 0)
 
-#ifndef __ARM_ARCH
+#if !defined(__ARM_ARCH) || (defined(__ARM_ARCH) && (0 == __ARM_FEATURE_FP16_VECTOR_ARITHMETIC))
+
 fp32_t fp16_to_fp32(fp16_t package)
 {
     fp32_pack_t data;
@@ -100,7 +100,7 @@ fp32_t fp16_to_fp32(fp16_t package)
         return data.value;
     }
 
-    return NAN;
+    return data.value;
 }
 
 fp16_t fp32_to_fp16(fp32_t value)
