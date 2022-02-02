@@ -88,11 +88,11 @@ struct logger* get_default_logger(void);
         logger->option.print_prefix = val;            \
     } while (0)
 
-#define SET_LOG_PREFIX(prefix)                        \
+#define SET_LOG_PREFIX(val)                           \
     do                                                \
     {                                                 \
         struct logger* logger = get_default_logger(); \
-        logger->prefix = prefix;                      \
+        logger->prefix = val;                         \
     } while (0)
 
 #define LOG(level, fmt, ...)                            \
