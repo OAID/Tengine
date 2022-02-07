@@ -185,9 +185,9 @@ int main(int argc, char* argv[])
 
     // create VeriSilicon TIM-VX backend
     context_t timvx_context = create_context("timvx", 1);
-    if ( set_context_device(timvx_context, "TIMVX", nullptr, 0) < 0 )
+    if (set_context_device(timvx_context, "TIMVX", nullptr, 0) < 0)
     {
-        fprintf(stderr, "add_context_device failed.\n" );
+        fprintf(stderr, "add_context_device failed.\n");
         return 1;
     }
 
