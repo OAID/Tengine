@@ -60,7 +60,7 @@ def parse_args():
 args = parse_args()
 
 
-def cut_focus_output(input_node, in_name, out_name):
+def cut_focus_output(input_node, in_name, out_name, cut_focus):
     """
     cut the focus and postprocess nodes
     Args:
@@ -98,8 +98,11 @@ def cut_focus_output(input_node, in_name, out_name):
             del input_node[i]
 
     # cut input node
-    for n in in_name:
-        new_nodes = input_node[(node_dict[n] + 1):]
+    if cut_focus:
+        for n in in_name:
+            new_nodes = input_node[(node_dict[n] + 1):]
+    else:
+        new_nodes = input_node[:]
 
     return new_nodes
 
@@ -181,9 +184,8 @@ def main():
     new_nodes = old_node[:]
 
     # cut the focus and postprocess nodes
-    if args.cut_focus:
-        print("[Quant Tools Info]: Step 1, Remove the focus and postprocess nodes.")
-        new_nodes = cut_focus_output(old_node, in_tensor, out_tensor)
+    print("[Quant Tools Info]: Step 1, Remove the focus and postprocess nodes.")
+    new_nodes = cut_focus_output(old_node, in_tensor, out_tensor, args.cut_focus)
 
     # op fusion, using HardSwish replace the Sigmoid and Mul
     print("[Quant Tools Info]: Step 2, Using hardswish replace the sigmoid and mul.")
