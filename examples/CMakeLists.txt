@@ -93,6 +93,7 @@ IF(TENGINE_ENABLE_TIM_VX)
     TENGINE_EXAMPLE (tm_classification_timvx     tm_classification_timvx.c)
     TENGINE_EXAMPLE (tm_landmark_timvx           tm_landmark_timvx.cpp)
     TENGINE_EXAMPLE (tm_retinaface_timvx         tm_retinaface_timvx.cpp)
+    TENGINE_EXAMPLE (tm_mobilenet_ssd_uint8_timvx      tm_mobilenet_ssd_uint8_timvx.cpp)
 ENDIF()
 
 IF(TENGINE_ENABLE_VULKAN)
