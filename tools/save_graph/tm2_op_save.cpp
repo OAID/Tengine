@@ -735,6 +735,21 @@ tm_uoffset_t SaveTmSigmoidOp(void* const start_ptr, tm_uoffset_t* cur_pos, ir_no
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
 }
 
+tm_uoffset_t SaveTmMaximumOp(void* const start_ptr, tm_uoffset_t* cur_pos, ir_node_t* node)
+{
+    TM2_Operator tm_op;
+    SetTmOperator(&tm_op, TM2_OPTYPE_MAX, TM2_NOT_SET);
+    return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
+}
+
+tm_uoffset_t SaveTmMinimumOp(void* const start_ptr, tm_uoffset_t* cur_pos, ir_node_t* node)
+{
+    TM2_Operator tm_op;
+    SetTmOperator(&tm_op, TM2_OPTYPE_MIN, TM2_NOT_SET);
+    return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
+}
+
+
 tm_uoffset_t SaveTmSqueezeOp(void* const start_ptr, tm_uoffset_t* cur_pos, ir_node_t* node)
 {
     struct squeeze_param* p = (struct squeeze_param*)node->op.param_mem;
@@ -1588,8 +1603,12 @@ op_save_t SaveTmOpFunc(uint32_t op_type)
         return SaveTmSoftplusOp;
     case OP_RECIPROCAL:
         return SaveTmReciprocalOp;
+    case OP_MAXIMUM:
+        return SaveTmMaximumOp;
+    case OP_MINIMUM:
+        return SaveTmMinimumOp;
     default:
-        // fprintf(stderr, "Operator #%d not supported in tengine model yet\n",op_type);
+        fprintf(stderr, "Operator #%d not supported in tengine model yet\n",op_type);
         return nullptr;
     }
 }
