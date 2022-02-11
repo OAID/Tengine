@@ -2132,9 +2132,7 @@ static int load_resize(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto
     interp_param->width_scale = 0;
 
     std::string coordinate_transformation_mode = GetAttributeOrDefault<std::string>(onnx_node, "coordinate_transformation_mode", "half_pixel");
-    TASSERT(coordinate_transformation_mode == "half_pixel" ||
-            coordinate_transformation_mode == "align_corners" ||
-            coordinate_transformation_mode == "asymmetric");
+    TASSERT(coordinate_transformation_mode == "half_pixel" || coordinate_transformation_mode == "align_corners" || coordinate_transformation_mode == "asymmetric");
     int align_corner = (coordinate_transformation_mode == "align_corners");
 
     if (onnx_node.input_size() == 1)
