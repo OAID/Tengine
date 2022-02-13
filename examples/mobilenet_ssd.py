@@ -63,6 +63,7 @@ def main(args):
     data = ((data - img_mean) * DEFAULT_SCALE).astype(np.float32)
     data = data.transpose((2, 0, 1))
     assert data.dtype == np.float32
+    data = data.copy()
 
     graph = tg.Graph(None, 'tengine', tm_file)
     input_tensor = graph.getInputTensor(0, 0)
