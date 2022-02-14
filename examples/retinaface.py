@@ -322,7 +322,7 @@ def main(args):
 
     #image_data = image_data.transpose((2, 0, 1)).astype(np.float32)
     image_data = np.ascontiguousarray(image_data.transpose((2, 0, 1)).astype(np.float32))
-    
+    image_data = image_data.copy()
     #print("img_h, img_w, img_c: %d, %d, %d" %(img_h, img_w, img_c))
 
     input_tensor = graph.getTensorByName(input_name)
