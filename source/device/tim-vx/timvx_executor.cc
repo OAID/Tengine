@@ -641,7 +641,7 @@ int VXEngine::VXEngineRun(struct subgraph* subgraph)
         const char* env = getenv(TENGINE_DUMP_LAYER);
         if (env && env[0] == '1')
         {
-            for (uint8_t i = 0; i < ir_graph->tensor_num; i++)
+            for (uint16_t i = 0; i < ir_graph->tensor_num; i++)
             {
                 if (ir_graph->tensor_list[i]->tensor_type == TENSOR_TYPE_VAR)
                 {
@@ -659,7 +659,7 @@ int VXEngine::VXEngineRun(struct subgraph* subgraph)
                 }
             }
 
-            for (uint8_t i = 0; i < ir_graph->tensor_num; i++)
+            for (uint16_t i = 0; i < ir_graph->tensor_num; i++)
             {
                 TLOG_INFO("TIM-VX: Tensor type %d\n",ir_graph->tensor_list[i]->tensor_type);
                 if (ir_graph->tensor_list[i]->tensor_type == TENSOR_TYPE_VAR)
