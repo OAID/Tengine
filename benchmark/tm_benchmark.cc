@@ -37,8 +37,28 @@ int benchmark_threads = 1;
 int benchmark_model = -1;
 int benchmark_cluster = 0;
 int benchmark_mask = 0xFFFF;
+int benchmark_data_type = 0;
 std::string benchmark_device = "";
 context_t s_context;
+
+
+int get_tenser_element_size(int data_type)
+{
+    switch (data_type)
+    {
+    case TENGINE_DT_FP32:
+    case TENGINE_DT_INT32:
+        return 4;
+    case TENGINE_DT_FP16:
+    case TENGINE_DT_INT16:
+        return 2;
+    case TENGINE_DT_INT8:
+    case TENGINE_DT_UINT8:
+        return 1;
+    default:
+        return 0;
+    }
+}
 
 
 int benchmark_graph(options_t* opt, const char* name, const char* file, int height, int width, int channel, int batch)
@@ -55,9 +75,9 @@ int benchmark_graph(options_t* opt, const char* name, const char* file, int heig
     int input_size = height * width * channel;
     int shape[] = { batch, channel, height, width };    // nchw
 
-    std::vector<float> inout_buffer(input_size);
+    std::vector<unsigned char> input_buffer(batch * input_size * get_tenser_element_size(benchmark_data_type));
 
-    memset(inout_buffer.data(), 1, inout_buffer.size() * sizeof(float));
+    memset(input_buffer.data(), 1, input_buffer.size());
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == nullptr)
@@ -79,7 +99,7 @@ int benchmark_graph(options_t* opt, const char* name, const char* file, int heig
     }
 
     // prepare process input data, set the data mem to input tensor
-    if (set_tensor_buffer(input_tensor, inout_buffer.data(), (int)(inout_buffer.size() * sizeof(float))) < 0)
+    if (set_tensor_buffer(input_tensor, input_buffer.data(), (int)input_buffer.size()) < 0)
     {
         fprintf(stderr, "Tengine Benchmark: Set input tensor buffer failed\n");
         return -1;
@@ -147,6 +167,9 @@ int main(int argc, char* argv[])
     cmd.add<int>("model", 's', "benchmark which model, \"-1\" means all models", false, -1);
     cmd.add<int>("cpu_mask", 'a', "benchmark on masked cpu core(s)", false, -1);
     cmd.add<std::string>("device", 'd', "device name (should be upper-case)", false);
+    cmd.add<std::string>("model_file", 'm', "path to a model file", false);
+    cmd.add<std::string>("input_shape", 'i', "shape of input (n,c,h,w)", false);
+    cmd.add<int>("input_dtype", 'f', "data type of input", false);
 
     cmd.parse_check(argc, argv);
 
@@ -156,6 +179,9 @@ int main(int argc, char* argv[])
     benchmark_cluster = cmd.get<int>("cpu_cluster");
     benchmark_mask = cmd.get<int>("cpu_mask");
     benchmark_device = cmd.get<std::string>("device");
+    std::string benchmark_model_file = cmd.get<std::string>("model_file");
+    std::string input_shape = cmd.get<std::string>("input_shape");
+    benchmark_data_type = cmd.get<int>("input_dtype");
     if (benchmark_device.empty())
     {
         benchmark_device = "CPU";
@@ -263,6 +289,20 @@ int main(int argc, char* argv[])
             benchmark_graph(&opt, "mobilefacenets",   "./models/mobilefacenets_benchmark.tmfile",     112, 112, 3, 1);
             break;
         default:
+            if (!benchmark_model_file.empty()) {
+                int n = 1, c = 3, h = 224, w = 224;
+                if (!input_shape.empty()) {
+                    char ch;
+                    int count = sscanf(input_shape.c_str(), "%u%c%u%c%u%c%u", &n, &ch, &c, &ch, &h, &ch, &w);
+                    if (count == 3) {
+                        w = h, h = c, c = n, n = 1;
+                    } else if (count == 2) {
+                        w = c, h = n, c = 3, n = 1;
+                    }
+                }
+                benchmark_graph(&opt, benchmark_model_file.c_str(), benchmark_model_file.c_str(), w, h, c, n);
+                break;
+            }
             benchmark_graph(&opt, "squeezenet_v1.1",  "./models/squeezenet_v1.1_benchmark.tmfile",    227, 227, 3, 1);
             benchmark_graph(&opt, "mobilenetv1",      "./models/mobilenet_benchmark.tmfile",          224, 224, 3, 1);
             benchmark_graph(&opt, "mobilenetv2",      "./models/mobilenet_v2_benchmark.tmfile",       224, 224, 3, 1);
