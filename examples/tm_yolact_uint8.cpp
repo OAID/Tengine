@@ -212,7 +212,7 @@ static void fast_nms(std::vector<std::vector<Object> >& class_candidates, std::v
         for (int j = 1; j < n; j++)
         {
             std::vector<float>::iterator max_value;
-            max_value = std::max_element(iou_matrix[j].begin(), iou_matrix[j].begin() + j - 1);
+            max_value = std::max_element(iou_matrix[j].begin(), iou_matrix[j].begin() + j);
             if (*max_value <= iou_thresh)
             {
                 objects.push_back(candidate[j]);
