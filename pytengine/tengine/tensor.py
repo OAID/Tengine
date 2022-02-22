@@ -132,7 +132,7 @@ class Tensor(object):
         if ctype is ctypes.c_char:
             _LIB.get_tensor_buffer.restype = ctypes.POINTER(ctype)
             res = _LIB.get_tensor_buffer(ctypes.c_void_p(self.tensor))
-            return res[:size]
+            return np.ctypeslib.as_array(ctypes.cast(res, ctypes.POINTER(ctype)), (size,))
         _LIB.get_tensor_buffer.restype = ctypes.POINTER(ctype)
         res = _LIB.get_tensor_buffer(ctypes.c_void_p(self.tensor))
         return np.ctypeslib.as_array(ctypes.cast(res, ctypes.POINTER(ctype)), (size,))
