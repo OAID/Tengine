@@ -462,7 +462,7 @@ void extract_feature_from_tensor_timvx(const char* comment, const char* layer_na
     {
         strcpy(save_dir, env_path);
 
-        if ('/' == save_dir[strlen(env_path)  - 1] || '\\' == save_dir[strlen(env_path) - 1])
+        if ('/' == save_dir[strlen(env_path) - 1] || '\\' == save_dir[strlen(env_path) - 1])
         {
 #ifdef _MSC_VER
             save_dir[strlen(env_path)] = '\\';
