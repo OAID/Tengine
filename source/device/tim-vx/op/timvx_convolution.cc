@@ -80,9 +80,9 @@ bool VXEngine::AddConvolutionNode(struct node* ir_node)
     {
         auto conv = this->graph->CreateOperation<tim::vx::ops::Conv2d>(
             weight_tensor->dims[0], tim::vx::PadType::AUTO,
-            std::array<uint32_t, 2>({ (unsigned int)param->kernel_h, (unsigned int)param->kernel_w }),
-            std::array<uint32_t, 2>({ (unsigned int)param->stride_h, (unsigned int)param->stride_w }),
-            std::array<uint32_t, 2>({ (unsigned int)param->dilation_h, (unsigned int)param->dilation_w }),
+            std::array<uint32_t, 2>({ (unsigned int)param->kernel_w, (unsigned int)param->kernel_h }),
+            std::array<uint32_t, 2>({ (unsigned int)param->stride_w, (unsigned int)param->stride_h }),
+            std::array<uint32_t, 2>({ (unsigned int)param->dilation_w, (unsigned int)param->dilation_h }),
             std::array<uint32_t, 4>({ (unsigned int)param->pad_w0, (unsigned int)param->pad_w1,
                                       (unsigned int)param->pad_h0, (unsigned int)param->pad_h1 }),
             multiplier);
@@ -151,8 +151,8 @@ bool VXEngine::AddConvolutionNode(struct node* ir_node)
         auto conv = this->graph->CreateOperation<tim::vx::ops::GroupedConv2d>(
             std::array<uint32_t, 4>({ (unsigned int)param->pad_w0, (unsigned int)param->pad_w1,
                                       (unsigned int)param->pad_h0, (unsigned int)param->pad_h1 }),
-            std::array<uint32_t, 2>({ (unsigned int)param->stride_h, (unsigned int)param->stride_w }),
-            std::array<uint32_t, 2>({ (unsigned int)param->dilation_h, (unsigned int)param->dilation_w }),
+            std::array<uint32_t, 2>({ (unsigned int)param->stride_w, (unsigned int)param->stride_h }),
+            std::array<uint32_t, 2>({ (unsigned int)param->dilation_w, (unsigned int)param->dilation_h }),
             param->group);
         if (param->activation >= 0)
         {

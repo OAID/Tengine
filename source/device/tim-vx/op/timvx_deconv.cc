@@ -74,11 +74,11 @@ bool VXEngine::AddDeconvNode(struct node* ir_node)
 
     auto deconv = this->graph->CreateOperation<tim::vx::ops::DeConv2d>(
             weight_tensor->dims[0], tim::vx::PadType::AUTO,
-            std::array<uint32_t, 2>({ (unsigned int)param->kernel_h, (unsigned int)param->kernel_w }),
-            std::array<uint32_t, 2>({ (unsigned int)param->stride_h, (unsigned int)param->stride_w }),
-            std::array<uint32_t, 2>({ (unsigned int)param->output_pad_h0, (unsigned int)param->output_pad_w0 }),
-            std::array<uint32_t, 4>({ (unsigned int)param->pad_h0, (unsigned int)param->pad_h1,
-                                      (unsigned int)param->pad_w0, (unsigned int)param->pad_w1 }),
+            std::array<uint32_t, 2>({ (unsigned int)param->kernel_w, (unsigned int)param->kernel_h }),
+            std::array<uint32_t, 2>({ (unsigned int)param->stride_w, (unsigned int)param->stride_h }),
+            std::array<uint32_t, 2>({ (unsigned int)param->output_pad_w0, (unsigned int)param->output_pad_h0 }),
+            std::array<uint32_t, 4>({ (unsigned int)param->pad_w0, (unsigned int)param->pad_w1,
+                                      (unsigned int)param->pad_h0, (unsigned int)param->pad_h1 }),
             (unsigned int)param->group  );
     
     vx_node_map[ir_node->index] = deconv;
