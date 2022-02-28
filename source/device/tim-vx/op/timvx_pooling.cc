@@ -87,7 +87,7 @@ bool VXEngine::AddPoolingNode(struct node* ir_node)
 
     auto pool = graph->CreateOperation<tim::vx::ops::Pool2d>(
             pooltype,
-            std::array<uint32_t, 4>({ (unsigned int)param->pad_h0, (unsigned int)param->pad_h1, (unsigned int)param->pad_w0, (unsigned int)param->pad_w1}),
+            std::array<uint32_t, 4>({ (unsigned int)param->pad_w0, (unsigned int)param->pad_w1, (unsigned int)param->pad_h0, (unsigned int)param->pad_h1}),
             std::array<uint32_t, 2>({ (unsigned int)param->kernel_w, (unsigned int)param->kernel_h}),
             std::array<uint32_t, 2>({(unsigned int)param->stride_w, (unsigned int)param->stride_h}));
 
