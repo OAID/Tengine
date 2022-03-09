@@ -317,14 +317,23 @@ int onnx_serializer::load_constant_tensor(ir_graph_t* graph, const onnx::GraphPr
         const onnx::NodeProto& node = onnx_graph.node(i);
 
         const std::string& op = node.op_type();
+        bool logged = false;
 
-        if ((op == "Reshape" || op == "Gather" || op == "Div" || op == "Resize" || op == "Upsample" || op == "Clip") && (node.input_size() > 1))
+        if (node.input_size() > 1)
         {
             // iter over constant inputs and create ir_tensor for constant tensor
             for (int inp_idx = 0; inp_idx < node.input_size(); ++inp_idx)
             {
                 if (node_tensor.count(node.input(inp_idx)) == 0)
                     continue;
+                if (!logged) {
+                    logged = true;
+                    if (!(op == "Reshape" || op == "Gather" || op == "Div" || op == "Resize" || op == "Upsample"
+                            || op == "Clip" || op == "Slice" || op == "Expand")) {
+                        auto msg = "Load a Constant node \"%s\" as input[%d] of node \"%s\".\n";
+                        printf(msg, node.input(inp_idx).c_str(), inp_idx, node.name().c_str());
+                    }
+                }
                 const onnx::TensorProto& onnx_tensor = node_tensor[node.input(inp_idx)];
                 std::pair<std::string, bool> t(node.input(inp_idx), 0);
                 tensor_check.insert(t);
