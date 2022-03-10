@@ -923,7 +923,8 @@ static int load_mem(struct serializer* s, struct graph* graph, const void* addr,
 
     priv->fd = -1;
     priv->mem_len = size;
-    priv->base = (const char*)addr;
+    priv->base = (const char*)sys_malloc(size);
+    memcpy(priv->base, addr, size);
     priv->header = get_tm_file_header((const char*)addr);
     priv->model = get_tm_file_model((const char*)addr, priv->header);
     priv->subgraph = get_tm_file_subgraph((const char*)addr, priv->model);
