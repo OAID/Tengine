@@ -318,7 +318,7 @@ int onnx_serializer::load_constant_tensor(ir_graph_t* graph, const onnx::GraphPr
 
         const std::string& op = node.op_type();
 
-        if ((op == "Reshape" || op == "Gather" || op == "Div" || op == "Resize" || op == "Upsample" || op == "Clip") && (node.input_size() > 1))
+        if ((op == "Slice" || op == "Reshape" || op == "Gather" || op == "Div" || op == "Resize" || op == "Upsample" || op == "Clip") && (node.input_size() > 1))
         {
             // iter over constant inputs and create ir_tensor for constant tensor
             for (int inp_idx = 0; inp_idx < node.input_size(); ++inp_idx)
