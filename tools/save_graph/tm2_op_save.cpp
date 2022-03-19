@@ -1607,7 +1607,7 @@ op_save_t SaveTmOpFunc(uint32_t op_type)
     case OP_MINIMUM:
         return SaveTmMinimumOp;
     default:
-        fprintf(stderr, "Operator #%d not supported in tengine model yet\n", op_type);
+        // fprintf(stderr, "Operator #%d not supported in tengine model yet\n", op_type);
         return nullptr;
     }
 }
