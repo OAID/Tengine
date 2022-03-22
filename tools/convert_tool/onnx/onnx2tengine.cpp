@@ -326,10 +326,12 @@ int onnx_serializer::load_constant_tensor(ir_graph_t* graph, const onnx::GraphPr
             {
                 if (node_tensor.count(node.input(inp_idx)) == 0)
                     continue;
-                if (!logged) {
+                if (!logged)
+                {
                     logged = true;
                     if (!(op == "Reshape" || op == "Gather" || op == "Div" || op == "Resize" || op == "Upsample"
-                            || op == "Clip" || op == "Slice" || op == "Expand")) {
+                          || op == "Clip" || op == "Slice" || op == "Expand"))
+                    {
                         auto msg = "Load a Constant node \"%s\" as input[%d] of node \"%s\".\n";
                         printf(msg, node.input(inp_idx).c_str(), inp_idx, node.name().c_str());
                     }
