@@ -168,7 +168,7 @@ void get_input_data_yolov4(const char* image_file, float* input_data, int img_h,
 
 static void generate_proposals(int stride, const float* feat, float prob_threshold, std::vector<Object>& objects)
 {
-    static float anchors[12] = {10, 14, 23, 27, 37, 58, 81, 82, 135, 169, 344, 319};
+    static float anchors[12] = {23, 27, 37, 58, 81, 82, 81, 82, 135, 169, 344, 319};
     int anchor_num = 3;
     int feat_w = 416 / stride;
     int feat_h = 416 / stride;
