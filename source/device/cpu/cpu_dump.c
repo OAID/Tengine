@@ -537,7 +537,7 @@ void extract_feature_from_tensor(const char* comment, const char* layer_name, co
     {
         strcpy(save_dir, env_path);
 
-        if ('/' == save_dir[strlen(env_path) - 1] || '\\' == save_dir[strlen(env_path) - 1])
+        if ('/' != save_dir[strlen(env_path) - 1] && '\\' != save_dir[strlen(env_path) - 1])
         {
 #ifdef _MSC_VER
             save_dir[strlen(env_path)] = '\\';
