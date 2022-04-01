@@ -163,6 +163,8 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     /* the follow codes need to be checked ! */
     /* maybe int8 need dequant and quant */
     int slice_axis = split_param->axis;
+    if (slice_axis<0)
+        slice_axis = input_tensor->dim_num+slice_axis;
     int num_slices = 1;
     int slice_size = 1;
 

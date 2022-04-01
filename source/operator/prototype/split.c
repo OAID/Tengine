@@ -39,7 +39,10 @@ static int infer_shape(ir_node_t* node)
     struct split_param* split_param = (struct split_param*)(node->op.param_mem);
 
     int axis = split_param->axis;
-
+    
+    if (axis<0)
+        axis=input->dim_num+axis;
+    
     int input_dim[4];
     for (int i = 0; i < input->dim_num; i++)
         input_dim[i] = input->dims[i];
