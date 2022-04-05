@@ -372,7 +372,6 @@ int main(int argc, char* argv[])
     }
     fprintf(stderr, "tengine-lite library version: %s\n", get_tengine_version());
 
-
     // context_t for opencl
     context_t opencl_context = create_context("ocl", 1);
     int rtt = set_context_device(opencl_context, "OCL", NULL, 0);
