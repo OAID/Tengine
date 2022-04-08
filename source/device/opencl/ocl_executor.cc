@@ -27,6 +27,7 @@
 #include "ocl_convertor.hpp"
 #include "ocl_helper.hpp"
 #include <../examples/common/common.h>
+#include <string>
 
 extern "C" {
 #include "operator/op.h"
@@ -36,6 +37,8 @@ extern "C" {
 void register_all_ocl_creator();
 
 std::map<int, ocl_node_creator*>* OCLEngine::s_ocl_node_creator_map = new std::map<int, ocl_node_creator*>();
+
+extern const std::map<std::string, std::vector<unsigned char> > opencl_program_map;
 
 bool OCLEngine::init()
 {
@@ -168,7 +171,7 @@ int OCLEngine::OCLEngineRun(struct subgraph* subgraph)
         struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_tensor_idx);
         if (output_tensor->data == nullptr)
         {
-            //            TLOG_INFO("Log:download data malloc \n");
+            //TLOG_INFO("Log:download data malloc \n");
             auto* fp32_data = (float*)malloc(output_tensor->elem_size * output_tensor->elem_num);
             output_tensor->data = fp32_data;
         }
@@ -257,11 +260,6 @@ void OCLEngine::allocate_gpu_mem(struct tensor* ir_tensor, int tensor_index, cl_
 
 cl::Kernel OCLEngine::build_kernel(const std::string& program_name, const std::string& kernel_name, const std::set<std::string>& options)
 {
-    char* cl_env = getenv("ROOT_PATH");
-    std::string path = std::string(cl_env);
-    path += "/source/device/opencl/cl4/";
-    path += program_name + ".cl";
-
     std::string build_option_str;
     build_option_str = "-DFLOAT=float -DFLOAT4=float4 -DFLOAT8=float8 -DRI_F=read_imagef -DFLOAT16=float16 -DWI_F=write_imagef -DCONVERT_FLOAT4=convert_float4";
     for (auto& option : options)
@@ -269,11 +267,14 @@ cl::Kernel OCLEngine::build_kernel(const std::string& program_name, const std::s
         build_option_str += " " + option;
     }
     build_option_str += " -cl-mad-enable";
-
-    std::ifstream source_kernel_file(path.c_str());
-    std::string source_file((std::istreambuf_iterator<char>(source_kernel_file)), std::istreambuf_iterator<char>());
+    auto it_source = opencl_program_map.find(program_name);
+    if (it_source == opencl_program_map.end())
+    {
+      TLOG_ERR("build %s fail cannot find source \n", kernel_name.c_str());
+    }
     cl::Program::Sources sources;
-    sources.push_back(source_file);
+    std::string source_binary(it_source->second.begin(), it_source->second.end());
+    sources.push_back(source_binary);
     cl::Program program = cl::Program(*engine_context, sources);
     cl_int res;
     res = program.build({*engine_device}, build_option_str.c_str());
