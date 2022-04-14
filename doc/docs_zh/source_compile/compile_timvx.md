@@ -196,6 +196,39 @@ $ make -j`nproc` && make install
 ```
 如果是交叉编译，那么请参考前面 [2.5.3 准备 VIM3/VIM3L 较早版本的编译] 部分准备交叉工具链并进行编译即可。
 
+#### 2.5.5.6 准备 VIM3/VIM3L 最新版本的编译(更新于2022.04.14)
+VIM3近期有过一次系统升级，升级版本是 `6.4.6.2.5.3.2`(galcore 的内核打印是 `6.4.6.2.5.3.2`)，该版本驱动和库存在一些问题，不能直接编译。经验证后，需要借助TIM-VX提供的驱动和npu相关库文件，下面提供一个可行的办法:
+
+\- 更新khadas vim3驱动和库
+```bash
+$ wget https://github.com/VeriSilicon/TIM-VX/releases/download/v1.1.37/aarch64_A311D_6.4.9.tgz
+$ tar zxvf aarch64_A311D_6.4.9.tgz
+$ cd vim3_aarch64/lib
+$ sudo rmmod galcore
+$ sudo insmod galcore.ko
+$ sudo cp -r `ls -A | grep -v "galcore.ko"` /usr/lib
+```
+**请反复确认驱动是否加载成功，或者多执行几次**
+
+\- 下载TIM-VX仓库
+```bash
+$ git clone https://github.com/VeriSilicon/TIM-VX.git
+$ cd TIM-VX && git checkout v1.1.37
+```
+
+\- 下载Tengine仓库并编译
+```bash
+$ git clone https://github.com/OAID/Tengine
+$ cd Tengine && git checkout 8c9a85a
+$ cp -rf ../TIM-VX/include ./source/device/tim-vx/
+$ cp -rf ../TIM-VX/src ./source/device/tim-vx/
+$ mkdir -p ./3rdparty/tim-vx/include
+$ mkdir -p ./3rdparty/tim-vx/lib/aarch64
+$ cp -rf ../vim3_aarch64/include/*  ./3rdparty/tim-vx/include/
+$ mkdir build && cd build
+$ cmake -DTENGINE_ENABLE_TIM_VX=ON ..
+$ make -j`nproc` && make install
+```
 
 
 
