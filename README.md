@@ -1,6 +1,6 @@
 <div align="center">
   <img width="40%" src="logo-Tengine.png">
-  <h3> <a href="https://tengine-docs.readthedocs.io/en/latest/"> Documentation </a> | <a href="https://tengine-docs.readthedocs.io/zh_CN/latest/"> 中文文档 </a>  </h3>
+  <h3> <a href="https://tengine-docs.readthedocs.io/en/latest/"> Documentation </a> | <a href="https://tengine.readthedocs.io/zh_CN/latest/"> 中文文档 </a>  </h3>
 </div>
 
 简体中文 | [English](./README_EN.md)
