@@ -11,6 +11,7 @@ extern void ocl_OP_RELU6_creator();
 extern void ocl_OP_FLATTEN_creator();
 extern void ocl_OP_FC_creator();
 extern void ocl_OP_ELTWISE_creator();
+extern void ocl_OP_INTERP_creator();
 //
 //
 void register_all_ocl_creator(void)
@@ -26,4 +27,5 @@ void register_all_ocl_creator(void)
     ocl_OP_RELU1_creator();
     ocl_OP_RELU6_creator();
     ocl_OP_ELTWISE_creator();
+    ocl_OP_INTERP_creator();
 }

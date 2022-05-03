@@ -40,7 +40,8 @@ void ocl_relu::run(struct subgraph* subgraph)
 #else
     run_node_3d(global_work_size, local_work_size, leaky_relu_kernel);
 #endif
-#if 1
+#ifdef OPENCL_DEBUG_DATA
+    debug_data();
 #endif
 }
 ocl_relu::ocl_relu(OCLEngine* engine, struct node* ir_node)

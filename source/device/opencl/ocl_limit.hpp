@@ -37,6 +37,7 @@ const int ocl_supported_ops[] = {
     OP_FC,
     OP_FLATTEN,
     OP_INPUT,
+    OP_INTERP,
     OP_POOL,
     OP_PRELU,
     OP_RELU,

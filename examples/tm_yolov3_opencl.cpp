@@ -35,6 +35,7 @@
 #include "common.h"
 #include "tengine/c_api.h"
 #include "tengine_operations.h"
+#include "../source/device/opencl/ocl_define.h"
 
 struct Object
 {
@@ -372,10 +373,12 @@ int main(int argc, char* argv[])
     }
     fprintf(stderr, "tengine-lite library version: %s\n", get_tengine_version());
 
-
     // context_t for opencl
     context_t opencl_context = create_context("ocl", 1);
-    int rtt = set_context_device(opencl_context, "OCL", NULL, 0);
+    struct ocl_option option;
+    option.cache_path = "./test.cache";
+    option.load_cache = true;
+    int rtt = set_context_device(opencl_context, "OCL", (void*)&option, sizeof(option));
     if (0 > rtt)
     {
         fprintf(stderr, " add_context_device opencl failed.\n");
@@ -437,6 +440,9 @@ int main(int argc, char* argv[])
         }
         double end = get_current_time();
         double cur = end - start;
+
+      fprintf(stderr, "Repeat %d times, thread %d, cur time %.2f ms\n", repeat_count, num_thread,
+              cur);
         total_time += cur;
         min_time = std::min(min_time, cur);
         max_time = std::max(max_time, cur);

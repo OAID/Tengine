@@ -75,7 +75,7 @@ void ocl_upsample::pre_run()
     ocl_upsample_kernel.setArg(idx++, out_height);
     ocl_upsample_kernel.setArg(idx++, out_height);
 
-    local_work_size = find_local_group_2d(global_work_size, max_work_group_size, engine, ocl_upsample_kernel, "ocl_upsample");
+    local_work_size = find_local_group_2d(global_work_size, max_work_group_size, engine, ocl_upsample_kernel, ir_node->name);
 }
 
 void ocl_upsample::run(struct subgraph* subgraph)
@@ -101,3 +101,4 @@ public:
 };
 
 REGISTER_OCL_OP(OP_UPSAMPLE, ocl_upsample_creator);
+REGISTER_OCL_OP(OP_INTERP, ocl_upsample_creator)
