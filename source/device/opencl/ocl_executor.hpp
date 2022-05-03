@@ -43,6 +43,7 @@ public:
 public:
     uint64_t get_max_work_group_size(const cl::Kernel& kernel);
     std::vector<uint32_t> get_max_work_item_sizes();
+    std::vector<uint32_t> get_max_image_size();
     cl::Kernel build_kernel(const std::string& program_name, const std::string& kernel_name, const std::set<std::string>& options);
 
 private:
@@ -68,6 +69,8 @@ private:
     std::map<int, uint64_t> gpu_mem_map;
     std::pair<int, std::shared_ptr<cl::Buffer> > temp_buffer_up_down;
 
+    std::shared_ptr<cl_cache> gpu_cache;
+
 public:
     std::vector<std::shared_ptr<ocl_node> > exe_ocl_node_list;
 
@@ -82,6 +85,11 @@ public:
     void open_command_queue_profile();
     void close_command_queue_profile();
     void alloc_temp_buffer(int len);
+
+    int add_cache_auto_tune(const auto_tune& tune);
+    int get_cache_auto_tune(auto_tune* tune);
+    int load_cache(const std::string& path);
+    int store_cache(const std::string& path);
 };
 
 class ocl_node_creator

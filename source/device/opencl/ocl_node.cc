@@ -86,6 +86,15 @@ const std::vector<uint32_t> find_local_group_2d(std::vector<uint32_t> global_wor
     auto max_work_item_size = engine->get_max_work_item_sizes();
     uint32_t min_cost = UINT32_MAX;
 
+    auto_tune tune;
+    tune.key = kernel_name;
+    if (engine->get_cache_auto_tune(&tune) == 0)
+    {
+        lws_prefer[0] = tune.local_size[0];
+        lws_prefer[1] = tune.local_size[1];
+        return lws_prefer;
+    }
+
     if (false)
     {
         while (lws[1] <= global_work_size[1] || lws[1] <= 6)
@@ -151,10 +160,6 @@ const std::vector<uint32_t> find_local_group_2d(std::vector<uint32_t> global_wor
                     {
                         TLOG_ERR("lws tune res %s\n", kernel_name.c_str());
                     }
-//                    else
-//                    {
-//                        TLOG_ERR("%s lws tune res:cost:%d  %d,%d\n", kernel_name.c_str(), cost_time, lws[0], lws[1]);
-//                    }
 
                     if (cost_time < min_cost)
                     {
@@ -193,6 +198,16 @@ const std::vector<uint32_t> find_local_group_2d(std::vector<uint32_t> global_wor
         min_cost = cost_time;
     }
 
+    auto_tune tune_save;
+    tune_save.key = kernel_name;
+    tune_save.global_size[0] = global_work_size[0];
+    tune_save.global_size[1] = global_work_size[1];
+    tune_save.global_size[2] = 1;
+    tune_save.local_size[0] = lws_prefer[0];
+    tune_save.local_size[1] = lws_prefer[1];
+    tune_save.local_size[2] = 1;
+    engine->add_cache_auto_tune(tune_save);
+
     return lws_prefer;
 }
 
@@ -202,6 +217,16 @@ const std::vector<uint32_t> find_local_group_3d(std::vector<uint32_t> global_wor
     std::vector<uint32_t> lws_prefer(4, 1);
     uint32_t min_cost = UINT32_MAX;
     auto max_work_item_size = engine->get_max_work_item_sizes();
+
+    auto_tune tune;
+    tune.key = kernel_name;
+    if (engine->get_cache_auto_tune(&tune) == 0)
+    {
+        lws_prefer[0] = tune.local_size[0];
+        lws_prefer[1] = tune.local_size[1];
+        lws_prefer[2] = tune.local_size[2];
+        return lws_prefer;
+    }
 
     while (lws[2] <= global_work_size[2] || lws[2] <= 6)
     {
@@ -265,8 +290,6 @@ const std::vector<uint32_t> find_local_group_3d(std::vector<uint32_t> global_wor
         TLOG_ERR("3D lws null res %s\n", kernel_name.c_str());
     }
 
-   // TLOG_ERR("final %s lws tune   cost:%d  %d,%d,%d\n", kernel_name.c_str(), min_cost, lws_prefer[0], lws_prefer[1], lws_prefer[2]);
-
     int cost_time = (int)engine->get_cost_time(&event);
     if (cost_time < min_cost)
     {
@@ -276,15 +299,23 @@ const std::vector<uint32_t> find_local_group_3d(std::vector<uint32_t> global_wor
         min_cost = cost_time;
     }
 
-    //TLOG_ERR("final final %s lws tune compiler_cost:%d  pre_cost:%d  %d,%d,%d\n",  kernel_name.c_str(),cost_time, min_cost, lws_prefer[0], lws_prefer[1], lws_prefer[2]);
+    auto_tune tune_save;
+    tune_save.key = kernel_name;
+    tune_save.global_size[0] = global_work_size[0];
+    tune_save.global_size[1] = global_work_size[1];
+    tune_save.global_size[2] = global_work_size[2];
+    tune_save.local_size[0] = lws_prefer[0];
+    tune_save.local_size[1] = lws_prefer[1];
+    tune_save.local_size[2] = lws_prefer[2];
+    engine->add_cache_auto_tune(tune_save);
 
     return lws_prefer;
 }
 
 void print_data_file(struct tensor* tensor, std::string name, float* tensor_data)
 {
-    mkdir("/Users/hebingshi/work/tengine/tengine6xx/cmake-build-local/outputtest", S_IRWXU | S_IRGRP | S_IWGRP | S_IROTH);
-    std::string filename = std::string("/Users/hebingshi/work/tengine/tengine6xx/cmake-build-local/outputtest") + "/" + name + ".txt";
+    mkdir("/Users/hebingshi/stnn/tenginetest/Tengine/cmake-build-debuggcc/examples/cl_output", S_IRWXU | S_IRGRP | S_IWGRP | S_IROTH);
+    std::string filename = std::string("/Users/hebingshi/stnn/tenginetest/Tengine/cmake-build-debuggcc/examples/cl_output") + "/" + name + ".txt";
     FILE* file = fopen(filename.c_str(), "w");
     if (NULL == file)
     {

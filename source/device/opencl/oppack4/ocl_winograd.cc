@@ -48,10 +48,6 @@ ocl_winograd::ocl_winograd(OCLEngine* engine, struct node* ir_node)
     int weight_wino_size = ALIGN_UP4(weight_tensor->dims[0]) * ALIGN_UP4(weight_tensor->dims[1]) * 16;
     auto weight_wino = new float[weight_wino_size];
     weight_transform(weight_tensor, weight_wino);
-    //    for (int i = 0; i < weight_wino_size; ++i)
-    //    {
-    //        printf("%.4f,", weight_wino[i]);
-    //    }
 
     cl::Buffer weight_buffer(engine->get_context(), CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR, weight_wino_size * sizeof(float));
     cl_int error;
@@ -98,8 +94,6 @@ void ocl_winograd::pre_run()
     strides = {conv_2d_param->stride_h, conv_2d_param->stride_w};
     dilations = {conv_2d_param->dilation_h, conv_2d_param->dilation_w};
     paddings = {conv_2d_param->pad_h0, conv_2d_param->pad_w0};
-    int kernel_width = conv_2d_param->kernel_w;
-    int kernel_height = conv_2d_param->kernel_h;
 
     struct graph* ir_graph = ir_node->graph;
 
@@ -119,9 +113,7 @@ void ocl_winograd::pre_run()
     int input_height = input_tensor->dims[2];
     int input_width = input_tensor->dims[3];
     int input_channel = input_tensor->dims[1];
-    int input_channel_block = UP_DIV(input_channel, 4);
     int output_channel = output_tensor->dims[1];
-    int output_height = output_tensor->dims[2];
 
     auto w_unit = UP_DIV(width, 2);
     auto h_unit = UP_DIV(height, 2);
@@ -130,6 +122,7 @@ void ocl_winograd::pre_run()
                                                cl::ImageFormat(CL_RGBA, CL_FLOAT), UP_DIV(input_channel, 4) * 4, 16 * UP_DIV(w_unit * h_unit, 4));
     gpu_dest = std::make_shared<cl::Image2D>(engine->get_context(), CL_MEM_READ_WRITE,
                                              cl::ImageFormat(CL_RGBA, CL_FLOAT), 16 * UP_DIV(w_unit * h_unit, 4), 4 * UP_DIV(output_channel, 4));
+
     int ic_block = UP_DIV(input_channel, 4);
     int oc_block = UP_DIV(output_channel, 4);
 
@@ -228,50 +221,6 @@ void ocl_winograd::run(struct subgraph* subgraph)
         run_node_2d(global_work_size_dest, local_work_size_dest, dest_transform);
 #endif
     }
-
-//    int ir_tensor_idx_input = ir_node->input_tensors[0];
-//    int ir_tensor_idx_output = ir_node->output_tensors[0];
-//    struct tensor* input_tensor = get_ir_graph_tensor(subgraph->graph, ir_tensor_idx_input);
-//    struct tensor* output_tensor = get_ir_graph_tensor(subgraph->graph, ir_tensor_idx_output);
-//    uint32_t w = global_work_size_source[1] * 4;
-//    uint32_t h = UP_DIV(global_work_size_source[0], 4) * 16;
-//    std::vector<float> debug_source(w * h * 4);
-//    engine->get_command_queue().enqueueReadImage(*gpu_source, CL_TRUE, {0, 0, 0}, {w, h, 1}, w * sizeof(float) * 4, 0, debug_source.data());
-//    int index = 0;
-//    printf("wino input -> source \n");
-//    for (int i = 0; i < h; ++i)
-//    {
-//        for (int j = 0; j < w; ++j)
-//        {
-//            for (int k = 0; k < 4; ++k)
-//            {
-//                printf("%.4f,", debug_source[index++]);
-//            }
-//            printf(" ");
-//        }
-//        printf("\n");
-//    }
-//
-//
-//    w  = global_work_size_source[1] * 4;
-//    h = global_work_size_dest[1] * 16;
-//    debug_source.resize(w * h * 4);
-//    engine->get_command_queue().enqueueReadImage(*gpu_weight, CL_TRUE, {0, 0, 0}, {w, h, 1}, w * sizeof(float) * 4, 0, debug_source.data());
-//    index = 0;
-//    printf("wino weight \n");
-//    for (int i = 0; i < h; ++i)
-//    {
-//        for (int j = 0; j < w; ++j)
-//        {
-//            for (int k = 0; k < 4; ++k)
-//            {
-//                printf("%.4f,", debug_source[index++]);
-//            }
-//            printf(" ");
-//        }
-//        printf("\n");
-//    }
-    //debug_data();
 }
 
 void ocl_winograd::weight_transform(struct tensor* weight_tensor, float* weight_dst)
@@ -304,17 +253,6 @@ void ocl_winograd::weight_transform(struct tensor* weight_tensor, float* weight_
             {
                 weight_dst[start_pos + k * stride_0] = kernel_trans[k];
             }
-
-            int index = 0;
-            //            for (int k = 0; k < 4; ++k)
-            //            {
-            //                for (int l = 0; l < 4; ++l)
-            //                {
-            //                    printf("%.4f,", kernel_trans[index++]);
-            //                }
-            //                printf("\n");
-            //            }
-            //            printf("\n");
         }
     }
 

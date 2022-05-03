@@ -101,52 +101,9 @@ void ocl_conv2d::run(struct subgraph* subgraph)
 #else
     run_node_2d(global_work_size, local_work_size, conv2d_kernel);
 #endif
-#if 0
-    // print input
-    printf("ocl_conv2d::run :input ------------------ \n");
-    uint32_t input_w = input_width * input_channel_block;
-    uint32_t input_h = input_height;
-    std::vector<float> input_debug(input_w * input_h * 4);
-    engine->get_command_queue().enqueueReadImage(*(cl::Image*)handle_input, CL_TRUE, {0, 0, 0}, {input_w, input_h, 1}, input_w * sizeof(float) * 4, 0, input_debug.data());
-    int idx_debug_input = 0;
-    std::vector<float> input_debug_nchw(input_tensor->elem_num);
-    for (int i = 0; i < input_tensor->dims[1]; ++i)
-    {
-        for (int j = 0; j < input_tensor->dims[2]; ++j)
-        {
-            for (int k = 0; k < input_tensor->dims[3]; ++k)
-            {
-                int index_nchw = i * input_width * input_height + j * input_width + k;
-                int from_index = j * input_w * 4 + (i / 4) * (input_width * 4) + k * 4 + i % 4;
-                input_debug_nchw[index_nchw] = input_debug[from_index];
-            }
-        }
-    }
-    std::string input_name = std::string(ir_node->name) + "input";
-    print_data_file(input_tensor, input_name, input_debug_nchw.data());
 
-    printf("#### %s ocl_conv2d::run :output ------------------ \n", ir_node->name);
-    uint32_t output_w = width * UP_DIV(output_channel, 4);
-    uint32_t output_h = height;
-    std::vector<float> output_debug(output_w * output_h * 4);
-    engine->get_command_queue().enqueueReadImage(*(cl::Image*)handle_output, CL_TRUE, {0, 0, 0}, {output_w, output_h, 1}, output_w * sizeof(float) * 4, 0, output_debug.data());
-    std::vector<float> output_debug_nchw(output_tensor->elem_num);
-    for (int i = 0; i < output_tensor->dims[1]; ++i)
-    {
-        for (int j = 0; j < output_tensor->dims[2]; ++j)
-        {
-            for (int k = 0; k < output_tensor->dims[3]; ++k)
-            {
-                int index_nchw = i * width * height + j * width + k;
-                int from_index = j * output_w * 4 + (i / 4) * (width * 4) + k * 4 + i % 4;
-                output_debug_nchw[index_nchw] = output_debug[from_index];
-            }
-        }
-    }
-
-    std::string output_name = std::string(ir_node->name) + "output";
-    print_data_file(output_tensor, output_name, output_debug_nchw.data());
-
+#ifdef OPENCL_DEBUG_DATA
+    debug_data();
 #endif
 }
 
@@ -205,29 +162,6 @@ ocl_conv2d::ocl_conv2d(OCLEngine* engine, struct node* ir_node)
     }
     conv2d_kernel = engine->build_kernel("conv_2d_2d", "conv_2d", buildOption);
     max_work_group_size = engine->get_max_work_group_size(conv2d_kernel);
-
-#if 0
-    std::vector<float> debugData;
-    debugData.resize(3 * 9 * 4);
-    engine->get_command_queue().enqueueReadImage(*gpu_weight,
-                                                 CL_TRUE, {0, 0, 0}, {3, 9, 1}, 3 * sizeof(float) * 4,
-                                                 0, debugData.data());
-    int debugIndex = 0;
-    printf("\n");
-    for (int i = 0; i < 9; ++i)
-    {
-        for (int j = 0; j < 3; ++j)
-        {
-            for (int k = 0; k < 4; ++k)
-            {
-                printf("%.4f,", debugData[debugIndex]);
-                debugIndex++;
-            }
-            printf("  ");
-        }
-        printf("\n");
-    }
-#endif
 }
 
 void ocl_conv2d::upload_bias_gpu(struct tensor* ir_tensor)
@@ -245,6 +179,38 @@ void ocl_conv2d::upload_bias_gpu(struct tensor* ir_tensor)
     engine->get_command_queue().enqueueUnmapMemObject(bias_buffer, bias_ptr_gpu);
     gpu_bias = std::make_shared<cl::Image2D>(engine->get_context(), CL_MEM_READ_WRITE, cl::ImageFormat(CL_RGBA, CL_FLOAT), UP_DIV(bias_size, 4), 1);
     engine->get_converter().buffer_to_image(&bias_buffer, gpu_bias.get(), UP_DIV(bias_size, 4), 1);
+}
+
+static bool use_image_winograd(struct node* ir_node, OCLEngine* engine)
+{
+    std::vector<uint32_t> w_h_limit = engine->get_max_image_size();
+    struct graph* ir_graph = ir_node->graph;
+
+    int ir_tensor_idx_input = ir_node->input_tensors[0];
+    int ir_tensor_idx_output = ir_node->output_tensors[0];
+
+    struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_tensor_idx_input);
+    struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_tensor_idx_output);
+
+    int height = output_tensor->dims[2];
+    int width = output_tensor->dims[3];
+    int input_channel = input_tensor->dims[1];
+    int output_channel = output_tensor->dims[1];
+
+    bool res = true;
+    auto w_unit = UP_DIV(width, 2);
+    auto h_unit = UP_DIV(height, 2);
+    if (w_h_limit[0] < 16 * UP_DIV(w_unit * h_unit, 4) || w_h_limit[0] < UP_DIV(input_channel, 4) * 4)
+    {
+        return false;
+    }
+
+    if (w_h_limit[1] < 16 * UP_DIV(w_unit * h_unit, 4) || w_h_limit[1] < 4 * UP_DIV(output_channel, 4))
+    {
+        return false;
+    }
+
+    return res;
 }
 
 class ocl_conv2d_creator : public ocl_node_creator
@@ -266,7 +232,7 @@ public:
         else if (conv_2d_param->kernel_w == 3 && conv_2d_param->kernel_h == 3 && conv_2d_param->dilation_w == 1 && conv_2d_param->dilation_h == 1
                  && conv_2d_param->stride_w == 1 && conv_2d_param->stride_h == 1
                  && conv_2d_param->input_channel >= 32
-                 && conv_2d_param->input_channel >= 32)
+                 && conv_2d_param->input_channel >= 32 && use_image_winograd(ir_node, engine))
         {
             use_wino = true;
         }
