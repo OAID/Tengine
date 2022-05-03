@@ -441,8 +441,8 @@ int main(int argc, char* argv[])
         double end = get_current_time();
         double cur = end - start;
 
-      fprintf(stderr, "Repeat %d times, thread %d, cur time %.2f ms\n", repeat_count, num_thread,
-              cur);
+        fprintf(stderr, "Repeat %d times, thread %d, cur time %.2f ms\n", repeat_count, num_thread,
+                cur);
         total_time += cur;
         min_time = std::min(min_time, cur);
         max_time = std::max(max_time, cur);
