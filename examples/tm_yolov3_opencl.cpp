@@ -382,8 +382,8 @@ int main(int argc, char* argv[])
     option.store_cache = true;
 
     // after generate cache; load cache from cache file; pre_run faster
-//    option.cache_path = "./test.cache";
-//    option.load_cache = true;
+    //    option.cache_path = "./test.cache";
+    //    option.load_cache = true;
 
     int rtt = set_context_device(opencl_context, "OCL", (void*)&option, sizeof(option));
     if (0 > rtt)
@@ -448,8 +448,8 @@ int main(int argc, char* argv[])
         double end = get_current_time();
         double cur = end - start;
 
-      fprintf(stderr, "Repeat %d times, thread %d, cur time %.2f ms\n", repeat_count, num_thread,
-              cur);
+        fprintf(stderr, "Repeat %d times, thread %d, cur time %.2f ms\n", repeat_count, num_thread,
+                cur);
         total_time += cur;
         min_time = std::min(min_time, cur);
         max_time = std::max(max_time, cur);
