@@ -38,8 +38,6 @@ __constant sampler_t SAMPLER =
     return;                                                                    \
   }
 
-#define UNIT 4
-
 __kernel
 #if SET_ATTRIBUTE
     __attribute__((work_group_size_hint(16, 16, 1)))
@@ -76,7 +74,7 @@ __kernel
   FLOAT4 out3 = out0;
 
   int in_width0 =
-      mad24(out_width_block_idx, stride_shape.y << 2, -padding_shape.y);  // stride_shape.y = x方向上的stride
+      mad24(out_width_block_idx, stride_shape.y << 2, -padding_shape.y);
   int in_width1 = in_width0 + stride_shape.y;
   int in_width2 = in_width0 + stride_shape.y * 2;
   int in_width3 = in_width0 + stride_shape.y * 3;
@@ -113,9 +111,6 @@ __kernel
         READ_INPUT_IMAGE(1, input_width_base);
         READ_INPUT_IMAGE(2, input_width_base);
         READ_INPUT_IMAGE(3, input_width_base);
-
-
-
         weights0 =
             RI_F(weights, SAMPLER, (int2)(weights_x_idx + 0, weights_y_idx));
         weights1 =
@@ -124,9 +119,6 @@ __kernel
             RI_F(weights, SAMPLER, (int2)(weights_x_idx + 2, weights_y_idx));
         weights3 =
             RI_F(weights, SAMPLER, (int2)(weights_x_idx + 3, weights_y_idx++));
-
-
-
 
         CALCULATE_OUTPUT(0);
         CALCULATE_OUTPUT(1);

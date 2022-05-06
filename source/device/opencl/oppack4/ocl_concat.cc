@@ -139,6 +139,10 @@ void ocl_concat::run(struct subgraph* subgraph)
     {
         run_type_concat_2();
     }
+
+#ifdef OPENCL_DEBUG_DATA
+    debug_data();
+#endif
 }
 
 void ocl_concat::pre_run_type_concat_0()

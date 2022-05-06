@@ -51,6 +51,7 @@ extern "C" {
 #include <cstdio>
 #include <fstream>
 #include <memory>
+#include "cache/cache.hpp"
 
 #define UP_DIV(x, y)   (((x) + (y) - (1)) / (y))
 #define ROUND_UP(x, y) (((x) + (y) - (1)) / (y) * (y))
