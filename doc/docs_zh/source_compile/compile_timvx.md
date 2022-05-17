@@ -244,32 +244,11 @@ $ cp -rf ../TIM-VX/include ./source/device/tim-vx/
 $ cp -rf ../TIM-VX/src ./source/device/tim-vx/
 ```
 
-\- 准备编译环境    编译依赖的系统库在EAIS-750E板载/usr/lib/下能搜索到，因此只需要拷贝头文件
-```bash
-$ wget -c https://github.com/VeriSilicon/TIM-VX/releases/download/v1.1.28/aarch64_A311D_D312513_A294074_R311680_T312233_O312045.tgz
-$ tar zxvf aarch64_A311D_D312513_A294074_R311680_T312233_O312045.tgz
-$ mv aarch64_A311D_D312513_A294074_R311680_T312233_O312045 prebuild-sdk-a311d
-$ cd <tengine-lite-root-dir>
-$ mkdir -p ./3rdparty/tim-vx/include
-$ mkdir -p ./3rdparty/tim-vx/lib/aarch64
-$ cp -rf ../prebuild-sdk-a311d/include/*  ./3rdparty/tim-vx/include/
-```
-
-\- 如遇到cmake版本不够，更新板子上的cmake版本
-```bash
-$ sudo apt-get autoremove cmake
-$ wget https://cmake.org/files/v3.22/cmake-3.22.0-linux-aarch64.tar.gz
-$ tar -xzvf cmake-3.22.0-linux-aarch64.tar.gz
-$ sudo mv cmake-3.22.0-linux-aarch64 /opt/cmake-3.22
-$ ln -sf /opt/cmake-3.22/bin/*  /usr/bin/
-$ cmake --version
-```
-
 \- 编译Tengine
 ```bash
 $ cd <tengine-lite-root-dir>
 $ mkdir build && cd build
-$ cmake -DTENGINE_ENABLE_TIM_VX=ON ..
+$ cmake -DTENGINE_ENABLE_TIM_VX=ON -DTENGINE_ENABLE_MODEL_CACHE=ON ..
 $ make -j`nproc` && make install
 ```
 
