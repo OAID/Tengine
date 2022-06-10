@@ -604,6 +604,50 @@ void add_sub_graph_to_ir_graph(struct graph* ir_graph)
         }
     }
 
+    // find graph output in every sub graph
+    for (int i = 0; i < sub_graphs_count; i++)
+    {
+        struct subgraph* sub_graph = *(struct subgraph**)get_vector_data(ir_graph->subgraph_list, i);
+        for (int j = 0; j < sub_graph->node_num; j++)
+        {
+            for (int k = 0; k < ir_graph->output_num; k++)
+            {
+                if(sub_graph->node_list[j] == ir_graph->output_nodes[k])
+                {
+                    struct node* ir_node = ir_graph->node_list[ir_graph->output_nodes[k]];
+                    for (int q = 0; q < ir_node->output_num; q++)
+                    {
+                        struct tensor* ir_tensor = ir_graph->tensor_list[ir_node->output_tensors[q]];
+                        int tensor_mask_as_out_flag = 0;
+                        for (int p = 0; p < sub_graph->output_num; p++)
+                        {
+                            if(sub_graph->output_tensor_list[p] == ir_node->output_tensors[q])
+                            {
+                                tensor_mask_as_out_flag = 1;
+                                break;
+                            }
+                        }
+                        if (!tensor_mask_as_out_flag)
+                        {
+                            uint16_t* new_output_tensor_list = (uint16_t*)sys_malloc(sizeof(uint16_t) * (sub_graph->output_num + 1));
+
+                            memcpy(new_output_tensor_list, sub_graph->output_tensor_list, sizeof(uint16_t) * sub_graph->output_num);
+                            new_output_tensor_list[sub_graph->output_num] = ir_tensor->index;
+
+                            sys_free(sub_graph->output_tensor_list);
+                            sub_graph->output_tensor_list = new_output_tensor_list;
+                            sub_graph->output_num += 1;
+                        }
+                    }
+                }
+            }
+        }
+        // for (int j = 0; j < sub_graph->output_num; j++)
+        // {
+        //     fprintf(stdout, "sub_graph->output_tensor_list[%d]:%d\n", j, sub_graph->output_tensor_list[j]);
+        // }
+    }
+
     /*
     // get all input and output tensors
     struct vector* input_tensors = create_vector(sizeof(uint16_t), NULL);
