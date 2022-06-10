@@ -196,6 +196,39 @@ $ make -j`nproc` && make install
 ```
 如果是交叉编译，那么请参考前面 [2.5.3 准备 VIM3/VIM3L 较早版本的编译] 部分准备交叉工具链并进行编译即可。
 
+#### 2.5.5.6 准备 VIM3/VIM3L 最新版本的编译(更新于2022.04.14)
+VIM3近期有过一次系统升级，升级版本是 `6.4.6.2.5.3.2`(galcore 的内核打印是 `6.4.6.2.5.3.2`)，该版本驱动和库存在一些问题，不能直接编译。经验证后，需要借助TIM-VX提供的驱动和npu相关库文件，下面提供一个可行的办法:
+
+\- 更新khadas vim3驱动和库
+```bash
+$ wget https://github.com/VeriSilicon/TIM-VX/releases/download/v1.1.37/aarch64_A311D_6.4.9.tgz
+$ tar zxvf aarch64_A311D_6.4.9.tgz
+$ cd vim3_aarch64/lib
+$ sudo rmmod galcore
+$ sudo insmod galcore.ko
+$ sudo cp -r `ls -A | grep -v "galcore.ko"` /usr/lib
+```
+**请反复确认驱动是否加载成功，或者多执行几次**
+
+\- 下载TIM-VX仓库
+```bash
+$ git clone https://github.com/VeriSilicon/TIM-VX.git
+$ cd TIM-VX && git checkout v1.1.37
+```
+
+\- 下载Tengine仓库并编译
+```bash
+$ git clone https://github.com/OAID/Tengine
+$ cd Tengine && git checkout 8c9a85a
+$ cp -rf ../TIM-VX/include ./source/device/tim-vx/
+$ cp -rf ../TIM-VX/src ./source/device/tim-vx/
+$ mkdir -p ./3rdparty/tim-vx/include
+$ mkdir -p ./3rdparty/tim-vx/lib/aarch64
+$ cp -rf ../vim3_aarch64/include/*  ./3rdparty/tim-vx/include/
+$ mkdir build && cd build
+$ cmake -DTENGINE_ENABLE_TIM_VX=ON ..
+$ make -j`nproc` && make install
+```
 
 
 
@@ -211,32 +244,11 @@ $ cp -rf ../TIM-VX/include ./source/device/tim-vx/
 $ cp -rf ../TIM-VX/src ./source/device/tim-vx/
 ```
 
-\- 准备编译环境    编译依赖的系统库在EAIS-750E板载/usr/lib/下能搜索到，因此只需要拷贝头文件
-```bash
-$ wget -c https://github.com/VeriSilicon/TIM-VX/releases/download/v1.1.28/aarch64_A311D_D312513_A294074_R311680_T312233_O312045.tgz
-$ tar zxvf aarch64_A311D_D312513_A294074_R311680_T312233_O312045.tgz
-$ mv aarch64_A311D_D312513_A294074_R311680_T312233_O312045 prebuild-sdk-a311d
-$ cd <tengine-lite-root-dir>
-$ mkdir -p ./3rdparty/tim-vx/include
-$ mkdir -p ./3rdparty/tim-vx/lib/aarch64
-$ cp -rf ../prebuild-sdk-a311d/include/*  ./3rdparty/tim-vx/include/
-```
-
-\- 如遇到cmake版本不够，更新板子上的cmake版本
-```bash
-$ sudo apt-get autoremove cmake
-$ wget https://cmake.org/files/v3.22/cmake-3.22.0-linux-aarch64.tar.gz
-$ tar -xzvf cmake-3.22.0-linux-aarch64.tar.gz
-$ sudo mv cmake-3.22.0-linux-aarch64 /opt/cmake-3.22
-$ ln -sf /opt/cmake-3.22/bin/*  /usr/bin/
-$ cmake --version
-```
-
 \- 编译Tengine
 ```bash
 $ cd <tengine-lite-root-dir>
 $ mkdir build && cd build
-$ cmake -DTENGINE_ENABLE_TIM_VX=ON ..
+$ cmake -DTENGINE_ENABLE_TIM_VX=ON -DTENGINE_ENABLE_MODEL_CACHE=ON ..
 $ make -j`nproc` && make install
 ```
 

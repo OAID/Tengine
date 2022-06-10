@@ -26,16 +26,21 @@
 #include "ocl_node.hpp"
 #include "ocl_convertor.hpp"
 #include "ocl_helper.hpp"
+#include "cache/cache.hpp"
 #include <../examples/common/common.h>
+#include <string>
 
 extern "C" {
 #include "operator/op.h"
 #include "convolution_param.h"
+#include "ocl_define.h"
 }
 
 void register_all_ocl_creator();
 
 std::map<int, ocl_node_creator*>* OCLEngine::s_ocl_node_creator_map = new std::map<int, ocl_node_creator*>();
+
+extern const std::map<std::string, std::vector<unsigned char> > opencl_program_map;
 
 bool OCLEngine::init()
 {
@@ -56,6 +61,7 @@ bool OCLEngine::init()
     engine_context = std::make_shared<cl::Context>(*engine_device, nullptr, nullptr, nullptr, &res);
     engine_command_queue = std::make_shared<cl::CommandQueue>(*engine_context, *engine_device, 0, &res);
     engine_convertor = std::make_shared<ocl_convertor>(this);
+    gpu_cache = std::make_shared<cl_cache>();
 
     const std::string device_name = engine_device->getInfo<CL_DEVICE_NAME>();
     const std::string vendor_name = engine_device->getInfo<CL_DEVICE_VENDOR>();
@@ -113,48 +119,6 @@ int OCLEngine::OCLEngineRun(struct subgraph* subgraph)
         int ir_tensor_idx = subgraph->input_tensor_list[i];
         struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_tensor_idx);
         upload_input_nc4hw(input_tensor, ir_tensor_idx);
-#if 0
-        // print input
-        printf("input ------------------ \n");
-        uint32_t input_w = input_tensor->dims[3] * UP_DIV(input_tensor->dims[1], 4);
-        uint32_t input_h = input_tensor->dims[2];
-        std::vector<float> input_debug(input_w * input_h * 4);
-        uint64_t mem = gpu_mem_map.find(ir_tensor_idx)->second;
-        get_command_queue().enqueueReadImage(*(cl::Image*)mem, CL_TRUE, {0, 0, 0}, {input_w, input_h, 1}, input_w * sizeof(float) * 4, 0, input_debug.data());
-        int idx_debug_input = 0;
-        for (int i = 0; i < 3; ++i)
-        {
-            for (int j = 0; j < input_w; ++j)
-            {
-                for (int k = 0; k < 4; ++k)
-                {
-                    printf("%f ", input_debug[idx_debug_input]);
-                    idx_debug_input++;
-                }
-                printf(" ");
-            }
-            printf("\n");
-        }
-        //    uint32_t output_w = width * UP_DIV(output_channel, 4);
-        //    uint32_t output_h = height;
-        //    std::vector<float> output_debug(output_w * output_h * 4);
-        //    engine->get_command_queue().enqueueReadImage(*(cl::Image*)handle_output, CL_TRUE, {0, 0, 0}, {output_w, output_h, 0}, output_w * sizeof(float) * 4, 0, output_debug.data());
-        //    int idx_debug_output = 0;
-        //    for (int i = 0; i < output_h; ++i)
-        //    {
-        //        for (int j = 0; j < input_w; ++j)
-        //        {
-        //            for (int k = 0; k < 4; ++k)
-        //            {
-        //                printf("%f ", output_debug[idx_debug_output]);
-        //                idx_debug_output++;
-        //            }
-        //            printf(" ");
-        //        }
-        //        printf("\n");
-        //    }
-
-#endif
     }
 
     for (auto& _ocl_node : exe_ocl_node_list)
@@ -168,7 +132,7 @@ int OCLEngine::OCLEngineRun(struct subgraph* subgraph)
         struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_tensor_idx);
         if (output_tensor->data == nullptr)
         {
-            //            TLOG_INFO("Log:download data malloc \n");
+            //TLOG_INFO("Log:download data malloc \n");
             auto* fp32_data = (float*)malloc(output_tensor->elem_size * output_tensor->elem_num);
             output_tensor->data = fp32_data;
         }
@@ -251,17 +215,21 @@ void OCLEngine::allocate_gpu_mem(struct tensor* ir_tensor, int tensor_index, cl_
     size_t image_width = UP_DIV(C, 4) * W;
     size_t image_height = N * H;
     cl_channel_type data_type = CL_FLOAT;
-    auto image = new cl::Image2D(*this->engine_context, flags, cl::ImageFormat(CL_RGBA, data_type), image_width, image_height, 0, nullptr, nullptr);
+    auto image = new cl::Image2D(*this->engine_context,
+                                 flags,
+                                 cl::ImageFormat(CL_RGBA, data_type),
+                                 image_width,
+                                 image_height,
+                                 0,
+                                 nullptr,
+                                 nullptr);
     gpu_mem_map.insert(std::make_pair(tensor_index, (gpu_mem_handle)image));
 }
 
-cl::Kernel OCLEngine::build_kernel(const std::string& program_name, const std::string& kernel_name, const std::set<std::string>& options)
+cl::Kernel OCLEngine::build_kernel(const std::string& program_name,
+                                   const std::string& kernel_name,
+                                   const std::set<std::string>& options)
 {
-    char* cl_env = getenv("ROOT_PATH");
-    std::string path = std::string(cl_env);
-    path += "/source/device/opencl/cl4/";
-    path += program_name + ".cl";
-
     std::string build_option_str;
     build_option_str = "-DFLOAT=float -DFLOAT4=float4 -DFLOAT8=float8 -DRI_F=read_imagef -DFLOAT16=float16 -DWI_F=write_imagef -DCONVERT_FLOAT4=convert_float4";
     for (auto& option : options)
@@ -269,11 +237,14 @@ cl::Kernel OCLEngine::build_kernel(const std::string& program_name, const std::s
         build_option_str += " " + option;
     }
     build_option_str += " -cl-mad-enable";
-
-    std::ifstream source_kernel_file(path.c_str());
-    std::string source_file((std::istreambuf_iterator<char>(source_kernel_file)), std::istreambuf_iterator<char>());
+    auto it_source = opencl_program_map.find(program_name);
+    if (it_source == opencl_program_map.end())
+    {
+        TLOG_ERR("build %s fail cannot find source \n", kernel_name.c_str());
+    }
     cl::Program::Sources sources;
-    sources.push_back(source_file);
+    std::string source_binary(it_source->second.begin(), it_source->second.end());
+    sources.push_back(source_binary);
     cl::Program program = cl::Program(*engine_context, sources);
     cl_int res;
     res = program.build({*engine_device}, build_option_str.c_str());
@@ -322,8 +293,6 @@ void OCLEngine::upload_input_nc4hw(tensor* ir_tensor, int ir_tensor_idx)
     }
     auto input_gpu_mem = gpu_mem_map.find(ir_tensor_idx)->second;
     get_converter().nchw_buffer_to_image(ir_tensor, temp_buffer_up_down.second.get(), (cl::Image*)input_gpu_mem, false);
-    //
-    //TLOG_INFO("upload_input_nc4hw : %lld \n", input_gpu_mem);
 }
 
 void OCLEngine::download_output(struct tensor* ir_tensor, int ir_tensor_idx)
@@ -343,23 +312,18 @@ void OCLEngine::download_output(struct tensor* ir_tensor, int ir_tensor_idx)
     W = ir_tensor->dims[3];
     int image_width = UP_DIV(C, 4) * W;
     int image_height = N * H;
-    get_converter().image_to_buffer(ir_tensor, (cl::Image*)input_gpu_mem, temp_buffer_up_down.second.get(), image_width, image_height);
-    engine_command_queue->enqueueReadBuffer(*temp_buffer_up_down.second, CL_TRUE, 0, need_size, ir_tensor->data, nullptr, nullptr);
-
-    //    float* ptr = (float*)ir_tensor->data;
-    //    int idx = 0;
-    //    for (int i = 0; i < 3; ++i)
-    //    {
-    //        for (int j = 0; j < 10; ++j)
-    //        {
-    //            for (int k = 0; k < 10; ++k)
-    //            {
-    //                printf("%.4f ", ptr[idx]);
-    //                idx ++;
-    //            }
-    //            printf("\n");
-    //        }
-    //    }
+    get_converter().image_to_buffer(ir_tensor,
+                                    (cl::Image*)input_gpu_mem,
+                                    temp_buffer_up_down.second.get(),
+                                    image_width,
+                                    image_height);
+    engine_command_queue->enqueueReadBuffer(*temp_buffer_up_down.second,
+                                            CL_TRUE,
+                                            0,
+                                            need_size,
+                                            ir_tensor->data,
+                                            nullptr,
+                                            nullptr);
 }
 
 const cl::Context& OCLEngine::get_context() const
@@ -381,6 +345,23 @@ uint64_t OCLEngine::get_gpu_mem_by_idx(int idx)
     }
     return gpu_mem_map.find(idx)->second;
 }
+
+std::vector<uint32_t> OCLEngine::get_max_image_size()
+{
+    size_t height, width;
+    cl_int res = engine_device->getInfo(CL_DEVICE_IMAGE2D_MAX_HEIGHT, &height);
+    if (res != CL_SUCCESS)
+    {
+        TLOG_ERR("getInfo(CL_DEVICE_IMAGE2D_MAX_HEIGHT error height %d\n", res);
+    }
+    res = engine_device->getInfo(CL_DEVICE_IMAGE2D_MAX_WIDTH, &width);
+    if (res != CL_SUCCESS)
+    {
+        TLOG_ERR("getInfo(CL_DEVICE_IMAGE2D_MAX_HEIGHT error width %d\n", res);
+    }
+    return {(uint32_t)width, (uint32_t)height};
+}
+
 std::vector<uint32_t> OCLEngine::get_max_work_item_sizes()
 {
     int dims = 3;
@@ -491,4 +472,37 @@ OCLEngine::~OCLEngine()
     }
     gpu_mem_map.clear();
     exe_ocl_node_list.clear();
+}
+
+int OCLEngine::get_cache_auto_tune(auto_tune* tune)
+{
+    if (gpu_cache->get_cache_tune(tune->key, tune) == 0)
+    {
+        return 0;
+    }
+    else
+    {
+        return -1;
+    }
+}
+
+int OCLEngine::add_cache_auto_tune(const auto_tune& tune)
+{
+    gpu_cache->set_auto_tune(tune);
+    return 0;
+}
+
+int OCLEngine::load_cache(const std::string& path)
+{
+    TLOG_ERR("load cache from path: %s \n", path.c_str());
+    gpu_cache->de_serializer(path);
+
+    return 0;
+}
+
+int OCLEngine::store_cache(const std::string& path)
+{
+    TLOG_ERR("store cache to path: %s \n", path.c_str());
+    gpu_cache->serializer(path);
+    return 0;
 }

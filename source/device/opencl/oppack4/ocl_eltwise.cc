@@ -136,6 +136,9 @@ void ocl_eltwise::run(struct subgraph* subgraph)
 #else
     run_node_2d(global_work_size, local_work_size, elt_kernel);
 #endif
+#ifdef OPENCL_DEBUG_DATA
+    debug_data();
+#endif
 }
 
 class ocl_elewise_creator : public ocl_node_creator

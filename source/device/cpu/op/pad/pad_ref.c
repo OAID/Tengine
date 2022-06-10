@@ -73,21 +73,11 @@ static void ref_pad_fp32(float* input, float* output, int in_h, int in_w, int ou
             {
                 outptr[x] = v;
             }
-            if (in_w < 12)
+            for (x = 0; x < in_w; x++)
             {
-                for (; x < (left + in_w); x++)
-                {
-                    outptr[x] = ptr[x - left];
-                }
+                outptr[left + x] = ptr[x];
             }
-            else
-            {
-                for (x = 0; x < in_w; x++)
-                {
-                    outptr[left + x] = ptr[x];
-                }
-            }
-            for (; x < out_w; x++)
+            for (x = out_w - left; x < out_w; x++)
             {
                 outptr[x] = v;
             }
@@ -331,21 +321,11 @@ static void ref_pad_uint8(uint8_t* input, uint8_t* output, int in_h, int in_w, i
             {
                 outptr[x] = v;
             }
-            if (in_w < 12)
+            for (x = 0; x < in_w; x++)
             {
-                for (; x < (left + in_w); x++)
-                {
-                    outptr[x] = ptr[x - left];
-                }
+                outptr[left + x] = ptr[x];
             }
-            else
-            {
-                for (x = 0; x < in_w; x++)
-                {
-                    outptr[left + x] = ptr[x];
-                }
-            }
-            for (; x < out_w; x++)
+            for (x = out_w - left; x < out_w; x++)
             {
                 outptr[x] = v;
             }

@@ -30,4 +30,7 @@ typedef struct ocl_option
 {
     char* dev_name;
     int precision; //!< precision of calculation
+    char* cache_path;
+    bool load_cache = false;
+    bool store_cache = false;
 } ocl_opt_t;
