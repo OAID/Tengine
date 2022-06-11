@@ -170,7 +170,7 @@ int VXEngine::VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_ty
                 vx_tensor = this->graph->CreateTensor(vx_spec, ir_tensor->data);
             }
         }
-        else if (spec_type == SPEC_TYPE_DWCONV)
+        else if (spec_type == SPEC_TYPE_DWCONV || spec_type == SPEC_TYPE_DW_DECONV)
         {
             auto tmpvx = vx_shape[ir_tensor->dim_num - 2];
             vx_shape[ir_tensor->dim_num - 2] = vx_shape[ir_tensor->dim_num - 1];
@@ -511,6 +511,14 @@ int VXEngine::VXEnginePreRun(struct subgraph* subgraph)
                 if (ir_node->input_num > 2)
                 {
                     this->VXTensorMap(ir_graph, ir_node->input_tensors[2], SPEC_TYPE_CONV_BIAS);
+                }
+            }
+            else if (ir_node->op.type == OP_DECONV)
+            {
+                auto deconv_param = (struct deconv_param*)ir_node->op.param_mem;
+                if ((deconv_param->group == deconv_param->num_output) && (deconv_param->num_output != 1))
+                {
+                    this->VXTensorMap(ir_graph, ir_node->input_tensors[1], SPEC_TYPE_DW_DECONV);
                 }
             }
             else if (ir_node->op.type == OP_PRELU)
