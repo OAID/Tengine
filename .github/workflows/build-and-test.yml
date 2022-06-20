@@ -259,7 +259,7 @@ jobs:
       run: cmake --build build -j 2
 
   linux-x64-cpu-tools-quant:
-    runs-on: x86-server-build-test
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
     - name: update
