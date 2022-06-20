@@ -612,7 +612,7 @@ void add_sub_graph_to_ir_graph(struct graph* ir_graph)
         {
             for (int k = 0; k < ir_graph->output_num; k++)
             {
-                if(sub_graph->node_list[j] == ir_graph->output_nodes[k])
+                if (sub_graph->node_list[j] == ir_graph->output_nodes[k])
                 {
                     struct node* ir_node = ir_graph->node_list[ir_graph->output_nodes[k]];
                     for (int q = 0; q < ir_node->output_num; q++)
@@ -621,7 +621,7 @@ void add_sub_graph_to_ir_graph(struct graph* ir_graph)
                         int tensor_mask_as_out_flag = 0;
                         for (int p = 0; p < sub_graph->output_num; p++)
                         {
-                            if(sub_graph->output_tensor_list[p] == ir_node->output_tensors[q])
+                            if (sub_graph->output_tensor_list[p] == ir_node->output_tensors[q])
                             {
                                 tensor_mask_as_out_flag = 1;
                                 break;

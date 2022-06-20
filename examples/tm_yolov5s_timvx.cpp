@@ -344,7 +344,7 @@ void get_input_data_focus_uint8(const char* image_file, uint8_t* input_data, int
 }
 
 void get_input_data_nofocus_uint8(const char* image_file, uint8_t* input_data, int letterbox_rows, int letterbox_cols, const float* mean,
-                                const float* scale, float input_scale, int zero_point)
+                                  const float* scale, float input_scale, int zero_point)
 {
     cv::Mat sample = cv::imread(image_file, 1);
     cv::Mat img;
@@ -403,7 +403,6 @@ void get_input_data_nofocus_uint8(const char* image_file, uint8_t* input_data, i
             }
         }
     }
-
 }
 
 int main(int argc, char* argv[])
@@ -545,9 +544,8 @@ int main(int argc, char* argv[])
 #if YOLOV5_VERSION6
     get_input_data_nofocus_uint8(image_file, input_data.data(), letterbox_rows, letterbox_cols, mean, scale, input_scale, input_zero_point);
 #else
-    get_input_data_focus_uint8(image_file, input_data.data(), letterbox_rows, letterbox_cols, mean, scale,input_scale, input_zero_point);
+    get_input_data_focus_uint8(image_file, input_data.data(), letterbox_rows, letterbox_cols, mean, scale, input_scale, input_zero_point);
 #endif
-
 
     /* run graph */
     double min_time = DBL_MAX;

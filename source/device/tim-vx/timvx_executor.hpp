@@ -89,7 +89,7 @@ extern "C" {
 #define SPEC_TYPE_SLICE     7
 #define SPEC_TYPE_RESHAPE   8
 #define SPEC_TYPE_INPUT     9
-#define SPEC_TYPE_DW_DECONV  10
+#define SPEC_TYPE_DW_DECONV 10
 
 typedef std::map<uint32_t, std::shared_ptr<tim::vx::Tensor> > dict_irt2vxt;
 typedef std::map<uint32_t, std::shared_ptr<tim::vx::Operation> > dict_irt2vxo;
