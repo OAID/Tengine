@@ -252,8 +252,22 @@ jobs:
     - name: update
       run: |
         sudo apt-get update
-        sudo apt-get install libopencv-dev
+        sudo apt-get install libprotobuf-dev protobuf-compiler
     - name: configure
-      run: mkdir build && cd build && cmake -DTENGINE_BUILD_CONVERT_TOOL=ON -DTENGINE_BUILD_TESTS=ON ..
+      run: mkdir build && cd build && cmake -DTENGINE_BUILD_CONVERT_TOOL=ON ..
     - name: build
       run: cmake --build build -j 2
+
+  linux-x64-cpu-tools-quant:
+    runs-on: x86-server-build-test
+    steps:
+    - uses: actions/checkout@v3
+    - name: update
+      run: |
+        sudo apt-get update
+        sudo apt-get install libprotobuf-dev protobuf-compiler libopencv-dev
+    - name: configure
+      run: mkdir build && cd build && cmake -DTENGINE_BUILD_QUANT_TOOL=ON ..
+    - name: build
+      run: cmake --build build -j2     
+  
