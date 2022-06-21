@@ -101,29 +101,29 @@ int create_test_convolution_node(graph_t graph, const char* input_name, const ch
  * float32 = (uint8 - zero_point) * scale
  */
 float input_fp32[18] = {1.0f, 1.0f, 1.0f,
-                       2.0f, 2.0f, 2.0f,
-                       3.0f, 3.0f, 3.0f,
-                       4.0f, 4.0f, 4.0f,
-                       5.0f, 5.0f, 5.0f,
-                       6.0f, 6.0f, 6.0f};
+                        2.0f, 2.0f, 2.0f,
+                        3.0f, 3.0f, 3.0f,
+                        4.0f, 4.0f, 4.0f,
+                        5.0f, 5.0f, 5.0f,
+                        6.0f, 6.0f, 6.0f};
 float input_scale = 1;
 int input_zero_point = 0;
 
 float weight_fp32[18] = {1.0f, 0.0f, 1.0f,
-                       0.0f, 1.0f, 0.0f,
-                       1.0f, 0.0f, 1.0f,
-                       0.0f, 1.0f, 0.0f,
-                       1.0f, 0.0f, 1.0f,
-                       0.0f, 1.0f, 0.0f};
+                         0.0f, 1.0f, 0.0f,
+                         1.0f, 0.0f, 1.0f,
+                         0.0f, 1.0f, 0.0f,
+                         1.0f, 0.0f, 1.0f,
+                         0.0f, 1.0f, 0.0f};
 float weight_scale = 1;
 int weight_zero_point = 0;
 
 float reference_out[18] = {3.0f, 5.0f, 3.0f,
-                          6.0f, 10.0f, 6.0f,
-                          5.0f, 7.0f, 5.0f,
-                          9.0f, 13.0f, 9.0f,
-                          15.0f, 20.0f, 15.0f,
-                          11.0f, 17.0f, 11.0f};
+                           6.0f, 10.0f, 6.0f,
+                           5.0f, 7.0f, 5.0f,
+                           9.0f, 13.0f, 9.0f,
+                           15.0f, 20.0f, 15.0f,
+                           11.0f, 17.0f, 11.0f};
 float output_scale = 1;
 int output_zero_point = 0;
 
