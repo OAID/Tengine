@@ -32,7 +32,7 @@ jobs:
 
     steps:
     - name: cancel-previous-runs
-      uses: styfle/cancel-workflow-action@0.9.1
+      uses: styfle/cancel-workflow-action@0.10.0
       with:
         access_token: ${{ secrets.GITHUB_TOKEN }}
     - name: Checkout repository
