@@ -233,9 +233,9 @@ $ make -j`nproc` && make install
 
 
 ### 2.6 编译 EAIS-750E Linux平台
-EAIS-750E是**OPEN AI LAB**官方推出的工业智能盒子，主控使用Amlogic A311D芯片，也是Tengine的参考开发平台。系统Linux系统包含 NPU 驱动(6.4.4.3AAA)和Tengine-Lite v1.5库( `/usr/lib` 目录下)，可以直接调用。如果为了学习调试Tengine或者为了升级Github最新版本，可以手动在盒子上本地编译。
+EAIS-750E 是 **OPEN AI LAB** 官方推出的工业智能盒子，主控使用 Amlogic A311D 芯片，也是 Tengine 的参考开发平台。Linux 系统包含 NPU 驱动(6.4.4.3AAA)和 Tengine-Lite v1.5库( `/usr/lib` 目录下)，可以直接调用。如果为了学习调试 Tengine 或者为了升级 Github 最新版本，可以手动在盒子上本地编译。
 
-\- 下载TIM-VX和Tengine代码仓库
+- 下载 TIM-VX 和 Tengine 代码仓库
 ```bash
 $ git clone https://github.com/VeriSilicon/TIM-VX.git
 $ git clone https://github.com/OAID/Tengine.git
@@ -244,7 +244,7 @@ $ cp -rf ../TIM-VX/include ./source/device/tim-vx/
 $ cp -rf ../TIM-VX/src ./source/device/tim-vx/
 ```
 
-\- 编译Tengine
+- 编译Tengine
 ```bash
 $ cd <tengine-lite-root-dir>
 $ mkdir build && cd build
@@ -252,7 +252,7 @@ $ cmake -DTENGINE_ENABLE_TIM_VX=ON -DTENGINE_ENABLE_MODEL_CACHE=ON ..
 $ make -j`nproc` && make install
 ```
 
-编译完成后，将build/install/lib/libtengine-lite.so 文件拷贝到/usr/lib/下替换原有库完成安装。
+编译完成后，将 `build/install/lib/libtengine-lite.so` 文件拷贝到 `/usr/lib/` 下替换原有库完成安装。
 
 
 
