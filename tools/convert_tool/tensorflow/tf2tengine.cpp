@@ -1938,6 +1938,9 @@ int tensorflow_serializer::generate_graph(ir_graph_t* graph)
         }
 
         op_load_t loader = op_load_map[tf_node->op].second;
+        if (loader == 0){
+           continue;
+        }
         if (loader(tf_node, tf_graph, graph, ir_node) < 0)
         {
             fprintf(stderr, "load op %s func failed in node %s .\n", tf_node->op.c_str(), tf_node->name.c_str());
