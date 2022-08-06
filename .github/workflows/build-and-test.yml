@@ -188,13 +188,13 @@ jobs:
         cmake --build . --config Release -j 2
 
 
-  linux-x64-cpu-timvx-gcc:
+  linux-x64-timvx-gcc:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
     - name: update
       run: sudo apt-get update
-    - name: protobuf
+    - name: libopencv
       run: sudo apt-get install libopencv-dev
     - name: tim-vx
       run: |
@@ -212,6 +212,23 @@ jobs:
       run: mkdir build && cd build && cmake -DTENGINE_ENABLE_TIM_VX=ON ..
     - name: build
       run: cmake --build build -j 2
+
+
+  linux-aarch64-timvx-gcc:
+    runs-on: vim3
+    steps:
+    - uses: actions/checkout@v3
+    - name: tim-vx
+      run: |
+        git clone https://github.com/VeriSilicon/TIM-VX.git
+        cp -rvf ./TIM-VX/include  ./source/device/tim-vx/
+        cp -rvf ./TIM-VX/src      ./source/device/tim-vx/
+        rm ./source/device/tim-vx/src/tim/vx/*_test.cc
+        rm ./source/device/tim-vx/src/tim/vx/ops/*_test.cc
+    - name: configure
+      run: mkdir build && cd build && cmake -DTENGINE_BUILD_TESTS=ON -DTENGINE_ENABLE_TIM_VX=ON ..
+    - name: build
+      run: cmake --build build -j 4
 
 
   linux-x64-cpu-gcc:
