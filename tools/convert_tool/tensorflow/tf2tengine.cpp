@@ -1938,8 +1938,9 @@ int tensorflow_serializer::generate_graph(ir_graph_t* graph)
         }
 
         op_load_t loader = op_load_map[tf_node->op].second;
-        if (loader == 0){
-           continue;
+        if (loader == 0)
+        {
+            continue;
         }
         if (loader(tf_node, tf_graph, graph, ir_node) < 0)
         {
