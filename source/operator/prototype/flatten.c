@@ -53,7 +53,9 @@ static int infer_shape(struct node* node)
 
     output->layout = TENGINE_LAYOUT_NHWC;
 
-    set_ir_tensor_shape(output, dims, 4);
+    //set_ir_tensor_shape(output, dims, 4);
+    //stephen@20220923
+    set_ir_tensor_shape(output, dims, 2);
 
     return 0;
 }
