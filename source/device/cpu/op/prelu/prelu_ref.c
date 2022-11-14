@@ -340,7 +340,7 @@ static int ref_prelu_int8(struct tensor* input_tensor, struct tensor* output_ten
     {
         input_fp32[i] = (float)data[i] * input_scale;
     }
-    //目前int8模式下，Prelu的斜率使用的是float16类型（不是int8类型），进行计算前需要先将其从float16转为float32。
+    //目前int8模式下，Prelu的斜率使用的是float16类型（不是int8类型），所以进行计算前需要先将其从float16转为float32。
     for (int i = 0; i < slope_size; i++)
     {
         slope_fp32[i] = fp16_to_fp32(slope_fp16[i]);
