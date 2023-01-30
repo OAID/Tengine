@@ -603,7 +603,7 @@ int CLGraph::run(struct subgraph *subgraph)
         }
     }
 
-    if(!scratch_mem)
+    if(scratch_mem)
         sys_free(scratch_mem);
 
     int size = functions_map_.size();
