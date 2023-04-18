@@ -1422,6 +1422,13 @@ tm_uoffset_t SaveTmReciprocalOp(void* const start_ptr, tm_uoffset_t* cur_pos, ir
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
 }
 
+tm_uoffset_t SaveTmGeluOp(void* const start_ptr, tm_uoffset_t* cur_pos, ir_node_t* node)
+{
+    TM2_Operator tm_op;
+    SetTmOperator(&tm_op, TM2_OPTYPE_GELU, TM2_NOT_SET);
+    return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
+}
+
 op_save_t SaveTmOpFunc(uint32_t op_type)
 {
     switch (op_type)
@@ -1606,6 +1613,8 @@ op_save_t SaveTmOpFunc(uint32_t op_type)
         return SaveTmMaximumOp;
     case OP_MINIMUM:
         return SaveTmMinimumOp;
+    case OP_GELU:
+        return SaveTmGeluOp;
     default:
         // fprintf(stderr, "Operator #%d not supported in tengine model yet\n", op_type);
         return nullptr;
