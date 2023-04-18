@@ -145,6 +145,7 @@ private:
     bool AddUpsampleNode(struct node* ir_node);
     bool AddSpatialtransformerNode(struct node* ir_node);
     bool AddL2normalizationNode(struct node* ir_node);
+    bool AddGeluNode(struct node* ir_node);
 
 public:
     std::shared_ptr<tim::vx::Context> context;
