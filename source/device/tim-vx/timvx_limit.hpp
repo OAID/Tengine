@@ -132,5 +132,6 @@ const int timvx_supported_ops[] = {
     //    OP_SOFTPLUS,
     //    OP_RECIPROCAL,
     OP_GELU,
+    OP_LAYERNORM,
     //    OP_BUILTIN_LAST
 };

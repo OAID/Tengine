@@ -368,6 +368,9 @@ int VXEngine::Build(struct subgraph* subgraph)
             case OP_GELU:
                 this->AddGeluNode(ir_node);
                 break;
+            case OP_LAYERNORM:
+                this->AddLayerNormNode(ir_node);
+                break;
             default:
                 fprintf(stderr, "Tengine TIM-VX: Cannot support OP(%d).\n", ir_node->index);
                 break;
