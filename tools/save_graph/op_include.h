@@ -103,6 +103,7 @@ extern "C" {
 #include "tile_param.h"
 #include "expand_param.h"
 #include "spatialtransformer_param.h"
+#include "layernorm_param.h"
 
 #ifdef __cplusplus
 }
