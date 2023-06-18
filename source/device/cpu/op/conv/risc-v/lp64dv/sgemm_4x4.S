@@ -85,8 +85,11 @@ sgemm_4x4_rv64:
         slli            a5, a5, 0x2
 #       // initial biases
         beqz            a0, non_biases
-        vsetvli         t0, a0, e32
-        vlw.v           v0, (a0)
+        
+        li              t0, 8
+        li              t1, 1024
+        vsetvl          t0, t1, t0
+        vle32.v           v0, (a0)
         vrgather.vi     v16, v0, 0
         vrgather.vi     v17, v0, 1
         vrgather.vi     v18, v0, 2
@@ -113,22 +116,22 @@ convoluation_start:
 loop4:  
         addi            t2, t2, -1
         
-        vlw.v           v0, (a1)
+        vle32.v           v0, (a1)
         addi            a1, a1, 16
-        vlw.v           v1, (a1)
+        vle32.v           v1, (a1)
         addi            a1, a1, 16
-        vlw.v           v2, (a1)
+        vle32.v           v2, (a1)
         addi            a1, a1, 16
-        vlw.v           v3, (a1)
+        vle32.v           v3, (a1)
         addi            a1, a1, 16
         
-        vlw.v           v4, (a2)
+        vle32.v           v4, (a2)
         addi            a2, a2, 16
-        vlw.v           v5, (a2)
+        vle32.v           v5, (a2)
         addi            a2, a2, 16
-        vlw.v           v6, (a2)
+        vle32.v           v6, (a2)
         addi            a2, a2, 16
-        vlw.v           v7, (a2)
+        vle32.v           v7, (a2)
         addi            a2, a2, 16
         
         vrgather.vi     v20, v4, 0
@@ -177,10 +180,10 @@ loop4_end:
 loop1:
         addi            t3, t3, -1
         
-        vlw.v           v0, (a1)
+        vle32.v           v0, (a1)
         addi            a1, a1, 16
         
-        vlw.v           v4, (a2)
+        vle32.v           v4, (a2)
         addi            a2, a2, 16
 
         vrgather.vi     v20, v4, 0
@@ -219,52 +222,21 @@ save_result:
 # 	// store result
         beqz            a7, save_result_nchw
         
-        li              t1, 0
-        vext.x.v        t0, v16, t1
-        sw              t0, 0(a4)
-        vext.x.v        t0, v17, t1
-        sw              t0, 4(a4)
-        vext.x.v        t0, v18, t1
-        sw              t0, 8(a4)
-        vext.x.v        t0, v19, t1
-        sw              t0, 12(a4)
-        
-        li              t1, 1
-        vext.x.v        t0, v16, t1
-        sw              t0, 0(t4)
-        vext.x.v        t0, v17, t1
-        sw              t0, 4(t4)
-        vext.x.v        t0, v18, t1
-        sw              t0, 8(t4)
-        vext.x.v        t0, v19, t1
-        sw              t0, 12(t4)
-        
-        li              t1, 2
-        vext.x.v        t0, v16, t1
-        sw              t0, 0(t5)
-        vext.x.v        t0, v17, t1
-        sw              t0, 4(t5)
-        vext.x.v        t0, v18, t1
-        sw              t0, 8(t5)
-        vext.x.v        t0, v19, t1
-        sw              t0, 12(t5)
-        
-        li              t1, 3
-        vext.x.v        t0, v16, t1
-        sw              t0, 0(t6)
-        vext.x.v        t0, v17, t1
-        sw              t0, 4(t6)
-        vext.x.v        t0, v18, t1
-        sw              t0, 8(t6)
-        vext.x.v        t0, v19, t1
-        sw              t0, 12(t6)
+        vsse32.v        v16, (a4), a5
+        addi            a4, a4, 4
+        vsse32.v        v17, (a4), a5
+        addi            a4, a4, 4
+        vsse32.v        v18, (a4), a5
+        addi            a4, a4, 4
+        vsse32.v        v19, (a4), a5
+
         j               end
 
 save_result_nchw:
-        vsw.v           v16, (a4)
-        vsw.v           v17, (t4)
-        vsw.v           v18, (t5)
-        vsw.v           v19, (t6)
+        vse32.v           v16, (a4)
+        vse32.v           v17, (t4)
+        vse32.v           v18, (t5)
+        vse32.v           v19, (t6)
 
 end:
 	ret
