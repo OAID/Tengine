@@ -73,7 +73,7 @@ im2col_fp32_1x1:
 	
 	slli	t5, a1, 1
 	
-	add 	t4, a4, 1								// x10 -> t4
+	andi	t4, a4, 0x1
 
 	// col loop
 col_loop:
@@ -95,7 +95,7 @@ channel_loop2:
 	bnez	t2, channel_loop2
 
 channel_last:
-	beqz 	t4, channel_loop_end
+	beqz        t4, channel_loop_end
 	vle32.v 	v0,(t3)
 	vse32.v 	v0, (a2)
 	addi 	a2, a2, 16
