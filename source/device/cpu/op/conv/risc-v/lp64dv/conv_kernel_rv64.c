@@ -171,7 +171,13 @@ static void im2col(float* input, float* col, int in_c, int in_w, int in_h, int k
             int imy3 = (col_i + 3) / out_w;
             int imx0 = col_i - imy0 * out_w;
             int imx3 = (col_i + 3) - imy3 * out_w;
-            if ((imy0 == imy3) && (is_pad0 || (imy0 != 0 && imx0 != 0 && imy0 != (out_h - 1) && imx3 != (out_w - 1))))
+
+            int imx_start = imx0 * s_w;
+            int imy_start = imy0 * s_h;
+            int imx_end = imx3 * s_w;
+            int imy_end = imy3 * s_h;
+
+            if ((imy0 == imy3) && (is_pad0 || (imx_start >= pad_w0 && imy_start >= pad_h0 && imx_end - pad_w0 + 4 < in_w && imy_end - pad_h0 < in_h)))
             {
                 float* l0 = input + (imy0 * s_h - pad_h0) * in_w + (imx0 * s_w - pad_w0);
                 {
