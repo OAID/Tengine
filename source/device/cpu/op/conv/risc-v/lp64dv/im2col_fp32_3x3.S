@@ -129,37 +129,26 @@ stride1_channel_loop:
         j               finish
 
 stride2_channel_loop:
-        la              t0, mask_32b
-        vle32.v           v0, (t0)
         addi            t0, a0, 0
         vlse32.v          v16, (t0), t2
         addi            t0, a0, 0x4
         vlse32.v          v17, (t0), t2
-        addi            t0, a0, 32
-        vle32.v           v18, (t0)
-        vslidedown.vi   v1, v16, 1
-        vslideup.vi     v2, v18, 3
-        vmerge.vvm      v18, v1, v2, v0
+        addi            t0, a0, 0x8 
+        vlse32.v           v18, (t0), t2
         
         addi            t0, t5, 0
         vlse32.v           v19, (t0), t2
         addi            t0, t5, 0x4
         vlse32.v           v20, (t0), t2
-        addi            t0, t5, 0x20
-        vle32.v           v21, (t0)
-        vslidedown.vi   v1, v19, 1
-        vslideup.vi     v2, v21, 3
-        vmerge.vvm      v21, v1, v2, v0
+        addi            t0, t5, 0x8 
+        vlse32.v           v21, (t0), t2
         
         addi            t0, t6, 0
         vlse32.v           v22, (t0), t2
         addi            t0, t6, 0x4
         vlse32.v           v23, (t0), t2
-        addi            t0, t6, 0x20
-        vle32.v           v24, (t0)
-        vslidedown.vi   v1, v22, 1
-        vslideup.vi     v2, v24, 3
-        vmerge.vvm      v24, v1, v2, v0
+        addi            t0, t6, 0x8 
+        vlse32.v           v24, (t0), t2
         
         addi            a3, a3, -1
         
