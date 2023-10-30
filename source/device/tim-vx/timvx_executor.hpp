@@ -79,6 +79,7 @@ extern "C" {
 #include "tim/vx/ops/transpose.h"
 #include "tim/vx/ops/spatial_transformer.h"
 #include "tim/vx/ops/l2normalization.h"
+#include "tim/vx/ops/layernormalization.h"
 
 #define SPEC_TYPE_CONV      1
 #define SPEC_TYPE_CONV_BIAS 2
@@ -145,6 +146,8 @@ private:
     bool AddUpsampleNode(struct node* ir_node);
     bool AddSpatialtransformerNode(struct node* ir_node);
     bool AddL2normalizationNode(struct node* ir_node);
+    bool AddGeluNode(struct node* ir_node);
+    bool AddLayerNormNode(struct node* ir_node);
 
 public:
     std::shared_ptr<tim::vx::Context> context;

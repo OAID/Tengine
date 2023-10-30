@@ -1109,7 +1109,7 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
     }
 
     // END transform output
-    if (outw_align != outw || outh_align != outw)
+    if (outw_align != outw || outh_align != outh)
     {
         delete_0_3D(top_blob, top_blob_bordered, outh_align, outw_align, outh, outw, outch, 0, 0);
     }

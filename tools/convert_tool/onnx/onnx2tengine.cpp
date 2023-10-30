@@ -2255,6 +2255,14 @@ static int load_gru(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& o
     return 0;
 }
 
+static int load_layer_norm(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
+{
+    struct layernorm_Param* layernorm_param = (struct layernorm_Param*)node->op.param_mem;
+    layernorm_param->eps = GetAttributeOrDefault<float>(onnx_node, "epsilon", 1e-5);
+
+    return 0;
+}
+
 /*
 *   OPERAOTR REGISTER FUNCTION DEFINE FOR ONNX SERIALIZER START
 */
@@ -2342,6 +2350,7 @@ void onnx_serializer::register_op_load()
     op_load_map["Unsqueeze"] = std::pair<int, op_load_t>(OP_UNSQUEEZE, load_unsqueeze);
     op_load_map["Where"] = std::pair<int, op_load_t>(OP_WHERE, load_no_param);
     op_load_map["Gelu"] = std::pair<int, op_load_t>(OP_GELU, load_no_param);
+    op_load_map["LayerNorm"] = std::pair<int, op_load_t>(OP_LAYERNORM, load_layer_norm);
 }
 /*
 *   OPERATOR REGISTER FUNCTION DEFINE FOR ONNX SERIALIZER END

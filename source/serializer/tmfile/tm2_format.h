@@ -151,6 +151,8 @@ typedef uint8_t tm_bool_t;     /* bool is 1-byte unsigned integer */
 #define TM2_OPSTR_SPATIALTRANSFORMER   "SpatialTransformer"
 #define TM2_OPSTR_EXPAND               "Expand"
 #define TM2_OPSTR_GELU                 "Gelu"
+#define TM2_OPSTR_LAYERNORM            "LayerNorm"
+
 /* Operator types */
 #define TM2_OPTYPE_ACCURACY             0  /* No Param                 */
 #define TM2_OPTYPE_BATCHNORMALIZATION   1  /* TM2_BatchNormParam       */
@@ -258,7 +260,8 @@ typedef uint8_t tm_bool_t;     /* bool is 1-byte unsigned integer */
 #define TM2_OPTYPE_RECIPROCAL           103
 #define TM2_OPTYPE_SPATIALTRANSFORMER   105
 #define TM2_OPTYPE_GELU                 106
-#define TM2_OPTYPE_NUM                  107
+#define TM2_OPTYPE_LAYERNORM            107
+#define TM2_OPTYPE_NUM                  108
 /* --------------------- -------- TM objects -------------------------------- */
 
 typedef struct
@@ -1005,6 +1008,11 @@ typedef struct
     tm_uoffset_t offset_ex_shape;
     int dim_num;
 } TM2_ExpandParam;
+
+typedef struct
+{
+    float eps;
+} TM2_LayerNormParam;
 
 #ifdef __cplusplus
 }
