@@ -42,7 +42,7 @@
 #include <string.h>
 
 #if __ARM_FEATURE_FP16_VECTOR_ARITHMETIC
-#include "cortex_a/fc_kernel_fp16_arm82.h"
+#include "armv8.2/fc_kernel_fp16_arm82.h"
 #endif
 
 static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)

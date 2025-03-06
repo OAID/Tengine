@@ -25,7 +25,9 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <math.h>
-#include "compiler_fp16.h"
+#include "graph/tensor.h"
+#include "utility/log.h"
+#include "common/compiler_fp16.h"
 #include "conv_dw_kernel_fp16_arm82.h"
 
 void dw_k3s1p1_fp16_a76(__fp16* input, __fp16* kernel, __fp16* output, long channel_number, long input_w, long input_h, __fp16* bias);

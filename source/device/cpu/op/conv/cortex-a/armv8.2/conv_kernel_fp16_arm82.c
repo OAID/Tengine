@@ -27,8 +27,8 @@
 #include <arm_neon.h>
 #include <sys/time.h>
 
-#include "conv_kernel_arm.h"
-#include "compiler_fp16.h"
+#include "../conv_kernel_arm.h"
+#include "common/compiler_fp16.h"
 
 #define PER_OUT_CHAN 16
 
