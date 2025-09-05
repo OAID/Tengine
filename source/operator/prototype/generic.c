@@ -41,8 +41,8 @@ static int infer_shape(struct node* node)
     struct generic_param* generic_param = (struct generic_param*)(node->op.param_mem);
 
     /* check input/output number */
-    int input_num = input->elem_num;
-    int output_num = output->elem_num;
+    size_t  input_num = input->elem_num;
+    size_t  output_num = output->elem_num;
 
     if (input_num > generic_param->max_input_num)
     {
