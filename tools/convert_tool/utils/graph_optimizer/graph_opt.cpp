@@ -26,12 +26,16 @@
 
 static int erase_tensor_id(ir_graph_t* graph, int16_t id)
 {
+    if (!graph || graph->tensor_num == 0 || id < 0 || id >= graph->tensor_num) {
+        return -1;
+    }
+    
     ir_tensor_t* tensor_del = get_ir_graph_tensor(graph, id);
     std::map<int16_t, int16_t> old_new_id;
     int16_t j = 0;
     for (size_t i = 0; i < graph->tensor_num; i++)
     {
-        if (i == id) continue;
+        if (i == (size_t)id) continue;
 
         ir_tensor_t* tensor = get_ir_graph_tensor(graph, i);
         tensor->index = j;
@@ -41,18 +45,20 @@ static int erase_tensor_id(ir_graph_t* graph, int16_t id)
     for (size_t i = 0; i < graph->node_num; i++)
     {
         ir_node_t* node = get_ir_graph_node(graph, i);
-        for (size_t j = 0; j < node->input_num; j++)
+        for (size_t k = 0; k < node->input_num; k++)
         {
-            node->input_tensors[j] = old_new_id[node->input_tensors[j]];
+            node->input_tensors[k] = old_new_id[node->input_tensors[k]];
         }
-        for (size_t j = 0; j < node->output_num; j++)
+        for (size_t k = 0; k < node->output_num; k++)
         {
-            node->output_tensors[j] = old_new_id[node->output_tensors[j]];
+            node->output_tensors[k] = old_new_id[node->output_tensors[k]];
         }
     }
 
-    ir_tensor_t** new_tensor_list = (ir_tensor_t**)sys_realloc(graph->tensor_list, sizeof(ir_tensor_t*) * (graph->tensor_num - 1));
-    graph->tensor_list = new_tensor_list;
+    size_t new_size = (size_t)(graph->tensor_num - 1) * sizeof(ir_tensor_t*);
+    ir_tensor_t** new_tensor_list =
+        (ir_tensor_t**)sys_realloc(graph->tensor_list, new_size);
+    if (new_tensor_list) graph->tensor_list = new_tensor_list;
     graph->tensor_num--;
 
     destroy_ir_tensor(graph, tensor_del);
