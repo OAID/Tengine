@@ -68,6 +68,7 @@ typedef struct graph
     struct attribute* attribute; //<! attribute of graph
 
     struct vector* subgraph_list; //!< subgraph list of this graph
+    const char* model_name; // ! < model name 
 } ir_graph_t;
 
 /*!

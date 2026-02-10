@@ -109,6 +109,8 @@ int get_mask_count(size_t mask);
 
 int get_mask_index(size_t mask);
 
+const char* get_filename_ptr(const char* path);
+
 #ifdef __cplusplus
 }
 #endif
