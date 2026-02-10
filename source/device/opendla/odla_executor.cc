@@ -593,6 +593,78 @@ int ODLAEngine::ODLAEnginePreRun(struct subgraph* subgraph)
 #endif
     NvDlaError e = NvDlaSuccess;
     struct graph* ir_graph = subgraph->graph;
+
+	// add to use cache bin
+    struct graph* ir_graph = subgraph->graph; 
+    std::stringstream cache_key_stream;
+    cache_key_stream << ir_graph->model_name << "_" 
+                    << this->profile->getName() << "_subgraph_" << subgraph->index
+                    << "_p" << (int)this->precision
+                    << "_b" << this->numBatches;    
+
+    std::hash<std::string> hasher;
+    std::string cache_filename = std::to_string(hasher(cache_key_stream.str())) + ".nvdla";
+    const char* cache_enable = getenv("TENGINE_ODLA_CACHE_ENABLE");
+    const char* cache_dir_env = getenv("TENGINE_ODLA_CACHE_DIR");
+    std::string cache_dir = (cache_dir_env) ? std::string(cache_dir_env) : "/tmp/tengine_cache";
+    std::string cached_file_path = cache_dir + "/" + cache_filename;
+    NvDlaFileHandle file_handle = 0;
+    printf("cache_enable = %s %d\n", cache_enable, strcmp(cache_enable, "ON"));
+    if (cache_enable && (strcmp(cache_enable, "ON") == 0) && (NvDlaFopen(cached_file_path.c_str(), NVDLA_OPEN_READ, &file_handle) == NvDlaSuccess))
+    {
+        fprintf(stdout, "[Tengine ODLA Cache] HIT. Loading from: %s\n", cached_file_path.c_str());
+        NvDlaStatType stat_info;
+        e = NvDlaFstat(file_handle, &stat_info);
+        if(e != NvDlaSuccess){
+             fprintf(stdout, "NvDlaFstat ERROR e %");
+             return -1;
+        }
+        NvU64 loadableSize = stat_info.size;
+
+        NvU8* buffer = (NvU8*)NvDlaAlloc(loadableSize);
+        NvDlaFseek(file_handle, 0, NvDlaSeek_Set);
+        if (buffer)
+        {
+            size_t bytes_read = 0;
+            e = NvDlaFread(file_handle, buffer, loadableSize, &bytes_read);
+            if(e != NvDlaSuccess || bytes_read != loadableSize){
+                fprintf(stdout, "NvDlaFread ERROR e %");
+                return -1;
+            }
+            NvDlaFclose(file_handle);
+
+            this->runtime->load(buffer, 0);
+            NvDlaFree(buffer);
+            if (subgraph->input_num > 0)
+            {
+                this->inputBuffer.reserve(subgraph->input_num);
+                for (uint8_t i = 0; i < subgraph->input_num; i++)
+                {
+                    nvdla::IRuntime::NvDlaTensor tDesc;
+                    void *hMem = NULL;
+                    this->runtime->getInputTensorDesc(i, &tDesc);
+                    this->runtime->allocateSystemMemory(&hMem, tDesc.bufferSize, &this->inputBuffer[i]);
+                    this->runtime->bindInputTensor(i, hMem);
+                }
+            }
+            if(subgraph->output_num > 0)
+            {
+                this->outputBuffer.reserve(subgraph->output_num);
+                for (uint8_t i = 0; i < subgraph->output_num; i++)
+                {
+                    nvdla::IRuntime::NvDlaTensor tDesc;
+                    void *hMem = nullptr;
+                    this->runtime->getOutputTensorDesc(i, &tDesc);
+                    this->runtime->allocateSystemMemory(&hMem, tDesc.bufferSize, &this->outputBuffer[i]);
+                    this->runtime->bindOutputTensor(i, hMem);
+                }
+            }
+            return 0;
+        }
+    }
+     // --- CACHE MISS ---
+    fprintf(stdout, "[Tengine ODLA Cache] MISS. Compiling subgraph %d...\n", subgraph->index);
+
     /* Add OpenDLA Tensor */
     for (uint8_t i = 0; i < subgraph->input_num; i++)
     {
@@ -880,6 +952,22 @@ int ODLAEngine::ODLAEnginePreRun(struct subgraph* subgraph)
             return -1;
         }
         this->loadable.priv()->getSerializedData(buffer);
+
+
+
+        // add cache nvdla bin
+        struct stat st = {0};
+        if (stat(cache_dir.c_str(), &st) == -1) {
+            mkdir(cache_dir.c_str(), 0755);
+        }
+    
+        NvDlaFileHandle cache_file_handle = 0;
+        if (cache_enable && (strcmp(cache_enable, "ON") == 0) && (NvDlaFopen(cached_file_path.c_str(), NVDLA_OPEN_WRITE, &cache_file_handle) == NvDlaSuccess))
+        {
+            NvDlaFwrite(cache_file_handle, buffer, loadableSize);
+            NvDlaFclose(cache_file_handle);
+            fprintf(stdout, "[Tengine ODLA Cache] SAVED. Stored cache to: %s\n", cached_file_path.c_str());
+        }
 
         env = getenv(OPENDLA_DUMP_LAYER);
         if (env && env[0] == '1'){

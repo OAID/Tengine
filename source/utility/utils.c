@@ -202,3 +202,15 @@ int get_mask_index(size_t mask)
 
     return 0;
 }
+
+
+const char* get_filename_ptr(const char* path) {
+    if (!path || !*path) return path;
+    
+    const char* last_slash = strrchr(path, '/');
+    const char* last_backslash = strrchr(path, '\\');
+    
+    const char* last_sep = last_slash > last_backslash ? last_slash : last_backslash;
+    
+    return last_sep ? (last_sep + 1) : path;
+}

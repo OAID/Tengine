@@ -387,6 +387,9 @@ graph_t create_graph(context_t context, const char* model_format, const char* fi
         return NULL;
     }
 
+    // add model_name to cache nvdla bin
+    ir_graph->model_name = get_filename_ptr(file_name);
+
     ir_graph->attribute->private_context = is_new_context;
 
     if (NULL != model_format)
