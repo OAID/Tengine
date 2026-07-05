@@ -154,13 +154,29 @@ static int unregister_tm2_op_loader(struct tm2_serializer* s, int op_type, int o
     return -1;
 }
 
+/* return 1 if [off, off+sz) is fully inside the mapped model file, else 0.
+   All offsets/counts in a tmfile are attacker-controlled; validate before dereferencing. */
+static inline int tm2_off_ok(const struct tm2_priv* priv, size_t off, size_t sz)
+{
+    if (priv->mem_len < 0)
+        return 0;
+    size_t len = (size_t)priv->mem_len;
+    return off <= len && sz <= len - off;
+}
+
 static int load_graph_tensors(struct tm2_serializer* tm2_s, struct graph* graph, struct tm2_priv* priv)
 {
     char* mem_base = (char*)priv->base;
     const TM2_Subgraph* tm_graph = priv->subgraph;
 
+    if (!tm2_off_ok(priv, tm_graph->offset_vo_tensors, sizeof(TM2_Vector_offsets)) ||
+        !tm2_off_ok(priv, tm_graph->offset_vo_buffers, sizeof(TM2_Vector_offsets)))
+        return -1;
     const TM2_Vector_offsets* v_tensors = (TM2_Vector_offsets*)(mem_base + tm_graph->offset_vo_tensors);
     const TM2_Vector_offsets* v_buffers = (TM2_Vector_offsets*)(mem_base + tm_graph->offset_vo_buffers);
+    if (!tm2_off_ok(priv, tm_graph->offset_vo_tensors, sizeof(TM2_Vector_offsets) + (size_t)v_tensors->v_num * sizeof(v_tensors->offsets[0])) ||
+        !tm2_off_ok(priv, tm_graph->offset_vo_buffers, sizeof(TM2_Vector_offsets) + (size_t)v_buffers->v_num * sizeof(v_buffers->offsets[0])))
+        return -1;
 
     graph->graph_layout = tm_graph->graph_layout;
     graph->model_layout = tm_graph->model_layout;
@@ -174,6 +190,8 @@ static int load_graph_tensors(struct tm2_serializer* tm2_s, struct graph* graph,
 
     for (int i = 0; i < v_tensors->v_num; i++)
     {
+        if (!tm2_off_ok(priv, v_tensors->offsets[i], sizeof(TM2_Tensor)))
+            return -1;
         const TM2_Tensor* tm_tensor = (TM2_Tensor*)(mem_base + v_tensors->offsets[i]);
         int flag_permute = 0; // flag the tensor has to be permute
         int dims_org[8] = {0};
@@ -192,14 +210,22 @@ static int load_graph_tensors(struct tm2_serializer* tm2_s, struct graph* graph,
         if (tm_tensor->offset_s_tname != TM2_NOT_SET)
         {
             // TODO: using update the TM2 model
+            if (!tm2_off_ok(priv, tm_tensor->offset_s_tname, sizeof(TM2_String)))
+                return -1;
             const TM2_String* tm_str = (TM2_String*)(mem_base + tm_tensor->offset_s_tname);
+            if (!tm2_off_ok(priv, tm_str->offset_data, tm_str->size))
+                return -1;
             ir_tensor->name = strdup_name(mem_base + tm_str->offset_data, tm_str->size);
         }
 
         /* shape */
         if (tm_tensor->offset_vd_dims != TM2_NOT_SET)
         {
+            if (!tm2_off_ok(priv, tm_tensor->offset_vd_dims, sizeof(TM2_Vector_dims)))
+                return -1;
             const TM2_Vector_dims* v_dims = (TM2_Vector_dims*)(mem_base + tm_tensor->offset_vd_dims);
+            if (!tm2_off_ok(priv, tm_tensor->offset_vd_dims, sizeof(TM2_Vector_dims) + (size_t)v_dims->v_num * sizeof(v_dims->dims[0])))
+                return -1;
 
             if (tm_graph->model_layout == TENGINE_LAYOUT_NCHW)
             {
@@ -235,6 +261,9 @@ static int load_graph_tensors(struct tm2_serializer* tm2_s, struct graph* graph,
         /* load const type of tensor, such as the weight or bias for convolution node */
         if (ir_tensor->tensor_type == TENSOR_TYPE_CONST)
         {
+            if (tm_tensor->buffer_id >= v_buffers->v_num ||
+                !tm2_off_ok(priv, v_buffers->offsets[tm_tensor->buffer_id], sizeof(TM2_Buffer)))
+                return -1;
             const TM2_Buffer* tm_buf = (TM2_Buffer*)(mem_base + v_buffers->offsets[tm_tensor->buffer_id]);
 
             /* fill temp data buffer to benchmark */
