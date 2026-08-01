@@ -164,6 +164,13 @@ static inline int tm2_off_ok(const struct tm2_priv* priv, size_t off, size_t sz)
     return off <= len && sz <= len - off;
 }
 
+/* Largest offsets[] element count that still fits inside the mapping after the
+   TM2_Vector_offsets header at <off>. Expressed as a division so the bound can
+   never overflow, mirroring tm2_off_ok above. */
+#define TM2_MAX_QUANTPARAMS(priv, off)                                             \
+    ((((size_t)(priv)->mem_len) - (size_t)(off) - sizeof(TM2_Vector_offsets))      \
+     / sizeof(tm_uoffset_t))
+
 static int load_graph_tensors(struct tm2_serializer* tm2_s, struct graph* graph, struct tm2_priv* priv)
 {
     char* mem_base = (char*)priv->base;
@@ -464,12 +471,23 @@ static int load_graph_tensors(struct tm2_serializer* tm2_s, struct graph* graph,
         /* load vector type of tensor */
         if (tm_tensor->offect_vo_quantparams != TM2_NOT_SET)
         {
+            /* the vector header itself must lie inside the mapping before it is read */
+            if (!tm2_off_ok(priv, tm_tensor->offect_vo_quantparams, sizeof(TM2_Vector_offsets)))
+                return -1;
+
             const TM2_Vector_offsets* v_quantparams = (TM2_Vector_offsets*)(mem_base + tm_tensor->offect_vo_quantparams);
+
+            /* v_num is file controlled, so the offsets[] array it describes must fit too.
+               written as a division rather than a multiply so it cannot overflow. */
+            if (v_quantparams->v_num > (TM2_MAX_QUANTPARAMS(priv, tm_tensor->offect_vo_quantparams)))
+                return -1;
 
             /* currently only support one quant param */
             ir_tensor->quant_param_num = v_quantparams->v_num;
             if (v_quantparams->v_num == 1)
             {
+                if (!tm2_off_ok(priv, v_quantparams->offsets[0], sizeof(TM2_QuantParam)))
+                    return -1;
                 const TM2_QuantParam* tm_qtparam = (TM2_QuantParam*)(mem_base + v_quantparams->offsets[0]);
                 ir_tensor->scale = tm_qtparam->scale;
                 ir_tensor->zero_point = tm_qtparam->zero_point;
@@ -484,6 +502,8 @@ static int load_graph_tensors(struct tm2_serializer* tm2_s, struct graph* graph,
 
                 for (int j = 0; j < v_quantparams->v_num; j++)
                 {
+                    if (!tm2_off_ok(priv, v_quantparams->offsets[j], sizeof(TM2_QuantParam)))
+                        return -1;
                     const TM2_QuantParam* tm_qtparam = (TM2_QuantParam*)(mem_base + v_quantparams->offsets[j]);
                     ir_tensor->scale_list[j] = tm_qtparam->scale;
                     ir_tensor->zp_list[j] = tm_qtparam->zero_point;
